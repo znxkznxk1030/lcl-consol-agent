@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \":*)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(python -c \"from server.main import app; print\\(''server import OK''\\)\")",
+      "Bash(python -c \"from server.main import app; from agents.agent_server import app as a2; print\\(''imports OK''\\)\")"
+    ]
+  }
+}

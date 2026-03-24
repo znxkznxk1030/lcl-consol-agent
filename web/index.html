@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Consolidation Simulator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 20px; }
+
+h1 { font-size: 16px; margin-bottom: 14px; color: #aaa; letter-spacing: 2px; text-transform: uppercase; }
+
+/* toolbar */
+.toolbar { display: flex; gap: 8px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+button {
+  padding: 7px 16px; border: 1px solid #444; background: #1a1a1a;
+  color: #ccc; cursor: pointer; font-family: monospace; font-size: 12px;
+}
+button:hover:not(:disabled) { background: #252525; border-color: #666; }
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+button.green  { border-color: #3a6a3a; color: #7c7; }
+button.green:hover:not(:disabled) { background: #1a2e1a; }
+button.blue   { border-color: #2a4a7a; color: #7af; }
+button.blue:hover:not(:disabled) { background: #1a2a3a; }
+button.orange { border-color: #6a4a1a; color: #fa8; }
+button.orange:hover:not(:disabled) { background: #2a1e0a; }
+
+.badge { padding: 3px 10px; font-size: 11px; border: 1px solid #333; color: #666; }
+.badge.waiting    { border-color: #3a6a3a; color: #7c7; }
+.badge.processing { border-color: #6a6a1a; color: #cc7; }
+.badge.done       { border-color: #2a4a7a; color: #7af; }
+.badge.idle       { border-color: #333;    color: #666; }
+
+.ws-dot { width: 7px; height: 7px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
+.ws-dot.on { background: #4a4; }
+
+/* layout */
+.layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.panel { background: #141414; border: 1px solid #2a2a2a; padding: 14px; }
+.panel.wide { grid-column: span 2; }
+.panel h2 { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+/* agent panel */
+.agent-panel {
+  background: #0e1a0e; border: 1px solid #2a4a2a; padding: 14px;
+  margin-bottom: 14px;
+}
+.agent-panel h2 { font-size: 11px; color: #4a7a4a; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.decision-box { background: #0a120a; border: 1px solid #2a4a2a; padding: 12px; margin-bottom: 10px; }
+.decision-action { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
+.decision-action.dispatch { color: #fa8; }
+.decision-action.wait { color: #7af; }
+.decision-reason { font-size: 12px; color: #7a7; margin-bottom: 10px; }
+.analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; }
+.analysis-row { display: flex; justify-content: space-between; padding: 2px 6px; background: #111; }
+.analysis-row .k { color: #556; }
+.analysis-row .v { color: #aaa; }
+.analysis-row .v.true { color: #fa8; }
+.agent-actions { display: flex; gap: 8px; align-items: center; }
+.shipment-chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { padding: 2px 8px; font-size: 11px; background: #1a2a1a; border: 1px solid #3a5a3a; color: #7a9; }
+
+/* metrics */
+.metric-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1e1e1e; font-size: 12px; }
+.metric-row .k { color: #666; }
+.metric-row .v { color: #ccc; }
+.metric-row .v.good { color: #7c7; }
+.metric-row .v.bad  { color: #f77; }
+
+/* cbm bar */
+.bar-wrap { margin: 8px 0; }
+.bar-label { font-size: 11px; color: #555; margin-bottom: 3px; }
+.bar-track { background: #1e1e1e; height: 14px; border: 1px solid #2a2a2a; }
+.bar-fill { height: 100%; background: #1e4a1e; transition: width 0.4s; }
+.bar-fill.warn { background: #4a3a1a; }
+.bar-fill.full { background: #4a1e1e; }
+
+/* lists */
+.scroll-list { height: 160px; overflow-y: auto; }
+.scroll-list::-webkit-scrollbar { width: 4px; }
+.scroll-list::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+.s-row { display: flex; gap: 8px; padding: 3px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; align-items: center; }
+.s-row input[type=checkbox] { accent-color: #4a7; cursor: pointer; }
+.s-row .sid { color: #555; width: 100px; }
+.s-row .type { width: 16px; text-align: center; }
+.type-A { color: #7af; } .type-B { color: #7c7; } .type-C { color: #fa8; }
+.s-row .cbm { color: #888; width: 55px; }
+.s-row .wait { color: #666; }
+.s-row .wait.urgent { color: #f77; }
+
+.e-row { padding: 2px 0; border-bottom: 1px solid #181818; font-size: 11px; }
+.e-row .ts { color: #444; margin-right: 6px; }
+.e-row .et { margin-right: 6px; }
+.et.ARRIVAL { color: #7af; } .et.DISPATCH { color: #fa8; } .et.MBL { color: #7c7; }
+.et.TICK { color: #333; } .et.SLA { color: #f55; } .et.DONE { color: #7af; }
+
+.mbl-row { padding: 3px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; display: flex; gap: 8px; }
+.mbl-row .mid { color: #7c7; width: 100px; }
+.mbl-row .info { color: #666; }
+
+/* tick counter */
+.big-time { font-size: 32px; font-weight: bold; color: #fff; }
+.sub-time { font-size: 11px; color: #444; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<h1>⬡ Consolidation Simulator</h1>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <button class="green" id="btnStart" onclick="startSim()">▶ Start</button>
+  <button id="btnNextTick" onclick="nextTick()" disabled>⏭ Next Tick</button>
+  <button id="btnReset" onclick="resetSim()">↺ Reset</button>
+  <span class="badge idle" id="badge">idle</span>
+  <span style="font-size:11px; color:#444; margin-left:auto;">
+    <span class="ws-dot" id="wsDot"></span>sim :8000
+    &nbsp;&nbsp;
+    <span class="ws-dot" id="agentDot"></span>agent :8001
+  </span>
+</div>
+
+<!-- Agent Panel -->
+<div class="agent-panel">
+  <h2>Agent Decision</h2>
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <div style="flex:1;">
+      <div class="decision-box" id="decisionBox">
+        <div style="color:#333; font-size:12px;">
+          Ask agent to analyze current state
+        </div>
+      </div>
+      <div class="agent-actions">
+        <button class="blue" id="btnAsk" onclick="askAgent()" disabled>🤖 Ask Agent</button>
+        <button id="btnAutoAsk" onclick="toggleAutoAsk()" disabled>자동 분석 OFF</button>
+        <button class="orange" id="btnApply" onclick="applyDecision()" disabled>✓ Apply</button>
+        <span style="font-size:11px; color:#444;" id="applyHint"></span>
+      </div>
+    </div>
+    <div style="width:220px;">
+      <div class="panel" style="background:#0a120a; border-color:#2a4a2a;">
+        <h2>Manual Dispatch</h2>
+        <div style="font-size:11px; color:#556; margin-bottom:6px;">체크 후 직접 출고</div>
+        <div id="manualList" class="scroll-list" style="height:100px;"></div>
+        <button style="margin-top:8px; width:100%;" id="btnManual" onclick="manualDispatch()" disabled>Dispatch Selected</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Grid -->
+<div class="layout">
+
+  <!-- Time panel -->
+  <div class="panel">
+    <h2>시뮬레이션 시간</h2>
+    <div class="big-time" id="bigTime">T = 0</div>
+    <div class="sub-time" id="subTime">/ 72 hrs</div>
+    <div style="margin-top:12px;">
+      <div class="metric-row"><span class="k">마감까지 남은 시간</span><span class="v" id="ttc">—</span></div>
+      <div class="metric-row"><span class="k">다음 마감 시각</span><span class="v" id="nc">—</span></div>
+      <div class="metric-row"><span class="k">출고된 MBL 수</span><span class="v" id="nMbls">0</span></div>
+      <div class="metric-row"><span class="k">출고된 화물 수</span><span class="v" id="nDisp">0</span></div>
+    </div>
+  </div>
+
+  <!-- Buffer panel -->
+  <div class="panel wide">
+    <h2>창고 버퍼</h2>
+    <div class="bar-wrap">
+      <div class="bar-label">부피 (CBM): <span id="cbmLabel">0 / 10</span></div>
+      <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    </div>
+    <div class="scroll-list" id="bufferList">
+      <div style="color:#333; font-size:11px;">No shipments in buffer</div>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div class="panel">
+    <h2>이벤트 로그</h2>
+    <div class="scroll-list" id="eventLog" style="height:200px;"></div>
+  </div>
+
+  <!-- MBLs + Metrics -->
+  <div class="panel wide">
+    <h2>출고된 MBL 목록</h2>
+    <div class="scroll-list" id="mblList" style="height:110px;">
+      <div style="color:#333; font-size:11px;">No MBLs yet</div>
+    </div>
+    <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:0 20px;">
+      <div class="metric-row"><span class="k">평균 적재율</span><span class="v" id="mFill">—</span></div>
+      <div class="metric-row"><span class="k">총 비용</span><span class="v" id="mCost">—</span></div>
+      <div class="metric-row"><span class="k">납기 위반율</span><span class="v" id="mSla">—</span></div>
+      <div class="metric-row"><span class="k">평균 대기 시간</span><span class="v" id="mWait">—</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SIM = 'http://localhost:8000';
+const AGENT = 'http://localhost:8001';
+
+let ws = null;
+let lastState = null;
+let pendingDecision = null;
+let autoAsk = false;
+
+// ---------------------------------------------------------------------------
+// WebSocket
+// ---------------------------------------------------------------------------
+
+function connectWS() {
+  ws = new WebSocket('ws://localhost:8000/ws');
+  ws.onopen = () => {
+    document.getElementById('wsDot').classList.add('on');
+    checkAgent();
+  };
+  ws.onclose = () => {
+    document.getElementById('wsDot').classList.remove('on');
+    setTimeout(connectWS, 2000);
+  };
+  ws.onmessage = e => handleMsg(JSON.parse(e.data));
+}
+
+async function checkAgent() {
+  try {
+    const r = await fetch(`${AGENT}/health`);
+    if (r.ok) document.getElementById('agentDot').classList.add('on');
+  } catch { document.getElementById('agentDot').classList.remove('on'); }
+}
+
+function handleMsg(msg) {
+  if (msg.state) {
+    lastState = msg.state;
+    renderState(msg.state);
+  }
+  if (msg.type === 'tick') {
+    addEvent(`T=${msg.tick}`, 'TICK', `화물 ${msg.new_arrivals}건 도착`);
+    document.getElementById('btnNextTick').disabled = false;
+    document.getElementById('btnAsk').disabled = false;
+    if (autoAsk) askAgent();
+  }
+  if (msg.type === 'dispatch') {
+    addEvent('', 'DISPATCH', `${msg.dispatched_ids.length}건 출고`);
+    clearDecision();
+  }
+  if (msg.type === 'started') {
+    setBadge('waiting');
+    document.getElementById('btnNextTick').disabled = false;
+    document.getElementById('btnAsk').disabled = false;
+    document.getElementById('btnAutoAsk').disabled = false;
+    document.getElementById('btnStart').disabled = true;
+  }
+  if (msg.type === 'done') {
+    setBadge('done');
+    autoAsk = false;
+    document.getElementById('btnNextTick').disabled = true;
+    document.getElementById('btnAsk').disabled = true;
+    document.getElementById('btnAutoAsk').disabled = true;
+    document.getElementById('btnAutoAsk').textContent = '자동 분석 OFF';
+    document.getElementById('btnAutoAsk').classList.remove('green');
+    document.getElementById('btnStart').disabled = false;
+    addEvent('', 'DONE', '시뮬레이션 완료');
+    if (msg.metrics) renderMetrics(msg.metrics);
+  }
+  if (msg.type === 'reset') {
+    clearAll();
+  }
+  if (msg.type === 'error') {
+    addEvent('', 'ERR', msg.message);
+    setBadge('idle');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sim API
+// ---------------------------------------------------------------------------
+
+async function startSim() {
+  const r = await fetch(`${SIM}/simulation/start`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({seed:42, sim_duration_hours:72}),
+  });
+  const d = await r.json();
+  if (!d.ok) alert(d.detail || 'Error');
+}
+
+async function nextTick() {
+  document.getElementById('btnNextTick').disabled = true;
+  document.getElementById('btnAsk').disabled = true;
+  clearDecision();
+  const r = await fetch(`${SIM}/simulation/next_tick`, {method:'POST'});
+  if (!r.ok) {
+    const d = await r.json();
+    alert(d.detail);
+    document.getElementById('btnNextTick').disabled = false;
+  }
+}
+
+async function resetSim() {
+  await fetch(`${SIM}/simulation/reset`, {method:'POST'});
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnNextTick').disabled = true;
+  document.getElementById('btnAsk').disabled = true;
+  setBadge('idle');
+  clearAll();
+}
+
+// ---------------------------------------------------------------------------
+// Agent flow
+// ---------------------------------------------------------------------------
+
+function toggleAutoAsk() {
+  autoAsk = !autoAsk;
+  const btn = document.getElementById('btnAutoAsk');
+  btn.textContent = autoAsk ? '자동 분석 ON' : '자동 분석 OFF';
+  if (autoAsk) btn.classList.add('green');
+  else btn.classList.remove('green');
+}
+
+async function askAgent() {
+  if (!lastState) return;
+  document.getElementById('btnAsk').disabled = true;
+  document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking agent...</div>';
+
+  try {
+    const r = await fetch(`${AGENT}/decide`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({state: lastState}),
+    });
+    if (!r.ok) throw new Error(`Agent error: ${r.status}`);
+    const d = await r.json();
+    pendingDecision = d;
+    renderDecision(d);
+    document.getElementById('btnApply').disabled = d.action === 'WAIT' || !d.selected_ids.length;
+    document.getElementById('applyHint').textContent =
+      d.action === 'DISPATCH' ? `${d.selected_ids.length} shipments selected` : '';
+  } catch(e) {
+    document.getElementById('decisionBox').innerHTML = `<div style="color:#f55;font-size:12px;">${e.message}</div>`;
+    document.getElementById('agentDot').classList.remove('on');
+  }
+  document.getElementById('btnAsk').disabled = false;
+}
+
+async function applyDecision() {
+  if (!pendingDecision || pendingDecision.action !== 'DISPATCH') return;
+  document.getElementById('btnApply').disabled = true;
+
+  const r = await fetch(`${SIM}/dispatch`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      selected_ids: pendingDecision.selected_ids,
+      reason: pendingDecision.reason,
+    }),
+  });
+  const d = await r.json();
+  if (!d.ok) {
+    alert(d.detail);
+    document.getElementById('btnApply').disabled = false;
+  }
+  pendingDecision = null;
+}
+
+function renderDecision(d) {
+  const isDispatch = d.action === 'DISPATCH';
+  const actionClass = isDispatch ? 'dispatch' : 'wait';
+  const chips = isDispatch
+    ? `<div class="shipment-chips">${d.selected_ids.map(id =>
+        `<span class="chip">${id}</span>`).join('')}</div>` : '';
+
+  const LABELS = {
+    buffer_count:    '버퍼 화물 수',
+    total_cbm:       '총 부피 (CBM)',
+    fill_pct:        '적재율 (%)',
+    time_to_cutoff:  '마감까지 남은 시간',
+    max_waiting_time:'최장 대기 시간',
+    near_cutoff:     '마감 임박 여부',
+    cbm_full:        '부피 초과 여부',
+    too_old:         '대기 초과 여부',
+  };
+  const analysisRows = Object.entries(d.analysis).map(([k,v]) => {
+    const isBool = typeof v === 'boolean';
+    const valClass = isBool && v ? ' true' : '';
+    const label = LABELS[k] || k;
+    const display = typeof v === 'boolean' ? (v ? '예' : '아니오') : v;
+    return `<div class="analysis-row"><span class="k">${label}</span><span class="v${valClass}">${display}</span></div>`;
+  }).join('');
+
+  document.getElementById('decisionBox').innerHTML = `
+    <div class="decision-action ${actionClass}">${d.action}</div>
+    <div class="decision-reason">${d.reason}</div>
+    ${chips}
+    <div class="analysis-grid" style="margin-top:8px;">${analysisRows}</div>
+  `;
+}
+
+function clearDecision() {
+  pendingDecision = null;
+  document.getElementById('decisionBox').innerHTML =
+    '<div style="color:#333;font-size:12px;">Ask agent to analyze current state</div>';
+  document.getElementById('btnApply').disabled = true;
+  document.getElementById('applyHint').textContent = '';
+}
+
+// ---------------------------------------------------------------------------
+// Manual dispatch
+// ---------------------------------------------------------------------------
+
+function renderManualList(shipments) {
+  const el = document.getElementById('manualList');
+  if (!shipments || !shipments.length) {
+    el.innerHTML = '<div style="color:#333;font-size:11px;">Empty</div>';
+    document.getElementById('btnManual').disabled = true;
+    return;
+  }
+  el.innerHTML = shipments.map(s =>
+    `<div class="s-row">
+      <input type="checkbox" class="manual-cb" value="${s.shipment_id}">
+      <span class="sid">${s.shipment_id}</span>
+      <span class="type type-${s.item_type}">${s.item_type}</span>
+      <span class="cbm">${s.cbm}cbm</span>
+    </div>`
+  ).join('');
+  document.getElementById('btnManual').disabled = false;
+}
+
+async function manualDispatch() {
+  const checked = [...document.querySelectorAll('.manual-cb:checked')].map(cb => cb.value);
+  if (!checked.length) { alert('Select shipments first'); return; }
+  const r = await fetch(`${SIM}/dispatch`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({selected_ids: checked, reason: 'manual'}),
+  });
+  const d = await r.json();
+  if (!d.ok) alert(d.detail);
+}
+
+// ---------------------------------------------------------------------------
+// UI rendering
+// ---------------------------------------------------------------------------
+
+function renderState(s) {
+  setBadge(s.status);
+  document.getElementById('bigTime').textContent = `T = ${s.current_time}`;
+  document.getElementById('subTime').textContent = `/ ${s.sim_duration_hours} hrs`;
+  document.getElementById('ttc').textContent = `${s.time_to_cutoff} hrs`;
+  document.getElementById('nc').textContent = `${s.next_cutoff} hrs`;
+  document.getElementById('nMbls').textContent = s.mbls ? s.mbls.length : 0;
+
+  const buf = s.buffer || {count:0, total_cbm:0, shipments:[]};
+  const maxCbm = s.config ? s.config.max_cbm_per_mbl : 10;
+  const pct = Math.min(buf.total_cbm / maxCbm * 100, 100);
+
+  document.getElementById('cbmLabel').textContent = `${buf.total_cbm?.toFixed(2)} / ${maxCbm}`;
+  const fill = document.getElementById('barFill');
+  fill.style.width = `${pct}%`;
+  fill.className = 'bar-fill' + (pct >= 100 ? ' full' : pct >= 70 ? ' warn' : '');
+
+  const ships = buf.shipments || [];
+  const totalDisp = (s.mbls || []).reduce((a,m) => a + m.shipment_count, 0);
+  document.getElementById('nDisp').textContent = totalDisp;
+
+  // Buffer list
+  const bl = document.getElementById('bufferList');
+  bl.innerHTML = ships.length ? ships.map(sh => {
+    const urgCls = sh.time_to_due < 12 ? ' urgent' : '';
+    return `<div class="s-row">
+      <span class="sid">${sh.shipment_id}</span>
+      <span class="type type-${sh.item_type}">${sh.item_type}</span>
+      <span class="cbm">${sh.cbm}cbm</span>
+      <span class="wait${urgCls}">대기 ${sh.waiting_time}h</span>
+      <span style="color:#444;font-size:10px;">납기 ${sh.time_to_due?.toFixed(1)}h 남음</span>
+    </div>`;
+  }).join('') : '<div style="color:#333;font-size:11px;">No shipments</div>';
+
+  // Manual list
+  renderManualList(ships);
+
+  // MBL list
+  if (s.mbls && s.mbls.length) {
+    document.getElementById('mblList').innerHTML = [...s.mbls].reverse().map(m =>
+      `<div class="mbl-row">
+        <span class="mid">${m.mbl_id}</span>
+        <span class="info">출고 T=${m.dispatch_time} | ${m.total_cbm}CBM | 화물 ${m.shipment_count}건 | 적재율 ${(m.fill_rate*100).toFixed(0)}%</span>
+      </div>`
+    ).join('');
+  }
+}
+
+function renderMetrics(m) {
+  const el = (id, v, cls) => { const e = document.getElementById(id); e.textContent = v; e.className = `v ${cls}`; };
+  el('mFill', (m.avg_fill_rate*100).toFixed(1)+'%', m.avg_fill_rate >= 0.6 ? 'good' : 'bad');
+  el('mSla', (m.sla_violation_rate*100).toFixed(1)+'%', m.sla_violation_rate === 0 ? 'good' : 'bad');
+  el('mCost', '$' + (m.total_cost||0).toLocaleString(), '');
+  el('mWait', (m.avg_waiting_time_hrs||0).toFixed(1)+'h', '');
+}
+
+function addEvent(ts, type, detail) {
+  const log = document.getElementById('eventLog');
+  const row = document.createElement('div');
+  row.className = 'e-row';
+  row.innerHTML = `<span class="ts">${ts}</span><span class="et ${type}">[${type}]</span>${detail}`;
+  log.insertBefore(row, log.firstChild);
+  // 너무 많으면 제거
+  while (log.children.length > 200) log.removeChild(log.lastChild);
+}
+
+function setBadge(status) {
+  const b = document.getElementById('badge');
+  b.textContent = status;
+  b.className = `badge ${status}`;
+}
+
+function clearAll() {
+  lastState = null;
+  pendingDecision = null;
+  document.getElementById('bigTime').textContent = 'T = 0';
+  document.getElementById('ttc').textContent = '—';
+  document.getElementById('nc').textContent = '—';
+  document.getElementById('nMbls').textContent = '0';
+  document.getElementById('nDisp').textContent = '0';
+  document.getElementById('barFill').style.width = '0%';
+  document.getElementById('cbmLabel').textContent = '0 / 10';
+  document.getElementById('bufferList').innerHTML = '<div style="color:#333;font-size:11px;">No shipments in buffer</div>';
+  document.getElementById('mblList').innerHTML = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
+  document.getElementById('eventLog').innerHTML = '';
+  document.getElementById('manualList').innerHTML = '';
+  clearDecision();
+  ['mFill','mSla','mCost','mWait'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+}
+
+connectWS();
+</script>
+</body>
+</html>

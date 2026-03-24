@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python simulator_v0.py)",
+      "Bash(python -m simulator_v1.run)"
+    ]
+  }
+}
