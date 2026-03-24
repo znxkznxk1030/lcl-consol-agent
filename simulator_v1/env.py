@@ -18,6 +18,7 @@ from .entities import (
     ItemType, Shipment, MBL,
     generate_shipment, create_mbl,
 )
+from .compatibility import split_into_compatible_groups, count_violation_pairs
 from .buffer import WarehouseBuffer
 from .cost import CostEngine
 from .schemas import (
@@ -78,6 +79,10 @@ class ConsolidationEnv:
         self.events: List[Event] = []
         self._event_counter: int = 0
 
+        # 호환성 위반 카운터
+        self._compatibility_violations: int = 0
+        self._compatibility_extra_mbls: int = 0
+
     # ------------------------------------------------------------------
     # Public: run with agent
     # ------------------------------------------------------------------
@@ -97,7 +102,9 @@ class ConsolidationEnv:
                 self._log_event("SHIPMENT_ARRIVAL", {
                     "shipment_id": s.shipment_id,
                     "item_type": s.item_type.value,
+                    "cargo_category": s.cargo_category.value,
                     "cbm": s.cbm,
+                    "effective_cbm": s.effective_cbm,
                     "weight": s.weight,
                     "due_time": s.due_time,
                 })
@@ -114,6 +121,7 @@ class ConsolidationEnv:
                 "selected_ids": action.selected_ids,
                 "reason": action.reason,
                 "buffer_cbm": self.buffer.total_cbm,
+                "buffer_effective_cbm": self.buffer.total_effective_cbm,
                 "buffer_count": self.buffer.count,
             })
 
@@ -151,14 +159,17 @@ class ConsolidationEnv:
             buffer=BufferObservation(
                 count=self.buffer.count,
                 total_cbm=self.buffer.total_cbm,
+                total_effective_cbm=self.buffer.total_effective_cbm,
                 total_weight=self.buffer.total_weight,
                 shipments=[
                     ShipmentObservation(
                         shipment_id=s.shipment_id,
                         item_type=s.item_type.value,
+                        cargo_category=s.cargo_category.value,
                         arrival_time=s.arrival_time,
                         waiting_time=round(self.current_time - s.arrival_time, 2),
                         cbm=s.cbm,
+                        effective_cbm=s.effective_cbm,
                         weight=s.weight,
                         packages=s.packages,
                         due_time=s.due_time,
@@ -183,16 +194,63 @@ class ConsolidationEnv:
         )
 
     def _dispatch(self, shipment_ids: List[str]) -> None:
-        dispatched = self.buffer.remove(shipment_ids)
-        for s in dispatched:
+        candidates = self.buffer.remove(shipment_ids)
+
+        # Step 1: 호환성 검사 → 위반 시 자동 분리
+        violation_pairs = count_violation_pairs(candidates)
+        if violation_pairs > 0:
+            self._compatibility_violations += 1
+            compat_groups = split_into_compatible_groups(candidates)
+            extra = len(compat_groups) - 1
+            self._compatibility_extra_mbls += extra
+
+            self._log_event("COMPATIBILITY_VIOLATION", {
+                "original_count": len(candidates),
+                "violation_pairs": violation_pairs,
+                "split_into_groups": len(compat_groups),
+                "extra_mbls_created": extra,
+                "categories": [s.cargo_category.value for s in candidates],
+            })
+        else:
+            compat_groups = [candidates]
+
+        # Step 2: 각 호환 그룹을 CBM 한도 내로 추가 분할 후 MBL 생성
+        for group in compat_groups:
+            for cbm_group in self._split_by_cbm(group):
+                self._create_mbl(cbm_group)
+
+    def _split_by_cbm(self, shipments: List[Shipment]) -> List[List[Shipment]]:
+        """effective_cbm 기준으로 max_cbm_per_mbl을 초과하지 않도록 분할."""
+        result: List[List[Shipment]] = []
+        current: List[Shipment] = []
+        current_cbm = 0.0
+
+        for s in shipments:
+            ecbm = s.effective_cbm
+            # 단일 화물 자체가 한도 초과인 경우: 단독 MBL로 처리
+            if current and current_cbm + ecbm > self.cfg.max_cbm_per_mbl:
+                result.append(current)
+                current = [s]
+                current_cbm = ecbm
+            else:
+                current.append(s)
+                current_cbm += ecbm
+
+        if current:
+            result.append(current)
+
+        return result or [[]]
+
+    def _create_mbl(self, shipments: List[Shipment]) -> None:
+        for s in shipments:
             s.dispatched = True
             s.dispatch_time = self.current_time
 
-        mbl = create_mbl(dispatched, self.current_time)
+        mbl = create_mbl(shipments, self.current_time)
         self.mbls.append(mbl)
 
         # SLA violation 체크
-        for s in dispatched:
+        for s in shipments:
             if s.is_late():
                 self._log_event("SLA_VIOLATION", {
                     "shipment_id": s.shipment_id,
@@ -202,15 +260,18 @@ class ConsolidationEnv:
                 })
 
         self._log_event("DISPATCH", {
-            "shipment_ids": [s.shipment_id for s in dispatched],
-            "count": len(dispatched),
+            "shipment_ids": [s.shipment_id for s in shipments],
+            "count": len(shipments),
         })
         self._log_event("MBL_CREATED", {
             "mbl_id": mbl.mbl_id,
             "shipment_count": len(mbl.shipment_ids),
             "total_cbm": mbl.total_cbm,
+            "total_effective_cbm": mbl.total_effective_cbm,
             "total_weight": mbl.total_weight,
             "fill_rate": round(mbl.total_cbm / self.cfg.max_cbm_per_mbl, 4),
+            "effective_fill_rate": round(mbl.total_effective_cbm / self.cfg.max_cbm_per_mbl, 4),
+            "categories": list({h.cargo_category for h in mbl.hbls}),
             "hbl_ids": [h.hbl_id for h in mbl.hbls],
         })
 
@@ -256,6 +317,7 @@ class ConsolidationEnv:
         self._log_event("TICK", {
             "buffer_count": self.buffer.count,
             "buffer_cbm": self.buffer.total_cbm,
+            "buffer_effective_cbm": self.buffer.total_effective_cbm,
             "next_cutoff": self.next_cutoff,
         })
 
@@ -284,6 +346,8 @@ class ConsolidationEnv:
                 avg_waiting_time_hrs=round(avg_waiting, 2),
                 sla_violation_rate=round(late_count / n if n else 0.0, 4),
                 avg_fill_rate=round(sum(fill_rates) / len(fill_rates) if fill_rates else 0.0, 4),
+                compatibility_violations=self._compatibility_violations,
+                compatibility_extra_mbls=self._compatibility_extra_mbls,
                 **costs,
             ),
             events=list(self.events),
@@ -298,3 +362,5 @@ class ConsolidationEnv:
         self.mbls = []
         self.events = []
         self._event_counter = 0
+        self._compatibility_violations = 0
+        self._compatibility_extra_mbls = 0

@@ -18,9 +18,11 @@ from dataclasses import dataclass, field, asdict
 class ShipmentObservation:
     shipment_id: str
     item_type: str              # "A" | "B" | "C"
+    cargo_category: str         # "GENERAL" | "HAZMAT" | "FOOD" | "FRAGILE" | "OVERSIZED"
     arrival_time: float
     waiting_time: float
     cbm: float
+    effective_cbm: float        # 패킹 시 실제 점유 CBM (FRAGILE은 cbm × 1.3)
     weight: float
     packages: int
     due_time: float
@@ -31,6 +33,7 @@ class ShipmentObservation:
 class BufferObservation:
     count: int
     total_cbm: float
+    total_effective_cbm: float  # 패킹 계산 기준 CBM
     total_weight: float
     shipments: List[ShipmentObservation]
 
@@ -54,7 +57,7 @@ class Observation:
 
     @classmethod
     def version(cls) -> str:
-        return "observation/v1"
+        return "observation/v2"
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +106,7 @@ EventType = Literal[
     "DISPATCH",
     "MBL_CREATED",
     "SLA_VIOLATION",
+    "COMPATIBILITY_VIOLATION",  # 혼적 불가 그룹 감지 → 자동 분리
     "TICK",
 ]
 
@@ -131,6 +135,10 @@ class Metrics:
     avg_waiting_time_hrs: float
     sla_violation_rate: float
     avg_fill_rate: float
+    # 호환성 관련
+    compatibility_violations: int       # 혼적 불가 dispatch 발생 횟수
+    compatibility_extra_mbls: int       # 분리로 인해 추가 생성된 MBL 수
+    # 비용
     total_cost: float
     mbl_cost: float
     holding_cost: float
@@ -150,4 +158,4 @@ class SimulationResult:
 
     @classmethod
     def version(cls) -> str:
-        return "result/v1"
+        return "result/v2"

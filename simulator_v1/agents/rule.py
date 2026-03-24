@@ -1,10 +1,14 @@
 """
 agents/rule.py
 ==============
-Rule-based agents (v0 policy → JSON 인터페이스로 재구현)
+Rule-based agents (호환성 인식 버전)
 - TimeBasedAgent
 - ThresholdAgent
 - HybridAgent
+
+모든 agent는 _compatible_greedy_select를 사용하여
+혼적 불가 화물을 스스로 분리 선택한다.
+(선택하지 않더라도 env가 자동 분리하지만, 그러면 extra MBL 비용 발생)
 """
 
 from .base import AgentBase
@@ -20,31 +24,37 @@ class TimeBasedAgent(AgentBase):
         max_cbm = observation["config"]["max_cbm_per_mbl"]
 
         if time_to_cutoff <= 0 and shipments:
-            ids = self._greedy_select(shipments, max_cbm)
+            ids = self._compatible_greedy_select(shipments, max_cbm)
             return self._make_action("DISPATCH", ids, "cutoff_reached")
         return self._make_action("WAIT", [], "waiting_for_cutoff")
 
 
 class ThresholdAgent(AgentBase):
-    """CBM이 threshold 초과 시 출고"""
+    """effective CBM이 threshold 초과 시 출고"""
     agent_id = "threshold"
 
     def __init__(self, cbm_threshold: float = 8.0) -> None:
         self.cbm_threshold = cbm_threshold
 
     def act(self, observation: dict) -> dict:
-        total_cbm = observation["buffer"]["total_cbm"]
+        total_effective_cbm = observation["buffer"]["total_effective_cbm"]
         shipments = observation["buffer"]["shipments"]
         max_cbm = observation["config"]["max_cbm_per_mbl"]
 
-        if total_cbm >= self.cbm_threshold:
-            ids = self._greedy_select(shipments, max_cbm)
-            return self._make_action("DISPATCH", ids, f"cbm_threshold_exceeded:{total_cbm:.2f}")
-        return self._make_action("WAIT", [], f"cbm_below_threshold:{total_cbm:.2f}")
+        if total_effective_cbm >= self.cbm_threshold:
+            ids = self._compatible_greedy_select(shipments, max_cbm)
+            return self._make_action(
+                "DISPATCH", ids,
+                f"effective_cbm_threshold_exceeded:{total_effective_cbm:.2f}"
+            )
+        return self._make_action(
+            "WAIT", [],
+            f"effective_cbm_below_threshold:{total_effective_cbm:.2f}"
+        )
 
 
 class HybridAgent(AgentBase):
-    """cutoff 근접 OR CBM 초과 OR 최장 대기 초과 시 출고"""
+    """cutoff 근접 OR effective CBM 초과 OR 최장 대기 초과 시 출고"""
     agent_id = "hybrid"
 
     def __init__(
@@ -63,12 +73,12 @@ class HybridAgent(AgentBase):
             return self._make_action("WAIT", [], "buffer_empty")
 
         time_to_cutoff = observation["time_to_cutoff"]
-        total_cbm = observation["buffer"]["total_cbm"]
+        total_effective_cbm = observation["buffer"]["total_effective_cbm"]
         max_cbm = observation["config"]["max_cbm_per_mbl"]
         max_waiting = max(s["waiting_time"] for s in shipments)
 
         near_cutoff = time_to_cutoff <= self.cutoff_buffer_hours
-        cbm_full = total_cbm >= self.cbm_threshold
+        cbm_full = total_effective_cbm >= self.cbm_threshold
         too_old = max_waiting >= self.max_wait_hours
 
         if near_cutoff or cbm_full or too_old:
@@ -77,7 +87,7 @@ class HybridAgent(AgentBase):
                 "cbm_full" if cbm_full else "",
                 "too_old" if too_old else "",
             ]))
-            ids = self._greedy_select(shipments, max_cbm)
+            ids = self._compatible_greedy_select(shipments, max_cbm)
             return self._make_action("DISPATCH", ids, reason)
 
         return self._make_action("WAIT", [], "all_conditions_ok")

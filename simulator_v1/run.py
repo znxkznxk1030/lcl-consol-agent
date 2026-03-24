@@ -37,6 +37,8 @@ def run_all(config: EnvConfig = EnvConfig(), save_dir: str = None) -> list[dict]
         print(f"  {'avg_waiting_time_hrs':<30} {m.avg_waiting_time_hrs}")
         print(f"  {'sla_violation_rate':<30} {m.sla_violation_rate}")
         print(f"  {'avg_fill_rate':<30} {m.avg_fill_rate}")
+        print(f"  {'compatibility_violations':<30} {m.compatibility_violations}")
+        print(f"  {'compatibility_extra_mbls':<30} {m.compatibility_extra_mbls}")
         print(f"  {'total_cost':<30} {m.total_cost}")
         print(f"    mbl_cost:     {m.mbl_cost}")
         print(f"    holding_cost: {m.holding_cost}")

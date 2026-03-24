@@ -39,5 +39,10 @@ class WarehouseBuffer:
         return round(sum(s.cbm for s in self._shipments), 3)
 
     @property
+    def total_effective_cbm(self) -> float:
+        """패킹 계산 기준 CBM (FRAGILE은 × 1.3 포함)."""
+        return round(sum(s.effective_cbm for s in self._shipments), 3)
+
+    @property
     def total_weight(self) -> float:
         return round(sum(s.weight for s in self._shipments), 2)
