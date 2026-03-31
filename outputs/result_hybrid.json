@@ -1,0 +1,6665 @@
+{
+  "schema": "result/v2",
+  "agent_id": "hybrid",
+  "config": {
+    "seed": 42,
+    "sim_duration_hours": 72,
+    "cutoff_interval_hours": 24,
+    "max_cbm_per_mbl": 10.0,
+    "destination": "PORT_A",
+    "arrival_rate_A": 2.0,
+    "arrival_rate_B": 0.8,
+    "arrival_rate_C": 0.2,
+    "fixed_cost_per_mbl": 100.0,
+    "variable_cost_per_cbm": 10.0,
+    "holding_cost_per_hour": 2.0,
+    "late_penalty": 50.0,
+    "sla_hours": 48.0
+  },
+  "metrics": {
+    "total_shipments": 228,
+    "dispatched_shipments": 228,
+    "number_of_mbls": 30,
+    "total_hbls": 228,
+    "avg_waiting_time_hrs": 1.03,
+    "sla_violation_rate": 0.0,
+    "avg_fill_rate": 0.5491,
+    "compatibility_violations": 1,
+    "compatibility_extra_mbls": 1,
+    "total_cost": 5206.21,
+    "mbl_cost": 4647.22,
+    "holding_cost": 558.99,
+    "late_cost": 0
+  },
+  "events": [
+    {
+      "event_id": "EVT-00001",
+      "event_type": "TICK",
+      "timestamp": 0.0,
+      "data": {
+        "buffer_count": 0,
+        "buffer_cbm": 0,
+        "buffer_effective_cbm": 0,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00002",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 0.0,
+      "data": {
+        "shipment_id": "SHP-D7E7692E",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.189,
+        "effective_cbm": 0.189,
+        "weight": 17.38,
+        "due_time": 48.5100301436374
+      }
+    },
+    {
+      "event_id": "EVT-00003",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 0.0,
+      "data": {
+        "shipment_id": "SHP-F922FCC3",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.336,
+        "effective_cbm": 0.336,
+        "weight": 29.54,
+        "due_time": 48.56409853558484
+      }
+    },
+    {
+      "event_id": "EVT-00004",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 0.0,
+      "data": {
+        "shipment_id": "SHP-BE45D0E6",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.111,
+        "effective_cbm": 0.111,
+        "weight": 27.74,
+        "due_time": 48.57922362418852
+      }
+    },
+    {
+      "event_id": "EVT-00005",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 0.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 0.636,
+        "buffer_effective_cbm": 0.636,
+        "buffer_count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00006",
+      "event_type": "TICK",
+      "timestamp": 1.0,
+      "data": {
+        "buffer_count": 3,
+        "buffer_cbm": 0.636,
+        "buffer_effective_cbm": 0.636,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00007",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 1.0,
+      "data": {
+        "shipment_id": "SHP-7F805C2D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.404,
+        "effective_cbm": 0.404,
+        "weight": 44.12,
+        "due_time": 49.298199968081015
+      }
+    },
+    {
+      "event_id": "EVT-00008",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 1.0,
+      "data": {
+        "shipment_id": "SHP-FD0070D4",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.483,
+        "effective_cbm": 0.483,
+        "weight": 12.0,
+        "due_time": 49.897094938567754
+      }
+    },
+    {
+      "event_id": "EVT-00009",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 1.0,
+      "data": {
+        "shipment_id": "SHP-7F5672C7",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.238,
+        "effective_cbm": 0.238,
+        "weight": 21.15,
+        "due_time": 49.95100463808532
+      }
+    },
+    {
+      "event_id": "EVT-00010",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 1.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 1.761,
+        "buffer_effective_cbm": 1.761,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00011",
+      "event_type": "TICK",
+      "timestamp": 2.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 1.761,
+        "buffer_effective_cbm": 1.761,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00012",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 2.0,
+      "data": {
+        "shipment_id": "SHP-AF3890E1",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.428,
+        "effective_cbm": 1.428,
+        "weight": 174.41,
+        "due_time": 50.59459335356123
+      }
+    },
+    {
+      "event_id": "EVT-00013",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 2.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.189,
+        "buffer_effective_cbm": 3.189,
+        "buffer_count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00014",
+      "event_type": "TICK",
+      "timestamp": 3.0,
+      "data": {
+        "buffer_count": 7,
+        "buffer_cbm": 3.189,
+        "buffer_effective_cbm": 3.189,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00015",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 3.0,
+      "data": {
+        "shipment_id": "SHP-7E60AFA0",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.494,
+        "effective_cbm": 0.494,
+        "weight": 39.79,
+        "due_time": 51.03604623630112
+      }
+    },
+    {
+      "event_id": "EVT-00016",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 3.0,
+      "data": {
+        "shipment_id": "SHP-AE976008",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 0.744,
+        "effective_cbm": 0.744,
+        "weight": 175.12,
+        "due_time": 51.59779926305357
+      }
+    },
+    {
+      "event_id": "EVT-00017",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 3.0,
+      "data": {
+        "shipment_id": "SHP-7298AD27",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.472,
+        "effective_cbm": 1.472,
+        "weight": 190.5,
+        "due_time": 51.89167240862075
+      }
+    },
+    {
+      "event_id": "EVT-00018",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 3.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.899,
+        "buffer_effective_cbm": 5.899,
+        "buffer_count": 10
+      }
+    },
+    {
+      "event_id": "EVT-00019",
+      "event_type": "TICK",
+      "timestamp": 4.0,
+      "data": {
+        "buffer_count": 10,
+        "buffer_cbm": 5.899,
+        "buffer_effective_cbm": 5.899,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00020",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 4.0,
+      "data": {
+        "shipment_id": "SHP-165796B2",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.47,
+        "effective_cbm": 0.47,
+        "weight": 17.15,
+        "due_time": 52.14039356541126
+      }
+    },
+    {
+      "event_id": "EVT-00021",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 4.0,
+      "data": {
+        "shipment_id": "SHP-108AEB4B",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.41,
+        "effective_cbm": 0.41,
+        "weight": 42.93,
+        "due_time": 52.54742960049499
+      }
+    },
+    {
+      "event_id": "EVT-00022",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 4.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 6.779,
+        "buffer_effective_cbm": 6.779,
+        "buffer_count": 12
+      }
+    },
+    {
+      "event_id": "EVT-00023",
+      "event_type": "TICK",
+      "timestamp": 5.0,
+      "data": {
+        "buffer_count": 12,
+        "buffer_cbm": 6.779,
+        "buffer_effective_cbm": 6.779,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00024",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 5.0,
+      "data": {
+        "shipment_id": "SHP-80F9EB48",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.387,
+        "effective_cbm": 0.503,
+        "weight": 30.52,
+        "due_time": 53.03424039695957
+      }
+    },
+    {
+      "event_id": "EVT-00025",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 5.0,
+      "data": {
+        "shipment_id": "SHP-B8FA2472",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.284,
+        "effective_cbm": 0.284,
+        "weight": 46.15,
+        "due_time": 53.56698197925606
+      }
+    },
+    {
+      "event_id": "EVT-00026",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 5.0,
+      "data": {
+        "shipment_id": "SHP-363383E7",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.399,
+        "effective_cbm": 0.399,
+        "weight": 29.25,
+        "due_time": 53.64217853979682
+      }
+    },
+    {
+      "event_id": "EVT-00027",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 5.0,
+      "data": {
+        "shipment_id": "SHP-4FA76E92",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.264,
+        "effective_cbm": 1.264,
+        "weight": 199.63,
+        "due_time": 53.63728370561608
+      }
+    },
+    {
+      "event_id": "EVT-00028",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 5.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-F922FCC3",
+          "SHP-7E60AFA0",
+          "SHP-108AEB4B",
+          "SHP-363383E7",
+          "SHP-80F9EB48",
+          "SHP-D7E7692E",
+          "SHP-BE45D0E6",
+          "SHP-7F805C2D",
+          "SHP-FD0070D4",
+          "SHP-7F5672C7",
+          "SHP-AE976008",
+          "SHP-7298AD27",
+          "SHP-165796B2",
+          "SHP-B8FA2472",
+          "SHP-4FA76E92"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 9.113,
+        "buffer_effective_cbm": 9.229,
+        "buffer_count": 16
+      }
+    },
+    {
+      "event_id": "EVT-00029",
+      "event_type": "DISPATCH",
+      "timestamp": 5.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-D7E7692E",
+          "SHP-F922FCC3",
+          "SHP-BE45D0E6",
+          "SHP-7F805C2D",
+          "SHP-FD0070D4",
+          "SHP-7F5672C7",
+          "SHP-7E60AFA0",
+          "SHP-AE976008",
+          "SHP-7298AD27",
+          "SHP-165796B2",
+          "SHP-108AEB4B",
+          "SHP-80F9EB48",
+          "SHP-B8FA2472",
+          "SHP-363383E7",
+          "SHP-4FA76E92"
+        ],
+        "count": 15
+      }
+    },
+    {
+      "event_id": "EVT-00030",
+      "event_type": "MBL_CREATED",
+      "timestamp": 5.0,
+      "data": {
+        "mbl_id": "MBL-91B9F812",
+        "shipment_count": 15,
+        "total_cbm": 7.685,
+        "total_effective_cbm": 7.801,
+        "total_weight": 922.97,
+        "fill_rate": 0.7685,
+        "effective_fill_rate": 0.7801,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-0499A83E",
+          "HBL-936A7E80",
+          "HBL-0C93AAF6",
+          "HBL-D7D82ACA",
+          "HBL-919E1959",
+          "HBL-5ED9B086",
+          "HBL-C64A103B",
+          "HBL-77E65694",
+          "HBL-A133B909",
+          "HBL-6D220F69",
+          "HBL-E6B75E6D",
+          "HBL-BF6ABF0D",
+          "HBL-39408538",
+          "HBL-DB333BAA",
+          "HBL-AD6405AD"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00031",
+      "event_type": "TICK",
+      "timestamp": 6.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 1.428,
+        "buffer_effective_cbm": 1.428,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00032",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 6.0,
+      "data": {
+        "shipment_id": "SHP-8A22280D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.339,
+        "effective_cbm": 0.339,
+        "weight": 35.62,
+        "due_time": 54.082933628770924
+      }
+    },
+    {
+      "event_id": "EVT-00033",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 6.0,
+      "data": {
+        "shipment_id": "SHP-C7E49CB9",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.488,
+        "effective_cbm": 0.634,
+        "weight": 28.81,
+        "due_time": 54.323259113745124
+      }
+    },
+    {
+      "event_id": "EVT-00034",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 6.0,
+      "data": {
+        "shipment_id": "SHP-ECC5E0CC",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.4,
+        "effective_cbm": 0.4,
+        "weight": 44.82,
+        "due_time": 54.893419280078085
+      }
+    },
+    {
+      "event_id": "EVT-00035",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 6.0,
+      "data": {
+        "shipment_id": "SHP-79346E39",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.583,
+        "effective_cbm": 1.583,
+        "weight": 50.49,
+        "due_time": 54.43429032368595
+      }
+    },
+    {
+      "event_id": "EVT-00036",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 6.0,
+      "data": {
+        "shipment_id": "SHP-E727521A",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.869,
+        "effective_cbm": 1.869,
+        "weight": 76.8,
+        "due_time": 54.81640958681423
+      }
+    },
+    {
+      "event_id": "EVT-00037",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 6.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 6.107,
+        "buffer_effective_cbm": 6.253,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00038",
+      "event_type": "TICK",
+      "timestamp": 7.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 6.107,
+        "buffer_effective_cbm": 6.253,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00039",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 7.0,
+      "data": {
+        "shipment_id": "SHP-6C9502A7",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.165,
+        "effective_cbm": 0.165,
+        "weight": 21.83,
+        "due_time": 55.35429579894959
+      }
+    },
+    {
+      "event_id": "EVT-00040",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 7.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 6.272,
+        "buffer_effective_cbm": 6.418,
+        "buffer_count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00041",
+      "event_type": "TICK",
+      "timestamp": 8.0,
+      "data": {
+        "buffer_count": 7,
+        "buffer_cbm": 6.272,
+        "buffer_effective_cbm": 6.418,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00042",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 8.0,
+      "data": {
+        "shipment_id": "SHP-CB37EFC0",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.423,
+        "effective_cbm": 0.423,
+        "weight": 49.34,
+        "due_time": 56.05931729455557
+      }
+    },
+    {
+      "event_id": "EVT-00043",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 8.0,
+      "data": {
+        "shipment_id": "SHP-42C6DD30",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.134,
+        "effective_cbm": 0.174,
+        "weight": 47.61,
+        "due_time": 56.08915257779161
+      }
+    },
+    {
+      "event_id": "EVT-00044",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 8.0,
+      "data": {
+        "shipment_id": "SHP-F4D131E1",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.15,
+        "effective_cbm": 0.195,
+        "weight": 28.97,
+        "due_time": 56.93562553111287
+      }
+    },
+    {
+      "event_id": "EVT-00045",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 8.0,
+      "data": {
+        "shipment_id": "SHP-1D5F7133",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.135,
+        "effective_cbm": 1.135,
+        "weight": 180.86,
+        "due_time": 56.99758916567266
+      }
+    },
+    {
+      "event_id": "EVT-00046",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 8.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-AF3890E1",
+          "SHP-E727521A",
+          "SHP-8A22280D",
+          "SHP-79346E39",
+          "SHP-ECC5E0CC",
+          "SHP-6C9502A7",
+          "SHP-CB37EFC0",
+          "SHP-1D5F7133"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 8.114,
+        "buffer_effective_cbm": 8.345,
+        "buffer_count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00047",
+      "event_type": "DISPATCH",
+      "timestamp": 8.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-AF3890E1",
+          "SHP-8A22280D",
+          "SHP-ECC5E0CC",
+          "SHP-79346E39",
+          "SHP-E727521A",
+          "SHP-6C9502A7",
+          "SHP-CB37EFC0",
+          "SHP-1D5F7133"
+        ],
+        "count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00048",
+      "event_type": "MBL_CREATED",
+      "timestamp": 8.0,
+      "data": {
+        "mbl_id": "MBL-127D2D81",
+        "shipment_count": 8,
+        "total_cbm": 7.342,
+        "total_effective_cbm": 7.342,
+        "total_weight": 634.17,
+        "fill_rate": 0.7342,
+        "effective_fill_rate": 0.7342,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-90D364AE",
+          "HBL-87964299",
+          "HBL-61B46591",
+          "HBL-CACD8844",
+          "HBL-F1514046",
+          "HBL-30195595",
+          "HBL-A3C56AC6",
+          "HBL-FFD1EB0F"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00049",
+      "event_type": "TICK",
+      "timestamp": 9.0,
+      "data": {
+        "buffer_count": 3,
+        "buffer_cbm": 0.772,
+        "buffer_effective_cbm": 1.003,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00050",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 9.0,
+      "data": {
+        "shipment_id": "SHP-4F0E947C",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.369,
+        "effective_cbm": 0.369,
+        "weight": 22.95,
+        "due_time": 57.58537803970579
+      }
+    },
+    {
+      "event_id": "EVT-00051",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 9.0,
+      "data": {
+        "shipment_id": "SHP-EA2CBDEF",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.19,
+        "effective_cbm": 0.19,
+        "weight": 10.45,
+        "due_time": 57.87359380480811
+      }
+    },
+    {
+      "event_id": "EVT-00052",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 9.0,
+      "data": {
+        "shipment_id": "SHP-1F7896CB",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.103,
+        "effective_cbm": 0.103,
+        "weight": 31.48,
+        "due_time": 57.88422312079007
+      }
+    },
+    {
+      "event_id": "EVT-00053",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 9.0,
+      "data": {
+        "shipment_id": "SHP-574407DC",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.606,
+        "effective_cbm": 0.788,
+        "weight": 178.95,
+        "due_time": 57.32498925111352
+      }
+    },
+    {
+      "event_id": "EVT-00054",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 9.0,
+      "data": {
+        "shipment_id": "SHP-FAFA8E08",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.585,
+        "effective_cbm": 1.585,
+        "weight": 130.89,
+        "due_time": 57.732978487473595
+      }
+    },
+    {
+      "event_id": "EVT-00055",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 9.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.625,
+        "buffer_effective_cbm": 4.038,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00056",
+      "event_type": "TICK",
+      "timestamp": 10.0,
+      "data": {
+        "buffer_count": 8,
+        "buffer_cbm": 3.625,
+        "buffer_effective_cbm": 4.038,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00057",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-3AAC4FB4",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.364,
+        "effective_cbm": 0.364,
+        "weight": 9.24,
+        "due_time": 58.320251695048796
+      }
+    },
+    {
+      "event_id": "EVT-00058",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-7E06BEE4",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.369,
+        "effective_cbm": 0.369,
+        "weight": 37.81,
+        "due_time": 58.59570985929217
+      }
+    },
+    {
+      "event_id": "EVT-00059",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-0F8175AE",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.445,
+        "effective_cbm": 0.445,
+        "weight": 20.27,
+        "due_time": 58.64751192831724
+      }
+    },
+    {
+      "event_id": "EVT-00060",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-0B14E489",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.173,
+        "effective_cbm": 0.173,
+        "weight": 11.31,
+        "due_time": 58.7538549346444
+      }
+    },
+    {
+      "event_id": "EVT-00061",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-889E6AF6",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.445,
+        "effective_cbm": 0.579,
+        "weight": 24.94,
+        "due_time": 58.897566952772124
+      }
+    },
+    {
+      "event_id": "EVT-00062",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-0D549F28",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.106,
+        "effective_cbm": 0.106,
+        "weight": 29.33,
+        "due_time": 58.94908674066819
+      }
+    },
+    {
+      "event_id": "EVT-00063",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_id": "SHP-4781A0A8",
+        "item_type": "C",
+        "cargo_category": "HAZMAT",
+        "cbm": 3.203,
+        "effective_cbm": 3.203,
+        "weight": 328.25,
+        "due_time": 58.90947490257625
+      }
+    },
+    {
+      "event_id": "EVT-00064",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 10.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-4781A0A8",
+          "SHP-FAFA8E08",
+          "SHP-EA2CBDEF",
+          "SHP-1F7896CB",
+          "SHP-3AAC4FB4",
+          "SHP-7E06BEE4",
+          "SHP-0F8175AE",
+          "SHP-0B14E489"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 8.73,
+        "buffer_effective_cbm": 9.277,
+        "buffer_count": 15
+      }
+    },
+    {
+      "event_id": "EVT-00065",
+      "event_type": "DISPATCH",
+      "timestamp": 10.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-EA2CBDEF",
+          "SHP-1F7896CB",
+          "SHP-FAFA8E08",
+          "SHP-3AAC4FB4",
+          "SHP-7E06BEE4",
+          "SHP-0F8175AE",
+          "SHP-0B14E489",
+          "SHP-4781A0A8"
+        ],
+        "count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00066",
+      "event_type": "MBL_CREATED",
+      "timestamp": 10.0,
+      "data": {
+        "mbl_id": "MBL-A5E99F1B",
+        "shipment_count": 8,
+        "total_cbm": 6.432,
+        "total_effective_cbm": 6.432,
+        "total_weight": 579.7,
+        "fill_rate": 0.6432,
+        "effective_fill_rate": 0.6432,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-445A464F",
+          "HBL-A716D112",
+          "HBL-A3181534",
+          "HBL-2024D82E",
+          "HBL-E98C4505",
+          "HBL-571C1AC0",
+          "HBL-8F5EF160",
+          "HBL-784F1278"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00067",
+      "event_type": "TICK",
+      "timestamp": 11.0,
+      "data": {
+        "buffer_count": 7,
+        "buffer_cbm": 2.298,
+        "buffer_effective_cbm": 2.845,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00068",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 11.0,
+      "data": {
+        "shipment_id": "SHP-BA62F7CA",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.414,
+        "effective_cbm": 0.414,
+        "weight": 46.69,
+        "due_time": 59.00107885226123
+      }
+    },
+    {
+      "event_id": "EVT-00069",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 11.0,
+      "data": {
+        "shipment_id": "SHP-500A627B",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.322,
+        "effective_cbm": 0.419,
+        "weight": 49.79,
+        "due_time": 59.27604184553354
+      }
+    },
+    {
+      "event_id": "EVT-00070",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 11.0,
+      "data": {
+        "shipment_id": "SHP-03B434D4",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.123,
+        "effective_cbm": 0.123,
+        "weight": 14.8,
+        "due_time": 59.60946140341742
+      }
+    },
+    {
+      "event_id": "EVT-00071",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 11.0,
+      "data": {
+        "shipment_id": "SHP-4258D12A",
+        "item_type": "C",
+        "cargo_category": "HAZMAT",
+        "cbm": 4.558,
+        "effective_cbm": 4.558,
+        "weight": 501.71,
+        "due_time": 59.29432137300681
+      }
+    },
+    {
+      "event_id": "EVT-00072",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 11.0,
+      "data": {
+        "shipment_id": "SHP-43540063",
+        "item_type": "C",
+        "cargo_category": "HAZMAT",
+        "cbm": 2.206,
+        "effective_cbm": 2.206,
+        "weight": 710.81,
+        "due_time": 59.587127899908275
+      }
+    },
+    {
+      "event_id": "EVT-00073",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 11.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-4258D12A",
+          "SHP-43540063",
+          "SHP-BA62F7CA",
+          "SHP-03B434D4"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 9.921,
+        "buffer_effective_cbm": 10.565,
+        "buffer_count": 12
+      }
+    },
+    {
+      "event_id": "EVT-00074",
+      "event_type": "DISPATCH",
+      "timestamp": 11.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-BA62F7CA",
+          "SHP-03B434D4",
+          "SHP-4258D12A",
+          "SHP-43540063"
+        ],
+        "count": 4
+      }
+    },
+    {
+      "event_id": "EVT-00075",
+      "event_type": "MBL_CREATED",
+      "timestamp": 11.0,
+      "data": {
+        "mbl_id": "MBL-2C8DFD25",
+        "shipment_count": 4,
+        "total_cbm": 7.301,
+        "total_effective_cbm": 7.301,
+        "total_weight": 1274.01,
+        "fill_rate": 0.7301,
+        "effective_fill_rate": 0.7301,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-64B7D85B",
+          "HBL-E84E5D18",
+          "HBL-87160C92",
+          "HBL-9D6CC791"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00076",
+      "event_type": "TICK",
+      "timestamp": 12.0,
+      "data": {
+        "buffer_count": 8,
+        "buffer_cbm": 2.62,
+        "buffer_effective_cbm": 3.264,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00077",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 12.0,
+      "data": {
+        "shipment_id": "SHP-C743EB3B",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.198,
+        "effective_cbm": 0.198,
+        "weight": 45.06,
+        "due_time": 60.13407300504693
+      }
+    },
+    {
+      "event_id": "EVT-00078",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 12.0,
+      "data": {
+        "shipment_id": "SHP-44630CB1",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.326,
+        "effective_cbm": 0.326,
+        "weight": 34.58,
+        "due_time": 60.15434946951664
+      }
+    },
+    {
+      "event_id": "EVT-00079",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 12.0,
+      "data": {
+        "shipment_id": "SHP-6A92024B",
+        "item_type": "B",
+        "cargo_category": "FOOD",
+        "cbm": 1.094,
+        "effective_cbm": 1.094,
+        "weight": 85.8,
+        "due_time": 60.28560221697797
+      }
+    },
+    {
+      "event_id": "EVT-00080",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 12.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.238,
+        "buffer_effective_cbm": 4.882,
+        "buffer_count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00081",
+      "event_type": "TICK",
+      "timestamp": 13.0,
+      "data": {
+        "buffer_count": 11,
+        "buffer_cbm": 4.238,
+        "buffer_effective_cbm": 4.882,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00082",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 13.0,
+      "data": {
+        "shipment_id": "SHP-7DF5180C",
+        "item_type": "C",
+        "cargo_category": "HAZMAT",
+        "cbm": 2.3,
+        "effective_cbm": 2.3,
+        "weight": 537.8,
+        "due_time": 61.04679558553775
+      }
+    },
+    {
+      "event_id": "EVT-00083",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 13.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-4F0E947C",
+          "SHP-0D549F28",
+          "SHP-6A92024B",
+          "SHP-C7E49CB9",
+          "SHP-42C6DD30",
+          "SHP-F4D131E1",
+          "SHP-574407DC",
+          "SHP-889E6AF6",
+          "SHP-500A627B",
+          "SHP-C743EB3B",
+          "SHP-44630CB1"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 6.538,
+        "buffer_effective_cbm": 7.182,
+        "buffer_count": 12
+      }
+    },
+    {
+      "event_id": "EVT-00084",
+      "event_type": "DISPATCH",
+      "timestamp": 13.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-C7E49CB9",
+          "SHP-42C6DD30",
+          "SHP-F4D131E1",
+          "SHP-4F0E947C",
+          "SHP-574407DC",
+          "SHP-889E6AF6",
+          "SHP-0D549F28",
+          "SHP-500A627B",
+          "SHP-C743EB3B",
+          "SHP-44630CB1",
+          "SHP-6A92024B"
+        ],
+        "count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00085",
+      "event_type": "MBL_CREATED",
+      "timestamp": 13.0,
+      "data": {
+        "mbl_id": "MBL-7A9BC076",
+        "shipment_count": 11,
+        "total_cbm": 4.238,
+        "total_effective_cbm": 4.882,
+        "total_weight": 576.79,
+        "fill_rate": 0.4238,
+        "effective_fill_rate": 0.4882,
+        "categories": [
+          "FRAGILE",
+          "GENERAL",
+          "FOOD"
+        ],
+        "hbl_ids": [
+          "HBL-DD55F440",
+          "HBL-7A837B1B",
+          "HBL-28D9E2E7",
+          "HBL-5A87EE56",
+          "HBL-9A678DAF",
+          "HBL-94A3827C",
+          "HBL-4D5DFA6A",
+          "HBL-189FB596",
+          "HBL-360AC22A",
+          "HBL-9FA88845",
+          "HBL-63F3068B"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00086",
+      "event_type": "TICK",
+      "timestamp": 14.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.3,
+        "buffer_effective_cbm": 2.3,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00087",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_id": "SHP-09D1601D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.198,
+        "effective_cbm": 0.198,
+        "weight": 8.1,
+        "due_time": 62.071044852718046
+      }
+    },
+    {
+      "event_id": "EVT-00088",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_id": "SHP-7E571EC5",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.345,
+        "effective_cbm": 0.345,
+        "weight": 36.66,
+        "due_time": 62.15688217060463
+      }
+    },
+    {
+      "event_id": "EVT-00089",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_id": "SHP-5B433ABE",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.473,
+        "effective_cbm": 0.473,
+        "weight": 29.96,
+        "due_time": 62.533267808030054
+      }
+    },
+    {
+      "event_id": "EVT-00090",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_id": "SHP-8500C4DE",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.33,
+        "effective_cbm": 1.33,
+        "weight": 66.06,
+        "due_time": 62.180258233427075
+      }
+    },
+    {
+      "event_id": "EVT-00091",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_id": "SHP-DDAC5635",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.531,
+        "effective_cbm": 1.531,
+        "weight": 101.43,
+        "due_time": 62.59394112435412
+      }
+    },
+    {
+      "event_id": "EVT-00092",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_id": "SHP-323BE879",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.769,
+        "effective_cbm": 1.769,
+        "weight": 185.8,
+        "due_time": 62.97707023398874
+      }
+    },
+    {
+      "event_id": "EVT-00093",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 14.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-7DF5180C",
+          "SHP-09D1601D",
+          "SHP-8500C4DE",
+          "SHP-DDAC5635",
+          "SHP-323BE879"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.946,
+        "buffer_effective_cbm": 7.946,
+        "buffer_count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00094",
+      "event_type": "DISPATCH",
+      "timestamp": 14.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-7DF5180C",
+          "SHP-09D1601D",
+          "SHP-8500C4DE",
+          "SHP-DDAC5635",
+          "SHP-323BE879"
+        ],
+        "count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00095",
+      "event_type": "MBL_CREATED",
+      "timestamp": 14.0,
+      "data": {
+        "mbl_id": "MBL-85601DBF",
+        "shipment_count": 5,
+        "total_cbm": 7.128,
+        "total_effective_cbm": 7.128,
+        "total_weight": 899.19,
+        "fill_rate": 0.7128,
+        "effective_fill_rate": 0.7128,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-AAAE571C",
+          "HBL-A3011BF1",
+          "HBL-3BEA6415",
+          "HBL-62BA83CC",
+          "HBL-D8FB19A3"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00096",
+      "event_type": "TICK",
+      "timestamp": 15.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 0.818,
+        "buffer_effective_cbm": 0.818,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00097",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 15.0,
+      "data": {
+        "shipment_id": "SHP-086B6C2D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.492,
+        "effective_cbm": 0.492,
+        "weight": 10.89,
+        "due_time": 63.02254406253458
+      }
+    },
+    {
+      "event_id": "EVT-00098",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 15.0,
+      "data": {
+        "shipment_id": "SHP-B59C4A8F",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.104,
+        "effective_cbm": 0.104,
+        "weight": 24.25,
+        "due_time": 63.69845363901552
+      }
+    },
+    {
+      "event_id": "EVT-00099",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 15.0,
+      "data": {
+        "shipment_id": "SHP-0E5A2478",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 3.658,
+        "effective_cbm": 3.658,
+        "weight": 421.53,
+        "due_time": 63.80703471332487
+      }
+    },
+    {
+      "event_id": "EVT-00100",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 15.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.072,
+        "buffer_effective_cbm": 5.072,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00101",
+      "event_type": "TICK",
+      "timestamp": 16.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 5.072,
+        "buffer_effective_cbm": 5.072,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00102",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 16.0,
+      "data": {
+        "shipment_id": "SHP-2DF4565D",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.444,
+        "effective_cbm": 0.577,
+        "weight": 40.83,
+        "due_time": 64.1842713655609
+      }
+    },
+    {
+      "event_id": "EVT-00103",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 16.0,
+      "data": {
+        "shipment_id": "SHP-8852B105",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.412,
+        "effective_cbm": 0.412,
+        "weight": 9.63,
+        "due_time": 64.3021809766554
+      }
+    },
+    {
+      "event_id": "EVT-00104",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 16.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.928,
+        "buffer_effective_cbm": 6.061,
+        "buffer_count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00105",
+      "event_type": "TICK",
+      "timestamp": 17.0,
+      "data": {
+        "buffer_count": 7,
+        "buffer_cbm": 5.928,
+        "buffer_effective_cbm": 6.061,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00106",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 17.0,
+      "data": {
+        "shipment_id": "SHP-0187BC5C",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.171,
+        "effective_cbm": 0.171,
+        "weight": 40.99,
+        "due_time": 65.13507652518012
+      }
+    },
+    {
+      "event_id": "EVT-00107",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 17.0,
+      "data": {
+        "shipment_id": "SHP-46EEDD3D",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.472,
+        "effective_cbm": 0.472,
+        "weight": 19.95,
+        "due_time": 65.14762588317254
+      }
+    },
+    {
+      "event_id": "EVT-00108",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 17.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 6.571,
+        "buffer_effective_cbm": 6.704,
+        "buffer_count": 9
+      }
+    },
+    {
+      "event_id": "EVT-00109",
+      "event_type": "TICK",
+      "timestamp": 18.0,
+      "data": {
+        "buffer_count": 9,
+        "buffer_cbm": 6.571,
+        "buffer_effective_cbm": 6.704,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00110",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 18.0,
+      "data": {
+        "shipment_id": "SHP-C3100E6A",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.443,
+        "effective_cbm": 0.443,
+        "weight": 44.25,
+        "due_time": 66.77411145983802
+      }
+    },
+    {
+      "event_id": "EVT-00111",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 18.0,
+      "data": {
+        "shipment_id": "SHP-09421BA9",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.428,
+        "effective_cbm": 0.556,
+        "weight": 20.73,
+        "due_time": 66.88541632551484
+      }
+    },
+    {
+      "event_id": "EVT-00112",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 18.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-7E571EC5",
+          "SHP-5B433ABE",
+          "SHP-46EEDD3D",
+          "SHP-2DF4565D",
+          "SHP-09421BA9",
+          "SHP-086B6C2D",
+          "SHP-B59C4A8F",
+          "SHP-0E5A2478",
+          "SHP-8852B105",
+          "SHP-0187BC5C",
+          "SHP-C3100E6A"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.442,
+        "buffer_effective_cbm": 7.703,
+        "buffer_count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00113",
+      "event_type": "DISPATCH",
+      "timestamp": 18.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-7E571EC5",
+          "SHP-5B433ABE",
+          "SHP-086B6C2D",
+          "SHP-B59C4A8F",
+          "SHP-0E5A2478",
+          "SHP-2DF4565D",
+          "SHP-8852B105",
+          "SHP-0187BC5C",
+          "SHP-46EEDD3D",
+          "SHP-C3100E6A",
+          "SHP-09421BA9"
+        ],
+        "count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00114",
+      "event_type": "MBL_CREATED",
+      "timestamp": 18.0,
+      "data": {
+        "mbl_id": "MBL-70BDA9D3",
+        "shipment_count": 11,
+        "total_cbm": 7.442,
+        "total_effective_cbm": 7.703,
+        "total_weight": 699.67,
+        "fill_rate": 0.7442,
+        "effective_fill_rate": 0.7703,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-50D38E7C",
+          "HBL-7F7658CF",
+          "HBL-757F1EDD",
+          "HBL-EF6E99A8",
+          "HBL-DEE16ED9",
+          "HBL-6579BA6C",
+          "HBL-B359F37B",
+          "HBL-44BCDB82",
+          "HBL-4CB59FBE",
+          "HBL-D6B3DD77",
+          "HBL-22FA788A"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00115",
+      "event_type": "TICK",
+      "timestamp": 19.0,
+      "data": {
+        "buffer_count": 0,
+        "buffer_cbm": 0,
+        "buffer_effective_cbm": 0,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00116",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 19.0,
+      "data": {
+        "shipment_id": "SHP-2658352A",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.24,
+        "effective_cbm": 0.24,
+        "weight": 39.8,
+        "due_time": 67.16328287684597
+      }
+    },
+    {
+      "event_id": "EVT-00117",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 19.0,
+      "data": {
+        "shipment_id": "SHP-A2E6C36C",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.476,
+        "effective_cbm": 0.619,
+        "weight": 29.13,
+        "due_time": 67.418427747501
+      }
+    },
+    {
+      "event_id": "EVT-00118",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 19.0,
+      "data": {
+        "shipment_id": "SHP-7C709DAE",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 0.557,
+        "effective_cbm": 0.557,
+        "weight": 197.53,
+        "due_time": 67.37843574985776
+      }
+    },
+    {
+      "event_id": "EVT-00119",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 19.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 1.273,
+        "buffer_effective_cbm": 1.416,
+        "buffer_count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00120",
+      "event_type": "TICK",
+      "timestamp": 20.0,
+      "data": {
+        "buffer_count": 3,
+        "buffer_cbm": 1.273,
+        "buffer_effective_cbm": 1.416,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00121",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 20.0,
+      "data": {
+        "shipment_id": "SHP-E4E56601",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.254,
+        "effective_cbm": 0.254,
+        "weight": 28.01,
+        "due_time": 68.18820368719145
+      }
+    },
+    {
+      "event_id": "EVT-00122",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 20.0,
+      "data": {
+        "shipment_id": "SHP-B934A457",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.308,
+        "effective_cbm": 0.308,
+        "weight": 24.62,
+        "due_time": 68.29361283144992
+      }
+    },
+    {
+      "event_id": "EVT-00123",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 20.0,
+      "data": {
+        "shipment_id": "SHP-6B18C2D3",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.179,
+        "effective_cbm": 0.233,
+        "weight": 38.17,
+        "due_time": 68.87416072791319
+      }
+    },
+    {
+      "event_id": "EVT-00124",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 20.0,
+      "data": {
+        "shipment_id": "SHP-376E7742",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.226,
+        "effective_cbm": 0.226,
+        "weight": 19.86,
+        "due_time": 68.91043199448923
+      }
+    },
+    {
+      "event_id": "EVT-00125",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 20.0,
+      "data": {
+        "shipment_id": "SHP-BD9CC0C7",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.104,
+        "effective_cbm": 1.104,
+        "weight": 111.26,
+        "due_time": 68.44641929138318
+      }
+    },
+    {
+      "event_id": "EVT-00126",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 20.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.344,
+        "buffer_effective_cbm": 3.541,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00127",
+      "event_type": "TICK",
+      "timestamp": 21.0,
+      "data": {
+        "buffer_count": 8,
+        "buffer_cbm": 3.344,
+        "buffer_effective_cbm": 3.541,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00128",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 21.0,
+      "data": {
+        "shipment_id": "SHP-3ED5C621",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.17,
+        "effective_cbm": 0.17,
+        "weight": 38.67,
+        "due_time": 69.54670706259922
+      }
+    },
+    {
+      "event_id": "EVT-00129",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 21.0,
+      "data": {
+        "shipment_id": "SHP-9165C88A",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.215,
+        "effective_cbm": 0.215,
+        "weight": 5.02,
+        "due_time": 69.7257234771556
+      }
+    },
+    {
+      "event_id": "EVT-00130",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 21.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.729,
+        "buffer_effective_cbm": 3.926,
+        "buffer_count": 10
+      }
+    },
+    {
+      "event_id": "EVT-00131",
+      "event_type": "TICK",
+      "timestamp": 22.0,
+      "data": {
+        "buffer_count": 10,
+        "buffer_cbm": 3.729,
+        "buffer_effective_cbm": 3.926,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00132",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_id": "SHP-6DDFFBFA",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.417,
+        "effective_cbm": 0.417,
+        "weight": 28.0,
+        "due_time": 70.29150645387107
+      }
+    },
+    {
+      "event_id": "EVT-00133",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_id": "SHP-5B9FC07C",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.353,
+        "effective_cbm": 0.353,
+        "weight": 28.2,
+        "due_time": 70.38448537161447
+      }
+    },
+    {
+      "event_id": "EVT-00134",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_id": "SHP-F3F6722D",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.224,
+        "effective_cbm": 0.291,
+        "weight": 15.57,
+        "due_time": 70.43350528260108
+      }
+    },
+    {
+      "event_id": "EVT-00135",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_id": "SHP-C1EE5211",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.345,
+        "effective_cbm": 0.345,
+        "weight": 49.28,
+        "due_time": 70.51321067220707
+      }
+    },
+    {
+      "event_id": "EVT-00136",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_id": "SHP-FEA7E927",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.387,
+        "effective_cbm": 0.503,
+        "weight": 30.91,
+        "due_time": 70.81707736606977
+      }
+    },
+    {
+      "event_id": "EVT-00137",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_id": "SHP-2A521463",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.626,
+        "effective_cbm": 1.626,
+        "weight": 50.83,
+        "due_time": 70.34961665055778
+      }
+    },
+    {
+      "event_id": "EVT-00138",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 22.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-E4E56601",
+          "SHP-376E7742",
+          "SHP-6DDFFBFA",
+          "SHP-A2E6C36C",
+          "SHP-6B18C2D3",
+          "SHP-F3F6722D",
+          "SHP-FEA7E927",
+          "SHP-2658352A",
+          "SHP-B934A457",
+          "SHP-BD9CC0C7",
+          "SHP-3ED5C621",
+          "SHP-9165C88A",
+          "SHP-5B9FC07C",
+          "SHP-C1EE5211"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.081,
+        "buffer_effective_cbm": 7.461,
+        "buffer_count": 16
+      }
+    },
+    {
+      "event_id": "EVT-00139",
+      "event_type": "DISPATCH",
+      "timestamp": 22.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-2658352A",
+          "SHP-A2E6C36C",
+          "SHP-E4E56601",
+          "SHP-B934A457",
+          "SHP-6B18C2D3",
+          "SHP-376E7742",
+          "SHP-BD9CC0C7",
+          "SHP-3ED5C621",
+          "SHP-9165C88A",
+          "SHP-6DDFFBFA",
+          "SHP-5B9FC07C",
+          "SHP-F3F6722D",
+          "SHP-C1EE5211",
+          "SHP-FEA7E927"
+        ],
+        "count": 14
+      }
+    },
+    {
+      "event_id": "EVT-00140",
+      "event_type": "MBL_CREATED",
+      "timestamp": 22.0,
+      "data": {
+        "mbl_id": "MBL-E339ECFC",
+        "shipment_count": 14,
+        "total_cbm": 4.898,
+        "total_effective_cbm": 5.278,
+        "total_weight": 486.5,
+        "fill_rate": 0.4898,
+        "effective_fill_rate": 0.5278,
+        "categories": [
+          "FRAGILE",
+          "GENERAL",
+          "FOOD"
+        ],
+        "hbl_ids": [
+          "HBL-607F6FC4",
+          "HBL-7B2F66C5",
+          "HBL-00B4CF3D",
+          "HBL-D294E2AA",
+          "HBL-8D2A5F5F",
+          "HBL-D3D3BFDF",
+          "HBL-EEDF309F",
+          "HBL-BD174EDE",
+          "HBL-89DF7C4F",
+          "HBL-816140A6",
+          "HBL-01247B20",
+          "HBL-6B596A13",
+          "HBL-D091E7DD",
+          "HBL-89E2790D"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00141",
+      "event_type": "TICK",
+      "timestamp": 23.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 2.183,
+        "buffer_effective_cbm": 2.183,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00142",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 23.0,
+      "data": {
+        "shipment_id": "SHP-09DFF310",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.286,
+        "effective_cbm": 0.286,
+        "weight": 36.32,
+        "due_time": 71.12348836992801
+      }
+    },
+    {
+      "event_id": "EVT-00143",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 23.0,
+      "data": {
+        "shipment_id": "SHP-2BD7A325",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.421,
+        "effective_cbm": 0.421,
+        "weight": 25.54,
+        "due_time": 71.26679521139292
+      }
+    },
+    {
+      "event_id": "EVT-00144",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 23.0,
+      "data": {
+        "shipment_id": "SHP-7E698FC8",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.402,
+        "effective_cbm": 0.402,
+        "weight": 19.28,
+        "due_time": 71.64551208969138
+      }
+    },
+    {
+      "event_id": "EVT-00145",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 23.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-7C709DAE",
+          "SHP-2A521463",
+          "SHP-7E698FC8"
+        ],
+        "reason": "near_cutoff",
+        "buffer_cbm": 3.292,
+        "buffer_effective_cbm": 3.292,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00146",
+      "event_type": "DISPATCH",
+      "timestamp": 23.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-7C709DAE",
+          "SHP-2A521463",
+          "SHP-7E698FC8"
+        ],
+        "count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00147",
+      "event_type": "MBL_CREATED",
+      "timestamp": 23.0,
+      "data": {
+        "mbl_id": "MBL-D642A4FE",
+        "shipment_count": 3,
+        "total_cbm": 2.585,
+        "total_effective_cbm": 2.585,
+        "total_weight": 267.64,
+        "fill_rate": 0.2585,
+        "effective_fill_rate": 0.2585,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-EFC239DC",
+          "HBL-18ABED18",
+          "HBL-25CC8D9D"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00148",
+      "event_type": "TICK",
+      "timestamp": 24.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 0.707,
+        "buffer_effective_cbm": 0.707,
+        "next_cutoff": 24
+      }
+    },
+    {
+      "event_id": "EVT-00149",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 24.0,
+      "data": {
+        "shipment_id": "SHP-E925C968",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.397,
+        "effective_cbm": 0.397,
+        "weight": 45.37,
+        "due_time": 72.88765525820081
+      }
+    },
+    {
+      "event_id": "EVT-00150",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 24.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-09DFF310",
+          "SHP-2BD7A325",
+          "SHP-E925C968"
+        ],
+        "reason": "near_cutoff",
+        "buffer_cbm": 1.104,
+        "buffer_effective_cbm": 1.104,
+        "buffer_count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00151",
+      "event_type": "DISPATCH",
+      "timestamp": 24.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-09DFF310",
+          "SHP-2BD7A325",
+          "SHP-E925C968"
+        ],
+        "count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00152",
+      "event_type": "MBL_CREATED",
+      "timestamp": 24.0,
+      "data": {
+        "mbl_id": "MBL-B7F20A32",
+        "shipment_count": 3,
+        "total_cbm": 1.104,
+        "total_effective_cbm": 1.104,
+        "total_weight": 107.23,
+        "fill_rate": 0.1104,
+        "effective_fill_rate": 0.1104,
+        "categories": [
+          "FOOD",
+          "GENERAL"
+        ],
+        "hbl_ids": [
+          "HBL-5AE29D9F",
+          "HBL-A2F79258",
+          "HBL-6CFA354A"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00153",
+      "event_type": "TICK",
+      "timestamp": 25.0,
+      "data": {
+        "buffer_count": 0,
+        "buffer_cbm": 0,
+        "buffer_effective_cbm": 0,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00154",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 25.0,
+      "data": {
+        "shipment_id": "SHP-16ABE2A2",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.196,
+        "effective_cbm": 0.196,
+        "weight": 26.81,
+        "due_time": 73.16238839507187
+      }
+    },
+    {
+      "event_id": "EVT-00155",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 25.0,
+      "data": {
+        "shipment_id": "SHP-5A82D532",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.228,
+        "effective_cbm": 0.228,
+        "weight": 17.23,
+        "due_time": 73.20271332439147
+      }
+    },
+    {
+      "event_id": "EVT-00156",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 25.0,
+      "data": {
+        "shipment_id": "SHP-DB7EF402",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.161,
+        "effective_cbm": 0.161,
+        "weight": 22.24,
+        "due_time": 73.24471817184252
+      }
+    },
+    {
+      "event_id": "EVT-00157",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 25.0,
+      "data": {
+        "shipment_id": "SHP-35E9BDD8",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.266,
+        "effective_cbm": 0.266,
+        "weight": 29.42,
+        "due_time": 73.27791033735508
+      }
+    },
+    {
+      "event_id": "EVT-00158",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 25.0,
+      "data": {
+        "shipment_id": "SHP-41204023",
+        "item_type": "B",
+        "cargo_category": "FOOD",
+        "cbm": 0.529,
+        "effective_cbm": 0.529,
+        "weight": 191.91,
+        "due_time": 73.61679875657887
+      }
+    },
+    {
+      "event_id": "EVT-00159",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 25.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 1.38,
+        "buffer_effective_cbm": 1.38,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00160",
+      "event_type": "TICK",
+      "timestamp": 26.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 1.38,
+        "buffer_effective_cbm": 1.38,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00161",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 26.0,
+      "data": {
+        "shipment_id": "SHP-A8DBCDA0",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.754,
+        "effective_cbm": 1.754,
+        "weight": 183.75,
+        "due_time": 74.4433687252237
+      }
+    },
+    {
+      "event_id": "EVT-00162",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 26.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.134,
+        "buffer_effective_cbm": 3.134,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00163",
+      "event_type": "TICK",
+      "timestamp": 27.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 3.134,
+        "buffer_effective_cbm": 3.134,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00164",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 27.0,
+      "data": {
+        "shipment_id": "SHP-D469F4C4",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.274,
+        "effective_cbm": 0.274,
+        "weight": 14.87,
+        "due_time": 75.46222772248433
+      }
+    },
+    {
+      "event_id": "EVT-00165",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 27.0,
+      "data": {
+        "shipment_id": "SHP-2F9B616A",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.39,
+        "effective_cbm": 0.39,
+        "weight": 40.92,
+        "due_time": 75.70844004108848
+      }
+    },
+    {
+      "event_id": "EVT-00166",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 27.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.798,
+        "buffer_effective_cbm": 3.798,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00167",
+      "event_type": "TICK",
+      "timestamp": 28.0,
+      "data": {
+        "buffer_count": 8,
+        "buffer_cbm": 3.798,
+        "buffer_effective_cbm": 3.798,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00168",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 28.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.798,
+        "buffer_effective_cbm": 3.798,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00169",
+      "event_type": "TICK",
+      "timestamp": 29.0,
+      "data": {
+        "buffer_count": 8,
+        "buffer_cbm": 3.798,
+        "buffer_effective_cbm": 3.798,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00170",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-D1AF8602",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.173,
+        "effective_cbm": 0.173,
+        "weight": 44.01,
+        "due_time": 77.04384078011722
+      }
+    },
+    {
+      "event_id": "EVT-00171",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-FEA50F5E",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.404,
+        "effective_cbm": 0.404,
+        "weight": 19.71,
+        "due_time": 77.28213651219623
+      }
+    },
+    {
+      "event_id": "EVT-00172",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-A78F3581",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.434,
+        "effective_cbm": 0.564,
+        "weight": 23.97,
+        "due_time": 77.44517932549103
+      }
+    },
+    {
+      "event_id": "EVT-00173",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-0383B909",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.24,
+        "effective_cbm": 0.24,
+        "weight": 50.0,
+        "due_time": 77.45496612864828
+      }
+    },
+    {
+      "event_id": "EVT-00174",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-A63FD67B",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.112,
+        "effective_cbm": 0.146,
+        "weight": 6.81,
+        "due_time": 77.49050921470433
+      }
+    },
+    {
+      "event_id": "EVT-00175",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-EDA12236",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.15,
+        "effective_cbm": 0.15,
+        "weight": 11.86,
+        "due_time": 77.60168157641202
+      }
+    },
+    {
+      "event_id": "EVT-00176",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-67399EFD",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.202,
+        "effective_cbm": 0.263,
+        "weight": 25.93,
+        "due_time": 77.662420566631
+      }
+    },
+    {
+      "event_id": "EVT-00177",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-01D21387",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.146,
+        "effective_cbm": 0.146,
+        "weight": 38.66,
+        "due_time": 77.7542552850398
+      }
+    },
+    {
+      "event_id": "EVT-00178",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-61E7FF4B",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.516,
+        "effective_cbm": 1.516,
+        "weight": 96.79,
+        "due_time": 77.14299982303082
+      }
+    },
+    {
+      "event_id": "EVT-00179",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_id": "SHP-8A415A5F",
+        "item_type": "B",
+        "cargo_category": "FOOD",
+        "cbm": 1.536,
+        "effective_cbm": 1.536,
+        "weight": 61.4,
+        "due_time": 77.77458129917586
+      }
+    },
+    {
+      "event_id": "EVT-00180",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 29.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-16ABE2A2",
+          "SHP-41204023",
+          "SHP-2F9B616A",
+          "SHP-01D21387",
+          "SHP-8A415A5F",
+          "SHP-A78F3581",
+          "SHP-A63FD67B",
+          "SHP-67399EFD",
+          "SHP-5A82D532",
+          "SHP-DB7EF402",
+          "SHP-35E9BDD8",
+          "SHP-A8DBCDA0",
+          "SHP-D469F4C4",
+          "SHP-D1AF8602",
+          "SHP-61E7FF4B",
+          "SHP-FEA50F5E",
+          "SHP-0383B909",
+          "SHP-EDA12236"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 8.711,
+        "buffer_effective_cbm": 8.936,
+        "buffer_count": 18
+      }
+    },
+    {
+      "event_id": "EVT-00181",
+      "event_type": "DISPATCH",
+      "timestamp": 29.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-16ABE2A2",
+          "SHP-5A82D532",
+          "SHP-DB7EF402",
+          "SHP-35E9BDD8",
+          "SHP-41204023",
+          "SHP-A8DBCDA0",
+          "SHP-D469F4C4",
+          "SHP-2F9B616A",
+          "SHP-D1AF8602",
+          "SHP-FEA50F5E",
+          "SHP-A78F3581",
+          "SHP-0383B909",
+          "SHP-A63FD67B",
+          "SHP-EDA12236",
+          "SHP-67399EFD",
+          "SHP-01D21387",
+          "SHP-61E7FF4B",
+          "SHP-8A415A5F"
+        ],
+        "count": 18
+      }
+    },
+    {
+      "event_id": "EVT-00182",
+      "event_type": "MBL_CREATED",
+      "timestamp": 29.0,
+      "data": {
+        "mbl_id": "MBL-DE711435",
+        "shipment_count": 18,
+        "total_cbm": 8.711,
+        "total_effective_cbm": 8.936,
+        "total_weight": 906.29,
+        "fill_rate": 0.8711,
+        "effective_fill_rate": 0.8936,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-1BB41A9C",
+          "HBL-FD52DC5D",
+          "HBL-85AFE7A3",
+          "HBL-D3BB7146",
+          "HBL-4427B842",
+          "HBL-1013A93C",
+          "HBL-8A2CD80E",
+          "HBL-13DA25D2",
+          "HBL-5B08786D",
+          "HBL-0D74FF58",
+          "HBL-CD14D357",
+          "HBL-F8560198",
+          "HBL-0457E175",
+          "HBL-21E4101D",
+          "HBL-5693B939",
+          "HBL-A35479C1",
+          "HBL-0E95ADEF",
+          "HBL-ECDCB742"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00183",
+      "event_type": "TICK",
+      "timestamp": 30.0,
+      "data": {
+        "buffer_count": 0,
+        "buffer_cbm": 0,
+        "buffer_effective_cbm": 0,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00184",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 30.0,
+      "data": {
+        "shipment_id": "SHP-F470BFD3",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.418,
+        "effective_cbm": 0.418,
+        "weight": 41.25,
+        "due_time": 78.17946924153986
+      }
+    },
+    {
+      "event_id": "EVT-00185",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 30.0,
+      "data": {
+        "shipment_id": "SHP-CB1FDECF",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.248,
+        "effective_cbm": 0.248,
+        "weight": 24.28,
+        "due_time": 78.94255869367532
+      }
+    },
+    {
+      "event_id": "EVT-00186",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 30.0,
+      "data": {
+        "shipment_id": "SHP-37CB2790",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.15,
+        "effective_cbm": 1.15,
+        "weight": 123.53,
+        "due_time": 78.0159160877439
+      }
+    },
+    {
+      "event_id": "EVT-00187",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 30.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 1.816,
+        "buffer_effective_cbm": 1.816,
+        "buffer_count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00188",
+      "event_type": "TICK",
+      "timestamp": 31.0,
+      "data": {
+        "buffer_count": 3,
+        "buffer_cbm": 1.816,
+        "buffer_effective_cbm": 1.816,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00189",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 31.0,
+      "data": {
+        "shipment_id": "SHP-670D3B43",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.486,
+        "effective_cbm": 0.486,
+        "weight": 38.02,
+        "due_time": 79.61431830833007
+      }
+    },
+    {
+      "event_id": "EVT-00190",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 31.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 2.302,
+        "buffer_effective_cbm": 2.302,
+        "buffer_count": 4
+      }
+    },
+    {
+      "event_id": "EVT-00191",
+      "event_type": "TICK",
+      "timestamp": 32.0,
+      "data": {
+        "buffer_count": 4,
+        "buffer_cbm": 2.302,
+        "buffer_effective_cbm": 2.302,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00192",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 32.0,
+      "data": {
+        "shipment_id": "SHP-FC683D02",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.229,
+        "effective_cbm": 0.229,
+        "weight": 31.66,
+        "due_time": 80.31262630952287
+      }
+    },
+    {
+      "event_id": "EVT-00193",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 32.0,
+      "data": {
+        "shipment_id": "SHP-2FF64960",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.197,
+        "effective_cbm": 1.556,
+        "weight": 86.58,
+        "due_time": 80.11331280257528
+      }
+    },
+    {
+      "event_id": "EVT-00194",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 32.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.728,
+        "buffer_effective_cbm": 4.087,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00195",
+      "event_type": "TICK",
+      "timestamp": 33.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 3.728,
+        "buffer_effective_cbm": 4.087,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00196",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 33.0,
+      "data": {
+        "shipment_id": "SHP-3DCC44F7",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.242,
+        "effective_cbm": 0.242,
+        "weight": 26.94,
+        "due_time": 81.34091226579983
+      }
+    },
+    {
+      "event_id": "EVT-00197",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 33.0,
+      "data": {
+        "shipment_id": "SHP-93B37F79",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.211,
+        "effective_cbm": 0.274,
+        "weight": 36.55,
+        "due_time": 81.54892675306468
+      }
+    },
+    {
+      "event_id": "EVT-00198",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 33.0,
+      "data": {
+        "shipment_id": "SHP-07BC0BC9",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.263,
+        "effective_cbm": 0.263,
+        "weight": 15.86,
+        "due_time": 81.91241034675693
+      }
+    },
+    {
+      "event_id": "EVT-00199",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 33.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.444,
+        "buffer_effective_cbm": 4.866,
+        "buffer_count": 9
+      }
+    },
+    {
+      "event_id": "EVT-00200",
+      "event_type": "TICK",
+      "timestamp": 34.0,
+      "data": {
+        "buffer_count": 9,
+        "buffer_cbm": 4.444,
+        "buffer_effective_cbm": 4.866,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00201",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 34.0,
+      "data": {
+        "shipment_id": "SHP-8D8F6F03",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.189,
+        "effective_cbm": 0.189,
+        "weight": 9.19,
+        "due_time": 82.33747815619418
+      }
+    },
+    {
+      "event_id": "EVT-00202",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 34.0,
+      "data": {
+        "shipment_id": "SHP-333D6533",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.321,
+        "effective_cbm": 0.321,
+        "weight": 21.61,
+        "due_time": 82.4768757709497
+      }
+    },
+    {
+      "event_id": "EVT-00203",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 34.0,
+      "data": {
+        "shipment_id": "SHP-A04642E5",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.381,
+        "effective_cbm": 0.381,
+        "weight": 19.89,
+        "due_time": 82.75400668008868
+      }
+    },
+    {
+      "event_id": "EVT-00204",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 34.0,
+      "data": {
+        "shipment_id": "SHP-6B5E4F50",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.226,
+        "effective_cbm": 0.226,
+        "weight": 37.46,
+        "due_time": 82.93709738193468
+      }
+    },
+    {
+      "event_id": "EVT-00205",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 34.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.561,
+        "buffer_effective_cbm": 5.983,
+        "buffer_count": 13
+      }
+    },
+    {
+      "event_id": "EVT-00206",
+      "event_type": "TICK",
+      "timestamp": 35.0,
+      "data": {
+        "buffer_count": 13,
+        "buffer_cbm": 5.561,
+        "buffer_effective_cbm": 5.983,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00207",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 35.0,
+      "data": {
+        "shipment_id": "SHP-05AA146E",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.491,
+        "effective_cbm": 0.491,
+        "weight": 37.61,
+        "due_time": 83.12191849555563
+      }
+    },
+    {
+      "event_id": "EVT-00208",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 35.0,
+      "data": {
+        "shipment_id": "SHP-EC8B4441",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.218,
+        "effective_cbm": 0.283,
+        "weight": 42.47,
+        "due_time": 83.57606829430034
+      }
+    },
+    {
+      "event_id": "EVT-00209",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 35.0,
+      "data": {
+        "shipment_id": "SHP-1D27B19A",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.21,
+        "effective_cbm": 0.21,
+        "weight": 29.04,
+        "due_time": 83.67495335742193
+      }
+    },
+    {
+      "event_id": "EVT-00210",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 35.0,
+      "data": {
+        "shipment_id": "SHP-1C3A5F40",
+        "item_type": "C",
+        "cargo_category": "OVERSIZED",
+        "cbm": 4.618,
+        "effective_cbm": 4.618,
+        "weight": 494.53,
+        "due_time": 83.67497370231325
+      }
+    },
+    {
+      "event_id": "EVT-00211",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 35.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-F470BFD3",
+          "SHP-FC683D02",
+          "SHP-8D8F6F03",
+          "SHP-333D6533",
+          "SHP-A04642E5",
+          "SHP-2FF64960",
+          "SHP-93B37F79",
+          "SHP-EC8B4441",
+          "SHP-37CB2790",
+          "SHP-CB1FDECF",
+          "SHP-670D3B43",
+          "SHP-3DCC44F7",
+          "SHP-07BC0BC9",
+          "SHP-6B5E4F50",
+          "SHP-05AA146E",
+          "SHP-1D27B19A"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 11.098,
+        "buffer_effective_cbm": 11.585,
+        "buffer_count": 17
+      }
+    },
+    {
+      "event_id": "EVT-00212",
+      "event_type": "DISPATCH",
+      "timestamp": 35.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-F470BFD3",
+          "SHP-CB1FDECF",
+          "SHP-37CB2790",
+          "SHP-670D3B43",
+          "SHP-FC683D02",
+          "SHP-2FF64960",
+          "SHP-3DCC44F7",
+          "SHP-93B37F79",
+          "SHP-07BC0BC9",
+          "SHP-8D8F6F03",
+          "SHP-333D6533",
+          "SHP-A04642E5",
+          "SHP-6B5E4F50",
+          "SHP-05AA146E",
+          "SHP-EC8B4441",
+          "SHP-1D27B19A"
+        ],
+        "count": 16
+      }
+    },
+    {
+      "event_id": "EVT-00213",
+      "event_type": "MBL_CREATED",
+      "timestamp": 35.0,
+      "data": {
+        "mbl_id": "MBL-DA03670B",
+        "shipment_count": 16,
+        "total_cbm": 6.48,
+        "total_effective_cbm": 6.967,
+        "total_weight": 621.94,
+        "fill_rate": 0.648,
+        "effective_fill_rate": 0.6967,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-C6BDA6F2",
+          "HBL-3A65C8B7",
+          "HBL-069865BA",
+          "HBL-80F2DD74",
+          "HBL-D7AAD0AB",
+          "HBL-6AAC2FA0",
+          "HBL-C5EDDED0",
+          "HBL-48CAED7E",
+          "HBL-F2CC78FB",
+          "HBL-7EF0F646",
+          "HBL-02F49A9F",
+          "HBL-E20BFF09",
+          "HBL-DE74751D",
+          "HBL-AB68B786",
+          "HBL-75AACFE7",
+          "HBL-0706513F"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00214",
+      "event_type": "TICK",
+      "timestamp": 36.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 4.618,
+        "buffer_effective_cbm": 4.618,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00215",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 36.0,
+      "data": {
+        "shipment_id": "SHP-08B986E9",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.476,
+        "effective_cbm": 0.476,
+        "weight": 7.31,
+        "due_time": 84.29032799268926
+      }
+    },
+    {
+      "event_id": "EVT-00216",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 36.0,
+      "data": {
+        "shipment_id": "SHP-A47BEAD5",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.331,
+        "effective_cbm": 0.331,
+        "weight": 27.13,
+        "due_time": 84.3508963357776
+      }
+    },
+    {
+      "event_id": "EVT-00217",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 36.0,
+      "data": {
+        "shipment_id": "SHP-E0F51F5A",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.222,
+        "effective_cbm": 0.222,
+        "weight": 30.33,
+        "due_time": 84.37844611307017
+      }
+    },
+    {
+      "event_id": "EVT-00218",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 36.0,
+      "data": {
+        "shipment_id": "SHP-6C4128FE",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.416,
+        "effective_cbm": 0.416,
+        "weight": 32.28,
+        "due_time": 84.4414837777581
+      }
+    },
+    {
+      "event_id": "EVT-00219",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 36.0,
+      "data": {
+        "shipment_id": "SHP-F099D21A",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.383,
+        "effective_cbm": 1.798,
+        "weight": 94.6,
+        "due_time": 84.59830713311098
+      }
+    },
+    {
+      "event_id": "EVT-00220",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 36.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-1C3A5F40"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.446,
+        "buffer_effective_cbm": 7.861,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00221",
+      "event_type": "DISPATCH",
+      "timestamp": 36.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-1C3A5F40"
+        ],
+        "count": 1
+      }
+    },
+    {
+      "event_id": "EVT-00222",
+      "event_type": "MBL_CREATED",
+      "timestamp": 36.0,
+      "data": {
+        "mbl_id": "MBL-02342363",
+        "shipment_count": 1,
+        "total_cbm": 4.618,
+        "total_effective_cbm": 4.618,
+        "total_weight": 494.53,
+        "fill_rate": 0.4618,
+        "effective_fill_rate": 0.4618,
+        "categories": [
+          "OVERSIZED"
+        ],
+        "hbl_ids": [
+          "HBL-90C1ECFB"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00223",
+      "event_type": "TICK",
+      "timestamp": 37.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 2.828,
+        "buffer_effective_cbm": 3.243,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00224",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 37.0,
+      "data": {
+        "shipment_id": "SHP-37A1241F",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.183,
+        "effective_cbm": 0.183,
+        "weight": 47.64,
+        "due_time": 85.47033130426698
+      }
+    },
+    {
+      "event_id": "EVT-00225",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 37.0,
+      "data": {
+        "shipment_id": "SHP-A988B880",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.321,
+        "effective_cbm": 0.321,
+        "weight": 15.79,
+        "due_time": 85.62403302098926
+      }
+    },
+    {
+      "event_id": "EVT-00226",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 37.0,
+      "data": {
+        "shipment_id": "SHP-B327056A",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.217,
+        "effective_cbm": 0.217,
+        "weight": 31.72,
+        "due_time": 85.62537267536278
+      }
+    },
+    {
+      "event_id": "EVT-00227",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 37.0,
+      "data": {
+        "shipment_id": "SHP-B88A2248",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.128,
+        "effective_cbm": 0.128,
+        "weight": 43.68,
+        "due_time": 85.7952850229965
+      }
+    },
+    {
+      "event_id": "EVT-00228",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 37.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.677,
+        "buffer_effective_cbm": 4.092,
+        "buffer_count": 9
+      }
+    },
+    {
+      "event_id": "EVT-00229",
+      "event_type": "TICK",
+      "timestamp": 38.0,
+      "data": {
+        "buffer_count": 9,
+        "buffer_cbm": 3.677,
+        "buffer_effective_cbm": 4.092,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00230",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 38.0,
+      "data": {
+        "shipment_id": "SHP-F0C67582",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.318,
+        "effective_cbm": 0.413,
+        "weight": 24.13,
+        "due_time": 86.5411476334234
+      }
+    },
+    {
+      "event_id": "EVT-00231",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 38.0,
+      "data": {
+        "shipment_id": "SHP-C5D5D13D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.124,
+        "effective_cbm": 0.124,
+        "weight": 11.4,
+        "due_time": 86.62181298133129
+      }
+    },
+    {
+      "event_id": "EVT-00232",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 38.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.119,
+        "buffer_effective_cbm": 4.629,
+        "buffer_count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00233",
+      "event_type": "TICK",
+      "timestamp": 39.0,
+      "data": {
+        "buffer_count": 11,
+        "buffer_cbm": 4.119,
+        "buffer_effective_cbm": 4.629,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00234",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 39.0,
+      "data": {
+        "shipment_id": "SHP-BA21E93E",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.261,
+        "effective_cbm": 0.261,
+        "weight": 18.68,
+        "due_time": 87.28915396896122
+      }
+    },
+    {
+      "event_id": "EVT-00235",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 39.0,
+      "data": {
+        "shipment_id": "SHP-E8FC57AF",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.116,
+        "effective_cbm": 0.116,
+        "weight": 8.62,
+        "due_time": 87.6361999594508
+      }
+    },
+    {
+      "event_id": "EVT-00236",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 39.0,
+      "data": {
+        "shipment_id": "SHP-CAEA804D",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 4.582,
+        "effective_cbm": 4.582,
+        "weight": 604.58,
+        "due_time": 87.13102635389586
+      }
+    },
+    {
+      "event_id": "EVT-00237",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 39.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-6C4128FE",
+          "SHP-37A1241F",
+          "SHP-F099D21A",
+          "SHP-F0C67582",
+          "SHP-08B986E9",
+          "SHP-A47BEAD5",
+          "SHP-E0F51F5A",
+          "SHP-A988B880",
+          "SHP-B327056A",
+          "SHP-B88A2248",
+          "SHP-C5D5D13D",
+          "SHP-CAEA804D",
+          "SHP-BA21E93E",
+          "SHP-E8FC57AF"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 9.078,
+        "buffer_effective_cbm": 9.588,
+        "buffer_count": 14
+      }
+    },
+    {
+      "event_id": "EVT-00238",
+      "event_type": "DISPATCH",
+      "timestamp": 39.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-08B986E9",
+          "SHP-A47BEAD5",
+          "SHP-E0F51F5A",
+          "SHP-6C4128FE",
+          "SHP-F099D21A",
+          "SHP-37A1241F",
+          "SHP-A988B880",
+          "SHP-B327056A",
+          "SHP-B88A2248",
+          "SHP-F0C67582",
+          "SHP-C5D5D13D",
+          "SHP-BA21E93E",
+          "SHP-E8FC57AF",
+          "SHP-CAEA804D"
+        ],
+        "count": 14
+      }
+    },
+    {
+      "event_id": "EVT-00239",
+      "event_type": "MBL_CREATED",
+      "timestamp": 39.0,
+      "data": {
+        "mbl_id": "MBL-49236A25",
+        "shipment_count": 14,
+        "total_cbm": 9.078,
+        "total_effective_cbm": 9.588,
+        "total_weight": 997.89,
+        "fill_rate": 0.9078,
+        "effective_fill_rate": 0.9588,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-0A14D412",
+          "HBL-5C407991",
+          "HBL-C08747FC",
+          "HBL-36C96849",
+          "HBL-523E444C",
+          "HBL-7A676646",
+          "HBL-E733E137",
+          "HBL-5A46A803",
+          "HBL-2B2AC9E4",
+          "HBL-D9D42B51",
+          "HBL-63C8BE85",
+          "HBL-0E59F3AC",
+          "HBL-7F59DBD8",
+          "HBL-BEE102EB"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00240",
+      "event_type": "TICK",
+      "timestamp": 40.0,
+      "data": {
+        "buffer_count": 0,
+        "buffer_cbm": 0,
+        "buffer_effective_cbm": 0,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00241",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 40.0,
+      "data": {
+        "shipment_id": "SHP-23B42A0D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.403,
+        "effective_cbm": 0.403,
+        "weight": 6.81,
+        "due_time": 88.55780026401993
+      }
+    },
+    {
+      "event_id": "EVT-00242",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 40.0,
+      "data": {
+        "shipment_id": "SHP-342E8326",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.499,
+        "effective_cbm": 0.499,
+        "weight": 17.52,
+        "due_time": 88.92370668253989
+      }
+    },
+    {
+      "event_id": "EVT-00243",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 40.0,
+      "data": {
+        "shipment_id": "SHP-56CBBC61",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.0,
+        "effective_cbm": 1.0,
+        "weight": 102.19,
+        "due_time": 88.84591777194362
+      }
+    },
+    {
+      "event_id": "EVT-00244",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 40.0,
+      "data": {
+        "shipment_id": "SHP-2E4C7E85",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.243,
+        "effective_cbm": 1.243,
+        "weight": 111.75,
+        "due_time": 88.98402352728718
+      }
+    },
+    {
+      "event_id": "EVT-00245",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 40.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.145,
+        "buffer_effective_cbm": 3.145,
+        "buffer_count": 4
+      }
+    },
+    {
+      "event_id": "EVT-00246",
+      "event_type": "TICK",
+      "timestamp": 41.0,
+      "data": {
+        "buffer_count": 4,
+        "buffer_cbm": 3.145,
+        "buffer_effective_cbm": 3.145,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00247",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 41.0,
+      "data": {
+        "shipment_id": "SHP-33B6AC36",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.229,
+        "effective_cbm": 0.229,
+        "weight": 19.15,
+        "due_time": 89.3993612029351
+      }
+    },
+    {
+      "event_id": "EVT-00248",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 41.0,
+      "data": {
+        "shipment_id": "SHP-90410794",
+        "item_type": "C",
+        "cargo_category": "OVERSIZED",
+        "cbm": 2.163,
+        "effective_cbm": 2.163,
+        "weight": 477.19,
+        "due_time": 89.00575865217529
+      }
+    },
+    {
+      "event_id": "EVT-00249",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 41.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.537,
+        "buffer_effective_cbm": 5.537,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00250",
+      "event_type": "TICK",
+      "timestamp": 42.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 5.537,
+        "buffer_effective_cbm": 5.537,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00251",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 42.0,
+      "data": {
+        "shipment_id": "SHP-27E6DAF3",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.207,
+        "effective_cbm": 0.207,
+        "weight": 7.32,
+        "due_time": 90.34506895885052
+      }
+    },
+    {
+      "event_id": "EVT-00252",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 42.0,
+      "data": {
+        "shipment_id": "SHP-F015165C",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.96,
+        "effective_cbm": 1.96,
+        "weight": 68.21,
+        "due_time": 90.72057503161233
+      }
+    },
+    {
+      "event_id": "EVT-00253",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 42.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-F015165C",
+          "SHP-23B42A0D",
+          "SHP-56CBBC61",
+          "SHP-342E8326",
+          "SHP-2E4C7E85",
+          "SHP-33B6AC36",
+          "SHP-27E6DAF3"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.704,
+        "buffer_effective_cbm": 7.704,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00254",
+      "event_type": "DISPATCH",
+      "timestamp": 42.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-23B42A0D",
+          "SHP-342E8326",
+          "SHP-56CBBC61",
+          "SHP-2E4C7E85",
+          "SHP-33B6AC36",
+          "SHP-27E6DAF3",
+          "SHP-F015165C"
+        ],
+        "count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00255",
+      "event_type": "MBL_CREATED",
+      "timestamp": 42.0,
+      "data": {
+        "mbl_id": "MBL-896ED97D",
+        "shipment_count": 7,
+        "total_cbm": 5.541,
+        "total_effective_cbm": 5.541,
+        "total_weight": 332.95,
+        "fill_rate": 0.5541,
+        "effective_fill_rate": 0.5541,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-A6BAD332",
+          "HBL-9ABD137A",
+          "HBL-5C42229D",
+          "HBL-0306201F",
+          "HBL-9F13806D",
+          "HBL-6E7CB963",
+          "HBL-BB614A35"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00256",
+      "event_type": "TICK",
+      "timestamp": 43.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00257",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 43.0,
+      "data": {
+        "shipment_id": "SHP-6B88036B",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.19,
+        "effective_cbm": 0.19,
+        "weight": 23.36,
+        "due_time": 91.18607571493328
+      }
+    },
+    {
+      "event_id": "EVT-00258",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 43.0,
+      "data": {
+        "shipment_id": "SHP-3291B9EE",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.299,
+        "effective_cbm": 0.299,
+        "weight": 42.45,
+        "due_time": 91.49551122794556
+      }
+    },
+    {
+      "event_id": "EVT-00259",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 43.0,
+      "data": {
+        "shipment_id": "SHP-DFDD332F",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.293,
+        "effective_cbm": 0.293,
+        "weight": 23.7,
+        "due_time": 91.66806906197043
+      }
+    },
+    {
+      "event_id": "EVT-00260",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 43.0,
+      "data": {
+        "shipment_id": "SHP-601425CC",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.469,
+        "effective_cbm": 0.469,
+        "weight": 22.26,
+        "due_time": 91.80774807286579
+      }
+    },
+    {
+      "event_id": "EVT-00261",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 43.0,
+      "data": {
+        "shipment_id": "SHP-156B875F",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.782,
+        "effective_cbm": 1.782,
+        "weight": 165.9,
+        "due_time": 91.18346380640723
+      }
+    },
+    {
+      "event_id": "EVT-00262",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 43.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.196,
+        "buffer_effective_cbm": 5.196,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00263",
+      "event_type": "TICK",
+      "timestamp": 44.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 5.196,
+        "buffer_effective_cbm": 5.196,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00264",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 44.0,
+      "data": {
+        "shipment_id": "SHP-A201E7C5",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.335,
+        "effective_cbm": 0.335,
+        "weight": 18.44,
+        "due_time": 92.8589278628379
+      }
+    },
+    {
+      "event_id": "EVT-00265",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 44.0,
+      "data": {
+        "shipment_id": "SHP-3605D264",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.328,
+        "effective_cbm": 1.328,
+        "weight": 101.77,
+        "due_time": 92.20108480540993
+      }
+    },
+    {
+      "event_id": "EVT-00266",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 44.0,
+      "data": {
+        "shipment_id": "SHP-171359EB",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.971,
+        "effective_cbm": 2.562,
+        "weight": 180.44,
+        "due_time": 92.79301728381014
+      }
+    },
+    {
+      "event_id": "EVT-00267",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 44.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-DFDD332F",
+          "SHP-171359EB",
+          "SHP-156B875F",
+          "SHP-6B88036B",
+          "SHP-3291B9EE",
+          "SHP-601425CC",
+          "SHP-A201E7C5"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 8.83,
+        "buffer_effective_cbm": 9.421,
+        "buffer_count": 9
+      }
+    },
+    {
+      "event_id": "EVT-00268",
+      "event_type": "DISPATCH",
+      "timestamp": 44.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-6B88036B",
+          "SHP-3291B9EE",
+          "SHP-DFDD332F",
+          "SHP-601425CC",
+          "SHP-156B875F",
+          "SHP-A201E7C5",
+          "SHP-171359EB"
+        ],
+        "count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00269",
+      "event_type": "MBL_CREATED",
+      "timestamp": 44.0,
+      "data": {
+        "mbl_id": "MBL-5D4A3D6F",
+        "shipment_count": 7,
+        "total_cbm": 5.339,
+        "total_effective_cbm": 5.93,
+        "total_weight": 476.55,
+        "fill_rate": 0.5339,
+        "effective_fill_rate": 0.593,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-9AE6EA4E",
+          "HBL-093F31A7",
+          "HBL-BB23CF5D",
+          "HBL-E40CF191",
+          "HBL-D1D4226A",
+          "HBL-EDF7F07E",
+          "HBL-CAD8898A"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00270",
+      "event_type": "TICK",
+      "timestamp": 45.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 3.491,
+        "buffer_effective_cbm": 3.491,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00271",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 45.0,
+      "data": {
+        "shipment_id": "SHP-FBD401EC",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.382,
+        "effective_cbm": 0.382,
+        "weight": 38.51,
+        "due_time": 93.74703884938603
+      }
+    },
+    {
+      "event_id": "EVT-00272",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 45.0,
+      "data": {
+        "shipment_id": "SHP-DDF71EF4",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.492,
+        "effective_cbm": 0.492,
+        "weight": 41.93,
+        "due_time": 93.9909831596096
+      }
+    },
+    {
+      "event_id": "EVT-00273",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 45.0,
+      "data": {
+        "shipment_id": "SHP-473CA93B",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.651,
+        "effective_cbm": 0.846,
+        "weight": 99.8,
+        "due_time": 93.16869589533678
+      }
+    },
+    {
+      "event_id": "EVT-00274",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 45.0,
+      "data": {
+        "shipment_id": "SHP-38BF4B75",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.584,
+        "effective_cbm": 1.584,
+        "weight": 118.54,
+        "due_time": 93.89415270529457
+      }
+    },
+    {
+      "event_id": "EVT-00275",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 45.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 6.6,
+        "buffer_effective_cbm": 6.795,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00276",
+      "event_type": "TICK",
+      "timestamp": 46.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 6.6,
+        "buffer_effective_cbm": 6.795,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00277",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 46.0,
+      "data": {
+        "shipment_id": "SHP-BB7D12D7",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.349,
+        "effective_cbm": 0.349,
+        "weight": 16.93,
+        "due_time": 94.03888794056564
+      }
+    },
+    {
+      "event_id": "EVT-00278",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 46.0,
+      "data": {
+        "shipment_id": "SHP-F5AD7583",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.444,
+        "effective_cbm": 0.577,
+        "weight": 43.36,
+        "due_time": 94.5635657037937
+      }
+    },
+    {
+      "event_id": "EVT-00279",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 46.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-3605D264",
+          "SHP-38BF4B75",
+          "SHP-FBD401EC"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.393,
+        "buffer_effective_cbm": 7.721,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00280",
+      "event_type": "DISPATCH",
+      "timestamp": 46.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-3605D264",
+          "SHP-FBD401EC",
+          "SHP-38BF4B75"
+        ],
+        "count": 3
+      }
+    },
+    {
+      "event_id": "EVT-00281",
+      "event_type": "MBL_CREATED",
+      "timestamp": 46.0,
+      "data": {
+        "mbl_id": "MBL-7465DE00",
+        "shipment_count": 3,
+        "total_cbm": 3.294,
+        "total_effective_cbm": 3.294,
+        "total_weight": 258.82,
+        "fill_rate": 0.3294,
+        "effective_fill_rate": 0.3294,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-2731D698",
+          "HBL-B4885F3D",
+          "HBL-179F7AB8"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00282",
+      "event_type": "TICK",
+      "timestamp": 47.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 4.099,
+        "buffer_effective_cbm": 4.427,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00283",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 47.0,
+      "data": {
+        "shipment_id": "SHP-3E2507BE",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.194,
+        "effective_cbm": 0.194,
+        "weight": 32.79,
+        "due_time": 95.33466404580251
+      }
+    },
+    {
+      "event_id": "EVT-00284",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 47.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-DDF71EF4",
+          "SHP-BB7D12D7",
+          "SHP-473CA93B",
+          "SHP-F5AD7583",
+          "SHP-3E2507BE"
+        ],
+        "reason": "near_cutoff",
+        "buffer_cbm": 4.293,
+        "buffer_effective_cbm": 4.621,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00285",
+      "event_type": "DISPATCH",
+      "timestamp": 47.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-DDF71EF4",
+          "SHP-473CA93B",
+          "SHP-BB7D12D7",
+          "SHP-F5AD7583",
+          "SHP-3E2507BE"
+        ],
+        "count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00286",
+      "event_type": "MBL_CREATED",
+      "timestamp": 47.0,
+      "data": {
+        "mbl_id": "MBL-8C88F72C",
+        "shipment_count": 5,
+        "total_cbm": 2.13,
+        "total_effective_cbm": 2.458,
+        "total_weight": 234.81,
+        "fill_rate": 0.213,
+        "effective_fill_rate": 0.2458,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-98711440",
+          "HBL-00E4CA1D",
+          "HBL-ED3AF33C",
+          "HBL-E9617A51",
+          "HBL-D48CC47C"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00287",
+      "event_type": "TICK",
+      "timestamp": 48.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 48
+      }
+    },
+    {
+      "event_id": "EVT-00288",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 48.0,
+      "data": {
+        "shipment_id": "SHP-AA7684F8",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.449,
+        "effective_cbm": 0.449,
+        "weight": 33.52,
+        "due_time": 96.28455539954322
+      }
+    },
+    {
+      "event_id": "EVT-00289",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 48.0,
+      "data": {
+        "shipment_id": "SHP-978F5150",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.23,
+        "effective_cbm": 0.23,
+        "weight": 6.3,
+        "due_time": 96.37553508277716
+      }
+    },
+    {
+      "event_id": "EVT-00290",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 48.0,
+      "data": {
+        "shipment_id": "SHP-DBCD860D",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.312,
+        "effective_cbm": 0.312,
+        "weight": 11.55,
+        "due_time": 96.54915755314987
+      }
+    },
+    {
+      "event_id": "EVT-00291",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 48.0,
+      "data": {
+        "shipment_id": "SHP-84B6C7E8",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.074,
+        "effective_cbm": 1.074,
+        "weight": 141.42,
+        "due_time": 96.24815039310693
+      }
+    },
+    {
+      "event_id": "EVT-00292",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 48.0,
+      "data": {
+        "shipment_id": "SHP-91358735",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.192,
+        "effective_cbm": 1.55,
+        "weight": 71.47,
+        "due_time": 96.59256198507411
+      }
+    },
+    {
+      "event_id": "EVT-00293",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 48.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-91358735",
+          "SHP-84B6C7E8",
+          "SHP-AA7684F8",
+          "SHP-978F5150",
+          "SHP-DBCD860D"
+        ],
+        "reason": "near_cutoff",
+        "buffer_cbm": 5.42,
+        "buffer_effective_cbm": 5.778,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00294",
+      "event_type": "DISPATCH",
+      "timestamp": 48.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-AA7684F8",
+          "SHP-978F5150",
+          "SHP-DBCD860D",
+          "SHP-84B6C7E8",
+          "SHP-91358735"
+        ],
+        "count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00295",
+      "event_type": "MBL_CREATED",
+      "timestamp": 48.0,
+      "data": {
+        "mbl_id": "MBL-CF9129A4",
+        "shipment_count": 5,
+        "total_cbm": 3.257,
+        "total_effective_cbm": 3.615,
+        "total_weight": 264.26,
+        "fill_rate": 0.3257,
+        "effective_fill_rate": 0.3615,
+        "categories": [
+          "FRAGILE",
+          "GENERAL"
+        ],
+        "hbl_ids": [
+          "HBL-464D52CF",
+          "HBL-584ACFEE",
+          "HBL-04C20033",
+          "HBL-75028C4A",
+          "HBL-629DFD73"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00296",
+      "event_type": "TICK",
+      "timestamp": 49.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00297",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 49.0,
+      "data": {
+        "shipment_id": "SHP-00542F0F",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 0.611,
+        "effective_cbm": 0.611,
+        "weight": 131.99,
+        "due_time": 97.78245252372126
+      }
+    },
+    {
+      "event_id": "EVT-00298",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 49.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 2.774,
+        "buffer_effective_cbm": 2.774,
+        "buffer_count": 2
+      }
+    },
+    {
+      "event_id": "EVT-00299",
+      "event_type": "TICK",
+      "timestamp": 50.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 2.774,
+        "buffer_effective_cbm": 2.774,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00300",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 50.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 2.774,
+        "buffer_effective_cbm": 2.774,
+        "buffer_count": 2
+      }
+    },
+    {
+      "event_id": "EVT-00301",
+      "event_type": "TICK",
+      "timestamp": 51.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 2.774,
+        "buffer_effective_cbm": 2.774,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00302",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 51.0,
+      "data": {
+        "shipment_id": "SHP-EFDB58B1",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.143,
+        "effective_cbm": 0.186,
+        "weight": 43.4,
+        "due_time": 99.1798552522531
+      }
+    },
+    {
+      "event_id": "EVT-00303",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 51.0,
+      "data": {
+        "shipment_id": "SHP-5310E460",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.218,
+        "effective_cbm": 0.218,
+        "weight": 49.67,
+        "due_time": 99.6040809894343
+      }
+    },
+    {
+      "event_id": "EVT-00304",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 51.0,
+      "data": {
+        "shipment_id": "SHP-D50CE4AD",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.411,
+        "effective_cbm": 0.411,
+        "weight": 43.93,
+        "due_time": 99.8560107453086
+      }
+    },
+    {
+      "event_id": "EVT-00305",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 51.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.546,
+        "buffer_effective_cbm": 3.589,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00306",
+      "event_type": "TICK",
+      "timestamp": 52.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 3.546,
+        "buffer_effective_cbm": 3.589,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00307",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 52.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 3.546,
+        "buffer_effective_cbm": 3.589,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00308",
+      "event_type": "TICK",
+      "timestamp": 53.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 3.546,
+        "buffer_effective_cbm": 3.589,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00309",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 53.0,
+      "data": {
+        "shipment_id": "SHP-A3A20D33",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.2,
+        "effective_cbm": 0.2,
+        "weight": 13.56,
+        "due_time": 101.80957232928007
+      }
+    },
+    {
+      "event_id": "EVT-00310",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 53.0,
+      "data": {
+        "shipment_id": "SHP-DAAFC8F5",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 2.118,
+        "effective_cbm": 2.118,
+        "weight": 576.47,
+        "due_time": 101.73542406768277
+      }
+    },
+    {
+      "event_id": "EVT-00311",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 53.0,
+      "data": {
+        "shipment_id": "SHP-B5A1CCF3",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 4.729,
+        "effective_cbm": 4.729,
+        "weight": 278.85,
+        "due_time": 101.90509319717711
+      }
+    },
+    {
+      "event_id": "EVT-00312",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 53.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-EFDB58B1",
+          "SHP-00542F0F",
+          "SHP-5310E460",
+          "SHP-D50CE4AD",
+          "SHP-DAAFC8F5",
+          "SHP-A3A20D33",
+          "SHP-B5A1CCF3"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 10.593,
+        "buffer_effective_cbm": 10.636,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00313",
+      "event_type": "DISPATCH",
+      "timestamp": 53.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-00542F0F",
+          "SHP-EFDB58B1",
+          "SHP-5310E460",
+          "SHP-D50CE4AD",
+          "SHP-A3A20D33",
+          "SHP-DAAFC8F5",
+          "SHP-B5A1CCF3"
+        ],
+        "count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00314",
+      "event_type": "MBL_CREATED",
+      "timestamp": 53.0,
+      "data": {
+        "mbl_id": "MBL-C6B411B8",
+        "shipment_count": 7,
+        "total_cbm": 8.43,
+        "total_effective_cbm": 8.473,
+        "total_weight": 1137.87,
+        "fill_rate": 0.843,
+        "effective_fill_rate": 0.8473,
+        "categories": [
+          "FRAGILE",
+          "GENERAL"
+        ],
+        "hbl_ids": [
+          "HBL-6658FC48",
+          "HBL-D5507EA2",
+          "HBL-408660C0",
+          "HBL-D1453A0E",
+          "HBL-E0034210",
+          "HBL-82B921B5",
+          "HBL-22D1DCF7"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00315",
+      "event_type": "TICK",
+      "timestamp": 54.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00316",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 54.0,
+      "data": {
+        "shipment_id": "SHP-5ACE5708",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.489,
+        "effective_cbm": 0.489,
+        "weight": 29.27,
+        "due_time": 102.09657401836608
+      }
+    },
+    {
+      "event_id": "EVT-00317",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 54.0,
+      "data": {
+        "shipment_id": "SHP-09ABD34C",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.466,
+        "effective_cbm": 0.466,
+        "weight": 12.4,
+        "due_time": 102.4449455998116
+      }
+    },
+    {
+      "event_id": "EVT-00318",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 54.0,
+      "data": {
+        "shipment_id": "SHP-43FA34F4",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.202,
+        "effective_cbm": 1.563,
+        "weight": 170.63,
+        "due_time": 102.43719766678036
+      }
+    },
+    {
+      "event_id": "EVT-00319",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 54.0,
+      "data": {
+        "shipment_id": "SHP-24DCACB9",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.586,
+        "effective_cbm": 2.062,
+        "weight": 179.02,
+        "due_time": 102.62682707601657
+      }
+    },
+    {
+      "event_id": "EVT-00320",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 54.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.906,
+        "buffer_effective_cbm": 6.743,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00321",
+      "event_type": "TICK",
+      "timestamp": 55.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 5.906,
+        "buffer_effective_cbm": 6.743,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00322",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 55.0,
+      "data": {
+        "shipment_id": "SHP-38593CE9",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.315,
+        "effective_cbm": 0.315,
+        "weight": 5.63,
+        "due_time": 103.22767578790626
+      }
+    },
+    {
+      "event_id": "EVT-00323",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 55.0,
+      "data": {
+        "shipment_id": "SHP-24DAC9A4",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.252,
+        "effective_cbm": 0.252,
+        "weight": 16.8,
+        "due_time": 103.45757228265097
+      }
+    },
+    {
+      "event_id": "EVT-00324",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 55.0,
+      "data": {
+        "shipment_id": "SHP-E8D3BFE1",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.826,
+        "effective_cbm": 1.826,
+        "weight": 53.75,
+        "due_time": 103.14334653580764
+      }
+    },
+    {
+      "event_id": "EVT-00325",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 55.0,
+      "data": {
+        "shipment_id": "SHP-CF30FBB5",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.453,
+        "effective_cbm": 1.453,
+        "weight": 147.15,
+        "due_time": 103.64022939386415
+      }
+    },
+    {
+      "event_id": "EVT-00326",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 55.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-38593CE9",
+          "SHP-24DAC9A4",
+          "SHP-43FA34F4",
+          "SHP-24DCACB9",
+          "SHP-5ACE5708",
+          "SHP-09ABD34C",
+          "SHP-E8D3BFE1"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 9.752,
+        "buffer_effective_cbm": 10.589,
+        "buffer_count": 9
+      }
+    },
+    {
+      "event_id": "EVT-00327",
+      "event_type": "DISPATCH",
+      "timestamp": 55.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-5ACE5708",
+          "SHP-09ABD34C",
+          "SHP-43FA34F4",
+          "SHP-24DCACB9",
+          "SHP-38593CE9",
+          "SHP-24DAC9A4",
+          "SHP-E8D3BFE1"
+        ],
+        "count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00328",
+      "event_type": "MBL_CREATED",
+      "timestamp": 55.0,
+      "data": {
+        "mbl_id": "MBL-509403D2",
+        "shipment_count": 7,
+        "total_cbm": 6.136,
+        "total_effective_cbm": 6.973,
+        "total_weight": 467.5,
+        "fill_rate": 0.6136,
+        "effective_fill_rate": 0.6973,
+        "categories": [
+          "FRAGILE",
+          "GENERAL",
+          "FOOD"
+        ],
+        "hbl_ids": [
+          "HBL-75AFFD39",
+          "HBL-06A8FEA4",
+          "HBL-DA04D3F4",
+          "HBL-171693F8",
+          "HBL-19A3B633",
+          "HBL-D5612CD5",
+          "HBL-5E731CB6"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00329",
+      "event_type": "TICK",
+      "timestamp": 56.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 3.616,
+        "buffer_effective_cbm": 3.616,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00330",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 56.0,
+      "data": {
+        "shipment_id": "SHP-F4F2C02C",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.222,
+        "effective_cbm": 0.222,
+        "weight": 47.58,
+        "due_time": 104.26237426271459
+      }
+    },
+    {
+      "event_id": "EVT-00331",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 56.0,
+      "data": {
+        "shipment_id": "SHP-6A7A3F5E",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.255,
+        "effective_cbm": 0.255,
+        "weight": 29.19,
+        "due_time": 104.32409152073753
+      }
+    },
+    {
+      "event_id": "EVT-00332",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 56.0,
+      "data": {
+        "shipment_id": "SHP-C8843F3B",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.268,
+        "effective_cbm": 0.268,
+        "weight": 47.57,
+        "due_time": 104.8791600714794
+      }
+    },
+    {
+      "event_id": "EVT-00333",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 56.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.361,
+        "buffer_effective_cbm": 4.361,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00334",
+      "event_type": "TICK",
+      "timestamp": 57.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 4.361,
+        "buffer_effective_cbm": 4.361,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00335",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 57.0,
+      "data": {
+        "shipment_id": "SHP-8C99966A",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.212,
+        "effective_cbm": 0.212,
+        "weight": 47.26,
+        "due_time": 105.89696015096214
+      }
+    },
+    {
+      "event_id": "EVT-00336",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 57.0,
+      "data": {
+        "shipment_id": "SHP-AA6EB0B2",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.649,
+        "effective_cbm": 0.844,
+        "weight": 178.32,
+        "due_time": 105.73234755298836
+      }
+    },
+    {
+      "event_id": "EVT-00337",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 57.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.222,
+        "buffer_effective_cbm": 5.417,
+        "buffer_count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00338",
+      "event_type": "TICK",
+      "timestamp": 58.0,
+      "data": {
+        "buffer_count": 7,
+        "buffer_cbm": 5.222,
+        "buffer_effective_cbm": 5.417,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00339",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 58.0,
+      "data": {
+        "shipment_id": "SHP-81992A08",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.487,
+        "effective_cbm": 0.487,
+        "weight": 17.41,
+        "due_time": 106.51757487431192
+      }
+    },
+    {
+      "event_id": "EVT-00340",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 58.0,
+      "data": {
+        "shipment_id": "SHP-4105F241",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.488,
+        "effective_cbm": 0.488,
+        "weight": 33.78,
+        "due_time": 106.56565052413478
+      }
+    },
+    {
+      "event_id": "EVT-00341",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 58.0,
+      "data": {
+        "shipment_id": "SHP-143D7908",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 0.603,
+        "effective_cbm": 0.603,
+        "weight": 134.69,
+        "due_time": 106.34892977935272
+      }
+    },
+    {
+      "event_id": "EVT-00342",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 58.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 6.8,
+        "buffer_effective_cbm": 6.995,
+        "buffer_count": 10
+      }
+    },
+    {
+      "event_id": "EVT-00343",
+      "event_type": "TICK",
+      "timestamp": 59.0,
+      "data": {
+        "buffer_count": 10,
+        "buffer_cbm": 6.8,
+        "buffer_effective_cbm": 6.995,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00344",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 59.0,
+      "data": {
+        "shipment_id": "SHP-D8166FE2",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.415,
+        "effective_cbm": 0.415,
+        "weight": 39.85,
+        "due_time": 107.83846501188683
+      }
+    },
+    {
+      "event_id": "EVT-00345",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 59.0,
+      "data": {
+        "shipment_id": "SHP-7ED0BCAA",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.152,
+        "effective_cbm": 0.198,
+        "weight": 11.51,
+        "due_time": 107.8398848015228
+      }
+    },
+    {
+      "event_id": "EVT-00346",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 59.0,
+      "data": {
+        "shipment_id": "SHP-747CF8F0",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.037,
+        "effective_cbm": 1.348,
+        "weight": 69.77,
+        "due_time": 107.14556383062445
+      }
+    },
+    {
+      "event_id": "EVT-00347",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 59.0,
+      "data": {
+        "shipment_id": "SHP-ACDDAB75",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 0.579,
+        "effective_cbm": 0.579,
+        "weight": 76.14,
+        "due_time": 107.48521254504509
+      }
+    },
+    {
+      "event_id": "EVT-00348",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 59.0,
+      "data": {
+        "shipment_id": "SHP-3F7D966A",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 3.086,
+        "effective_cbm": 3.086,
+        "weight": 468.97,
+        "due_time": 107.60321295211821
+      }
+    },
+    {
+      "event_id": "EVT-00349",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 59.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-C8843F3B",
+          "SHP-8C99966A",
+          "SHP-AA6EB0B2",
+          "SHP-747CF8F0",
+          "SHP-7ED0BCAA",
+          "SHP-F4F2C02C",
+          "SHP-6A7A3F5E",
+          "SHP-143D7908",
+          "SHP-81992A08",
+          "SHP-4105F241",
+          "SHP-ACDDAB75",
+          "SHP-3F7D966A",
+          "SHP-D8166FE2"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 12.069,
+        "buffer_effective_cbm": 12.621,
+        "buffer_count": 15
+      }
+    },
+    {
+      "event_id": "EVT-00350",
+      "event_type": "DISPATCH",
+      "timestamp": 59.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-F4F2C02C",
+          "SHP-6A7A3F5E",
+          "SHP-C8843F3B",
+          "SHP-8C99966A",
+          "SHP-AA6EB0B2",
+          "SHP-81992A08",
+          "SHP-4105F241",
+          "SHP-143D7908",
+          "SHP-D8166FE2",
+          "SHP-7ED0BCAA",
+          "SHP-747CF8F0",
+          "SHP-ACDDAB75",
+          "SHP-3F7D966A"
+        ],
+        "count": 13
+      }
+    },
+    {
+      "event_id": "EVT-00351",
+      "event_type": "MBL_CREATED",
+      "timestamp": 59.0,
+      "data": {
+        "mbl_id": "MBL-09B4E86F",
+        "shipment_count": 13,
+        "total_cbm": 8.453,
+        "total_effective_cbm": 9.005,
+        "total_weight": 1202.04,
+        "fill_rate": 0.8453,
+        "effective_fill_rate": 0.9005,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-572EE295",
+          "HBL-43C1C865",
+          "HBL-11175124",
+          "HBL-68142E0B",
+          "HBL-F063CFC9",
+          "HBL-171E690C",
+          "HBL-0E6C1375",
+          "HBL-A446ED78",
+          "HBL-9DC77441",
+          "HBL-B8EA271C",
+          "HBL-81F666A6",
+          "HBL-469A7766",
+          "HBL-6C4F1072"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00352",
+      "event_type": "TICK",
+      "timestamp": 60.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 3.616,
+        "buffer_effective_cbm": 3.616,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00353",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 60.0,
+      "data": {
+        "shipment_id": "SHP-22B12716",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.464,
+        "effective_cbm": 0.464,
+        "weight": 37.73,
+        "due_time": 108.12522510147022
+      }
+    },
+    {
+      "event_id": "EVT-00354",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 60.0,
+      "data": {
+        "shipment_id": "SHP-7308FAC5",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.124,
+        "effective_cbm": 0.124,
+        "weight": 48.38,
+        "due_time": 108.493723660802
+      }
+    },
+    {
+      "event_id": "EVT-00355",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 60.0,
+      "data": {
+        "shipment_id": "SHP-961B0589",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.165,
+        "effective_cbm": 1.165,
+        "weight": 156.86,
+        "due_time": 108.69450335619477
+      }
+    },
+    {
+      "event_id": "EVT-00356",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 60.0,
+      "data": {
+        "shipment_id": "SHP-42373081",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 3.756,
+        "effective_cbm": 3.756,
+        "weight": 574.59,
+        "due_time": 108.802803215437
+      }
+    },
+    {
+      "event_id": "EVT-00357",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 60.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-CF30FBB5",
+          "SHP-7308FAC5",
+          "SHP-961B0589",
+          "SHP-42373081"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 9.125,
+        "buffer_effective_cbm": 9.125,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00358",
+      "event_type": "DISPATCH",
+      "timestamp": 60.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-CF30FBB5",
+          "SHP-7308FAC5",
+          "SHP-961B0589",
+          "SHP-42373081"
+        ],
+        "count": 4
+      }
+    },
+    {
+      "event_id": "EVT-00359",
+      "event_type": "MBL_CREATED",
+      "timestamp": 60.0,
+      "data": {
+        "mbl_id": "MBL-2DA081B1",
+        "shipment_count": 4,
+        "total_cbm": 6.498,
+        "total_effective_cbm": 6.498,
+        "total_weight": 926.98,
+        "fill_rate": 0.6498,
+        "effective_fill_rate": 0.6498,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-BBFF03CC",
+          "HBL-F9571AC0",
+          "HBL-01B22E7A",
+          "HBL-D25E38B9"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00360",
+      "event_type": "TICK",
+      "timestamp": 61.0,
+      "data": {
+        "buffer_count": 2,
+        "buffer_cbm": 2.627,
+        "buffer_effective_cbm": 2.627,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00361",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 61.0,
+      "data": {
+        "shipment_id": "SHP-00EDDCA6",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.272,
+        "effective_cbm": 0.272,
+        "weight": 27.75,
+        "due_time": 109.45489576773882
+      }
+    },
+    {
+      "event_id": "EVT-00362",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 61.0,
+      "data": {
+        "shipment_id": "SHP-1F719ECC",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.321,
+        "effective_cbm": 0.321,
+        "weight": 44.5,
+        "due_time": 109.51564866173473
+      }
+    },
+    {
+      "event_id": "EVT-00363",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 61.0,
+      "data": {
+        "shipment_id": "SHP-48FB4395",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.431,
+        "effective_cbm": 0.56,
+        "weight": 23.62,
+        "due_time": 109.79676947691485
+      }
+    },
+    {
+      "event_id": "EVT-00364",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 61.0,
+      "data": {
+        "shipment_id": "SHP-E6E41B43",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.061,
+        "effective_cbm": 1.061,
+        "weight": 149.77,
+        "due_time": 109.12489398726134
+      }
+    },
+    {
+      "event_id": "EVT-00365",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 61.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.712,
+        "buffer_effective_cbm": 4.841,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00366",
+      "event_type": "TICK",
+      "timestamp": 62.0,
+      "data": {
+        "buffer_count": 6,
+        "buffer_cbm": 4.712,
+        "buffer_effective_cbm": 4.841,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00367",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 62.0,
+      "data": {
+        "shipment_id": "SHP-CE5F39A7",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.398,
+        "effective_cbm": 0.398,
+        "weight": 24.43,
+        "due_time": 110.0478287536591
+      }
+    },
+    {
+      "event_id": "EVT-00368",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 62.0,
+      "data": {
+        "shipment_id": "SHP-67189EDF",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.325,
+        "effective_cbm": 0.325,
+        "weight": 31.39,
+        "due_time": 110.8828721849504
+      }
+    },
+    {
+      "event_id": "EVT-00369",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 62.0,
+      "data": {
+        "shipment_id": "SHP-71351019",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.134,
+        "effective_cbm": 1.474,
+        "weight": 191.17,
+        "due_time": 110.66125530804936
+      }
+    },
+    {
+      "event_id": "EVT-00370",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 62.0,
+      "data": {
+        "shipment_id": "SHP-7A428EE6",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 0.655,
+        "effective_cbm": 0.655,
+        "weight": 96.87,
+        "due_time": 110.72727611247376
+      }
+    },
+    {
+      "event_id": "EVT-00371",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 62.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-22B12716",
+          "SHP-1F719ECC",
+          "SHP-48FB4395",
+          "SHP-71351019",
+          "SHP-E6E41B43",
+          "SHP-00EDDCA6",
+          "SHP-CE5F39A7",
+          "SHP-7A428EE6",
+          "SHP-67189EDF"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 7.224,
+        "buffer_effective_cbm": 7.693,
+        "buffer_count": 10
+      }
+    },
+    {
+      "event_id": "EVT-00372",
+      "event_type": "DISPATCH",
+      "timestamp": 62.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-22B12716",
+          "SHP-00EDDCA6",
+          "SHP-1F719ECC",
+          "SHP-48FB4395",
+          "SHP-E6E41B43",
+          "SHP-CE5F39A7",
+          "SHP-67189EDF",
+          "SHP-71351019",
+          "SHP-7A428EE6"
+        ],
+        "count": 9
+      }
+    },
+    {
+      "event_id": "EVT-00373",
+      "event_type": "MBL_CREATED",
+      "timestamp": 62.0,
+      "data": {
+        "mbl_id": "MBL-9E30DCCC",
+        "shipment_count": 9,
+        "total_cbm": 5.061,
+        "total_effective_cbm": 5.53,
+        "total_weight": 627.23,
+        "fill_rate": 0.5061,
+        "effective_fill_rate": 0.553,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-F13556CB",
+          "HBL-C649958E",
+          "HBL-A2113587",
+          "HBL-F43EE224",
+          "HBL-D4A08E92",
+          "HBL-712E814E",
+          "HBL-4CF1FAF7",
+          "HBL-50C261A1",
+          "HBL-CC56EEBC"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00374",
+      "event_type": "TICK",
+      "timestamp": 63.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00375",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 63.0,
+      "data": {
+        "shipment_id": "SHP-DDB227F4",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.247,
+        "effective_cbm": 0.247,
+        "weight": 43.04,
+        "due_time": 111.12695918078495
+      }
+    },
+    {
+      "event_id": "EVT-00376",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 63.0,
+      "data": {
+        "shipment_id": "SHP-25C5971F",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.49,
+        "effective_cbm": 0.49,
+        "weight": 43.03,
+        "due_time": 111.55373453689651
+      }
+    },
+    {
+      "event_id": "EVT-00377",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 63.0,
+      "data": {
+        "shipment_id": "SHP-08F94DB4",
+        "item_type": "C",
+        "cargo_category": "FRAGILE",
+        "cbm": 2.802,
+        "effective_cbm": 3.643,
+        "weight": 697.68,
+        "due_time": 111.13302308272722
+      }
+    },
+    {
+      "event_id": "EVT-00378",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 63.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.702,
+        "buffer_effective_cbm": 6.543,
+        "buffer_count": 4
+      }
+    },
+    {
+      "event_id": "EVT-00379",
+      "event_type": "TICK",
+      "timestamp": 64.0,
+      "data": {
+        "buffer_count": 4,
+        "buffer_cbm": 5.702,
+        "buffer_effective_cbm": 6.543,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00380",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 64.0,
+      "data": {
+        "shipment_id": "SHP-D80B2A58",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.173,
+        "effective_cbm": 0.225,
+        "weight": 20.8,
+        "due_time": 112.7186033755693
+      }
+    },
+    {
+      "event_id": "EVT-00381",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 64.0,
+      "data": {
+        "shipment_id": "SHP-147FCA9A",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 0.546,
+        "effective_cbm": 0.546,
+        "weight": 144.98,
+        "due_time": 112.64016714868595
+      }
+    },
+    {
+      "event_id": "EVT-00382",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 64.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-25C5971F",
+          "SHP-08F94DB4",
+          "SHP-D80B2A58",
+          "SHP-DDB227F4",
+          "SHP-147FCA9A"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 6.421,
+        "buffer_effective_cbm": 7.314,
+        "buffer_count": 6
+      }
+    },
+    {
+      "event_id": "EVT-00383",
+      "event_type": "DISPATCH",
+      "timestamp": 64.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-DDB227F4",
+          "SHP-25C5971F",
+          "SHP-08F94DB4",
+          "SHP-D80B2A58",
+          "SHP-147FCA9A"
+        ],
+        "count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00384",
+      "event_type": "MBL_CREATED",
+      "timestamp": 64.0,
+      "data": {
+        "mbl_id": "MBL-614ADA8D",
+        "shipment_count": 5,
+        "total_cbm": 4.258,
+        "total_effective_cbm": 5.151,
+        "total_weight": 949.53,
+        "fill_rate": 0.4258,
+        "effective_fill_rate": 0.5151,
+        "categories": [
+          "FOOD",
+          "GENERAL",
+          "FRAGILE"
+        ],
+        "hbl_ids": [
+          "HBL-BA93B019",
+          "HBL-28291127",
+          "HBL-DF92C97F",
+          "HBL-8C66B00C",
+          "HBL-6DF262E9"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00385",
+      "event_type": "TICK",
+      "timestamp": 65.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00386",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 65.0,
+      "data": {
+        "shipment_id": "SHP-859606A2",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.23,
+        "effective_cbm": 0.23,
+        "weight": 19.02,
+        "due_time": 113.30224388927186
+      }
+    },
+    {
+      "event_id": "EVT-00387",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 65.0,
+      "data": {
+        "shipment_id": "SHP-5D91B69A",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.402,
+        "effective_cbm": 0.523,
+        "weight": 12.0,
+        "due_time": 113.75569111230806
+      }
+    },
+    {
+      "event_id": "EVT-00388",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 65.0,
+      "data": {
+        "shipment_id": "SHP-A86D0061",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.163,
+        "effective_cbm": 1.163,
+        "weight": 122.85,
+        "due_time": 113.3969943867153
+      }
+    },
+    {
+      "event_id": "EVT-00389",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 65.0,
+      "data": {
+        "shipment_id": "SHP-1EC611FB",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 0.666,
+        "effective_cbm": 0.666,
+        "weight": 101.78,
+        "due_time": 113.70049016246577
+      }
+    },
+    {
+      "event_id": "EVT-00390",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 65.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.624,
+        "buffer_effective_cbm": 4.745,
+        "buffer_count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00391",
+      "event_type": "TICK",
+      "timestamp": 66.0,
+      "data": {
+        "buffer_count": 5,
+        "buffer_cbm": 4.624,
+        "buffer_effective_cbm": 4.745,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00392",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 66.0,
+      "data": {
+        "shipment_id": "SHP-542041BC",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.34,
+        "effective_cbm": 0.34,
+        "weight": 22.79,
+        "due_time": 114.55000547126882
+      }
+    },
+    {
+      "event_id": "EVT-00393",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 66.0,
+      "data": {
+        "shipment_id": "SHP-FA4A7991",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.406,
+        "effective_cbm": 0.528,
+        "weight": 39.53,
+        "due_time": 114.66434937013183
+      }
+    },
+    {
+      "event_id": "EVT-00394",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 66.0,
+      "data": {
+        "shipment_id": "SHP-C9302CDA",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.17,
+        "effective_cbm": 0.17,
+        "weight": 38.62,
+        "due_time": 114.8631888862946
+      }
+    },
+    {
+      "event_id": "EVT-00395",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 66.0,
+      "data": {
+        "shipment_id": "SHP-14B9694F",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.031,
+        "effective_cbm": 1.031,
+        "weight": 150.21,
+        "due_time": 114.32688570198164
+      }
+    },
+    {
+      "event_id": "EVT-00396",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 66.0,
+      "data": {
+        "shipment_id": "SHP-B6B47353",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 4.586,
+        "effective_cbm": 4.586,
+        "weight": 752.7,
+        "due_time": 114.21611531954785
+      }
+    },
+    {
+      "event_id": "EVT-00397",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 66.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-A86D0061",
+          "SHP-1EC611FB",
+          "SHP-14B9694F",
+          "SHP-859606A2",
+          "SHP-B6B47353",
+          "SHP-542041BC",
+          "SHP-C9302CDA"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 11.157,
+        "buffer_effective_cbm": 11.4,
+        "buffer_count": 10
+      }
+    },
+    {
+      "event_id": "EVT-00398",
+      "event_type": "DISPATCH",
+      "timestamp": 66.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-859606A2",
+          "SHP-A86D0061",
+          "SHP-1EC611FB",
+          "SHP-542041BC",
+          "SHP-C9302CDA",
+          "SHP-14B9694F",
+          "SHP-B6B47353"
+        ],
+        "count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00399",
+      "event_type": "MBL_CREATED",
+      "timestamp": 66.0,
+      "data": {
+        "mbl_id": "MBL-23F09AE3",
+        "shipment_count": 7,
+        "total_cbm": 8.186,
+        "total_effective_cbm": 8.186,
+        "total_weight": 1207.97,
+        "fill_rate": 0.8186,
+        "effective_fill_rate": 0.8186,
+        "categories": [
+          "GENERAL",
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-BB490840",
+          "HBL-22037361",
+          "HBL-8B8E8301",
+          "HBL-ADE25D2C",
+          "HBL-E1697B14",
+          "HBL-E1C5BCB8",
+          "HBL-DEB4A2B4"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00400",
+      "event_type": "TICK",
+      "timestamp": 67.0,
+      "data": {
+        "buffer_count": 3,
+        "buffer_cbm": 2.971,
+        "buffer_effective_cbm": 3.214,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00401",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 67.0,
+      "data": {
+        "shipment_id": "SHP-FF4B2B79",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.108,
+        "effective_cbm": 0.108,
+        "weight": 10.18,
+        "due_time": 115.61807406403148
+      }
+    },
+    {
+      "event_id": "EVT-00402",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 67.0,
+      "data": {
+        "shipment_id": "SHP-ECA89C76",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.376,
+        "effective_cbm": 0.489,
+        "weight": 25.7,
+        "due_time": 115.71236855041755
+      }
+    },
+    {
+      "event_id": "EVT-00403",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 67.0,
+      "data": {
+        "shipment_id": "SHP-968D35CA",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.336,
+        "effective_cbm": 0.336,
+        "weight": 15.95,
+        "due_time": 115.75849740679426
+      }
+    },
+    {
+      "event_id": "EVT-00404",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 67.0,
+      "data": {
+        "shipment_id": "SHP-A983A342",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.189,
+        "effective_cbm": 0.246,
+        "weight": 38.56,
+        "due_time": 115.79945347282695
+      }
+    },
+    {
+      "event_id": "EVT-00405",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 67.0,
+      "data": {
+        "shipment_id": "SHP-8FE4A5BF",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.178,
+        "effective_cbm": 0.178,
+        "weight": 28.88,
+        "due_time": 115.83918040949344
+      }
+    },
+    {
+      "event_id": "EVT-00406",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 67.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.158,
+        "buffer_effective_cbm": 4.571,
+        "buffer_count": 8
+      }
+    },
+    {
+      "event_id": "EVT-00407",
+      "event_type": "TICK",
+      "timestamp": 68.0,
+      "data": {
+        "buffer_count": 8,
+        "buffer_cbm": 4.158,
+        "buffer_effective_cbm": 4.571,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00408",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 68.0,
+      "data": {
+        "shipment_id": "SHP-E26B0704",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.169,
+        "effective_cbm": 0.169,
+        "weight": 16.52,
+        "due_time": 116.0799023880718
+      }
+    },
+    {
+      "event_id": "EVT-00409",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 68.0,
+      "data": {
+        "shipment_id": "SHP-D8698467",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.409,
+        "effective_cbm": 0.409,
+        "weight": 12.97,
+        "due_time": 116.79390929958294
+      }
+    },
+    {
+      "event_id": "EVT-00410",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 68.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 4.736,
+        "buffer_effective_cbm": 5.149,
+        "buffer_count": 10
+      }
+    },
+    {
+      "event_id": "EVT-00411",
+      "event_type": "TICK",
+      "timestamp": 69.0,
+      "data": {
+        "buffer_count": 10,
+        "buffer_cbm": 4.736,
+        "buffer_effective_cbm": 5.149,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00412",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 69.0,
+      "data": {
+        "shipment_id": "SHP-5DB784E7",
+        "item_type": "A",
+        "cargo_category": "FRAGILE",
+        "cbm": 0.495,
+        "effective_cbm": 0.643,
+        "weight": 33.93,
+        "due_time": 117.57149134554084
+      }
+    },
+    {
+      "event_id": "EVT-00413",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 69.0,
+      "data": {
+        "shipment_id": "SHP-8E496547",
+        "item_type": "C",
+        "cargo_category": "GENERAL",
+        "cbm": 2.908,
+        "effective_cbm": 2.908,
+        "weight": 465.32,
+        "due_time": 117.81822959445957
+      }
+    },
+    {
+      "event_id": "EVT-00414",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 69.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-968D35CA",
+          "SHP-8FE4A5BF",
+          "SHP-D8698467",
+          "SHP-5D91B69A",
+          "SHP-FA4A7991",
+          "SHP-ECA89C76",
+          "SHP-A983A342",
+          "SHP-5DB784E7",
+          "SHP-FF4B2B79",
+          "SHP-E26B0704",
+          "SHP-8E496547"
+        ],
+        "reason": "cbm_full",
+        "buffer_cbm": 8.139,
+        "buffer_effective_cbm": 8.7,
+        "buffer_count": 12
+      }
+    },
+    {
+      "event_id": "EVT-00415",
+      "event_type": "DISPATCH",
+      "timestamp": 69.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-5D91B69A",
+          "SHP-FA4A7991",
+          "SHP-FF4B2B79",
+          "SHP-ECA89C76",
+          "SHP-968D35CA",
+          "SHP-A983A342",
+          "SHP-8FE4A5BF",
+          "SHP-E26B0704",
+          "SHP-D8698467",
+          "SHP-5DB784E7",
+          "SHP-8E496547"
+        ],
+        "count": 11
+      }
+    },
+    {
+      "event_id": "EVT-00416",
+      "event_type": "MBL_CREATED",
+      "timestamp": 69.0,
+      "data": {
+        "mbl_id": "MBL-E30DB13C",
+        "shipment_count": 11,
+        "total_cbm": 5.976,
+        "total_effective_cbm": 6.537,
+        "total_weight": 699.54,
+        "fill_rate": 0.5976,
+        "effective_fill_rate": 0.6537,
+        "categories": [
+          "FRAGILE",
+          "GENERAL",
+          "FOOD"
+        ],
+        "hbl_ids": [
+          "HBL-06723F63",
+          "HBL-3A37F2FF",
+          "HBL-78E29938",
+          "HBL-60B02C1F",
+          "HBL-D9E3B887",
+          "HBL-D19C6435",
+          "HBL-A4B353A9",
+          "HBL-1299406A",
+          "HBL-122BABA5",
+          "HBL-826562D5",
+          "HBL-9CC146C1"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00417",
+      "event_type": "TICK",
+      "timestamp": 70.0,
+      "data": {
+        "buffer_count": 1,
+        "buffer_cbm": 2.163,
+        "buffer_effective_cbm": 2.163,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00418",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 70.0,
+      "data": {
+        "shipment_id": "SHP-572D42A1",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.115,
+        "effective_cbm": 0.115,
+        "weight": 25.78,
+        "due_time": 118.21688771199064
+      }
+    },
+    {
+      "event_id": "EVT-00419",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 70.0,
+      "data": {
+        "shipment_id": "SHP-2C1AB8BA",
+        "item_type": "B",
+        "cargo_category": "FRAGILE",
+        "cbm": 1.423,
+        "effective_cbm": 1.85,
+        "weight": 178.29,
+        "due_time": 118.0997933090719
+      }
+    },
+    {
+      "event_id": "EVT-00420",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 70.0,
+      "data": {
+        "shipment_id": "SHP-992A57C2",
+        "item_type": "B",
+        "cargo_category": "HAZMAT",
+        "cbm": 1.608,
+        "effective_cbm": 1.608,
+        "weight": 193.13,
+        "due_time": 118.70640813850636
+      }
+    },
+    {
+      "event_id": "EVT-00421",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 70.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "WAIT",
+        "selected_ids": [],
+        "reason": "all_conditions_ok",
+        "buffer_cbm": 5.309,
+        "buffer_effective_cbm": 5.736,
+        "buffer_count": 4
+      }
+    },
+    {
+      "event_id": "EVT-00422",
+      "event_type": "TICK",
+      "timestamp": 71.0,
+      "data": {
+        "buffer_count": 4,
+        "buffer_cbm": 5.309,
+        "buffer_effective_cbm": 5.736,
+        "next_cutoff": 72
+      }
+    },
+    {
+      "event_id": "EVT-00423",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 71.0,
+      "data": {
+        "shipment_id": "SHP-B83836F8",
+        "item_type": "A",
+        "cargo_category": "GENERAL",
+        "cbm": 0.16,
+        "effective_cbm": 0.16,
+        "weight": 26.4,
+        "due_time": 119.52754291195726
+      }
+    },
+    {
+      "event_id": "EVT-00424",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 71.0,
+      "data": {
+        "shipment_id": "SHP-4C12391C",
+        "item_type": "A",
+        "cargo_category": "FOOD",
+        "cbm": 0.493,
+        "effective_cbm": 0.493,
+        "weight": 42.68,
+        "due_time": 119.82693719227993
+      }
+    },
+    {
+      "event_id": "EVT-00425",
+      "event_type": "SHIPMENT_ARRIVAL",
+      "timestamp": 71.0,
+      "data": {
+        "shipment_id": "SHP-D8E765B7",
+        "item_type": "B",
+        "cargo_category": "GENERAL",
+        "cbm": 1.159,
+        "effective_cbm": 1.159,
+        "weight": 115.66,
+        "due_time": 119.23677170791663
+      }
+    },
+    {
+      "event_id": "EVT-00426",
+      "event_type": "AGENT_DECISION",
+      "timestamp": 71.0,
+      "data": {
+        "agent_id": "hybrid",
+        "action": "DISPATCH",
+        "selected_ids": [
+          "SHP-4C12391C",
+          "SHP-2C1AB8BA",
+          "SHP-572D42A1",
+          "SHP-D8E765B7",
+          "SHP-B83836F8"
+        ],
+        "reason": "near_cutoff+cbm_full",
+        "buffer_cbm": 7.121,
+        "buffer_effective_cbm": 7.548,
+        "buffer_count": 7
+      }
+    },
+    {
+      "event_id": "EVT-00427",
+      "event_type": "DISPATCH",
+      "timestamp": 71.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-572D42A1",
+          "SHP-2C1AB8BA",
+          "SHP-B83836F8",
+          "SHP-4C12391C",
+          "SHP-D8E765B7"
+        ],
+        "count": 5
+      }
+    },
+    {
+      "event_id": "EVT-00428",
+      "event_type": "MBL_CREATED",
+      "timestamp": 71.0,
+      "data": {
+        "mbl_id": "MBL-3D1EDE78",
+        "shipment_count": 5,
+        "total_cbm": 3.35,
+        "total_effective_cbm": 3.777,
+        "total_weight": 388.81,
+        "fill_rate": 0.335,
+        "effective_fill_rate": 0.3777,
+        "categories": [
+          "FRAGILE",
+          "GENERAL",
+          "FOOD"
+        ],
+        "hbl_ids": [
+          "HBL-36E6B878",
+          "HBL-BC581322",
+          "HBL-7FC29E63",
+          "HBL-75758622",
+          "HBL-73E38B9E"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00429",
+      "event_type": "COMPATIBILITY_VIOLATION",
+      "timestamp": 72.0,
+      "data": {
+        "original_count": 2,
+        "violation_pairs": 1,
+        "split_into_groups": 2,
+        "extra_mbls_created": 1,
+        "categories": [
+          "OVERSIZED",
+          "HAZMAT"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00430",
+      "event_type": "DISPATCH",
+      "timestamp": 72.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-90410794"
+        ],
+        "count": 1
+      }
+    },
+    {
+      "event_id": "EVT-00431",
+      "event_type": "MBL_CREATED",
+      "timestamp": 72.0,
+      "data": {
+        "mbl_id": "MBL-076433ED",
+        "shipment_count": 1,
+        "total_cbm": 2.163,
+        "total_effective_cbm": 2.163,
+        "total_weight": 477.19,
+        "fill_rate": 0.2163,
+        "effective_fill_rate": 0.2163,
+        "categories": [
+          "OVERSIZED"
+        ],
+        "hbl_ids": [
+          "HBL-45F8A019"
+        ]
+      }
+    },
+    {
+      "event_id": "EVT-00432",
+      "event_type": "DISPATCH",
+      "timestamp": 72.0,
+      "data": {
+        "shipment_ids": [
+          "SHP-992A57C2"
+        ],
+        "count": 1
+      }
+    },
+    {
+      "event_id": "EVT-00433",
+      "event_type": "MBL_CREATED",
+      "timestamp": 72.0,
+      "data": {
+        "mbl_id": "MBL-A1B5FC92",
+        "shipment_count": 1,
+        "total_cbm": 1.608,
+        "total_effective_cbm": 1.608,
+        "total_weight": 193.13,
+        "fill_rate": 0.1608,
+        "effective_fill_rate": 0.1608,
+        "categories": [
+          "HAZMAT"
+        ],
+        "hbl_ids": [
+          "HBL-432D9B8E"
+        ]
+      }
+    }
+  ]
+}

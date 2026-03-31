@@ -27,17 +27,16 @@ LCL (Less than Container Load) 컨테이너 통합 시뮬레이션을 위한 프
    ```
    (추가 의존성이 필요할 수 있음: simulator_v1 등)
 
-3. 서버 실행:
-   ```bash
-   uvicorn server.main:app --reload
-   ```
+3. 실행:
 
-4. 에이전트 서버 실행 (별도 터미널에서):
-   ```bash
-   uvicorn agents.agent_server:app --reload --port 8001
-   ```
+   | 명령어 | 설명 |
+   |--------|------|
+   | `python run.py sim` | 시뮬레이션 단독 실행 (터미널 결과 출력) |
+   | `python run.py server` | 시뮬레이션 서버 실행 (`:8000`) |
+   | `python run.py agent` | 에이전트 서버 실행 (`:8001`) |
+   | `python run.py all` | 두 서버 동시 실행 (Ctrl+C로 종료) |
 
-5. 웹 브라우저에서 [http://localhost:8000](http://localhost:8000) 접속하여 시뮬레이션 인터페이스 사용.
+4. 웹 브라우저에서 [http://localhost:8000](http://localhost:8000) 접속하여 시뮬레이션 인터페이스 사용.
 
 ## 사용법
 
