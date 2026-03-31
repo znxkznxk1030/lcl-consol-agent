@@ -73,9 +73,16 @@ class StartRequest(BaseModel):
     sim_duration_hours: int = 72
     cutoff_interval_hours: int = 24
     max_cbm_per_mbl: float = 10.0
-    arrival_rate_A: float = 2.0
-    arrival_rate_B: float = 0.8
-    arrival_rate_C: float = 0.2
+    arrival_rates: dict = {
+        "ELECTRONICS":   2.0,
+        "CLOTHING":      1.5,
+        "COSMETICS":     0.8,
+        "FOOD_PRODUCTS": 0.7,
+        "AUTO_PARTS":    0.5,
+        "CHEMICALS":     0.3,
+        "FURNITURE":     0.2,
+        "MACHINERY":     0.15,
+    }
     sla_hours: float = 48.0
 
 
@@ -89,9 +96,7 @@ async def start_simulation(req: StartRequest):
         sim_duration_hours=req.sim_duration_hours,
         cutoff_interval_hours=req.cutoff_interval_hours,
         max_cbm_per_mbl=req.max_cbm_per_mbl,
-        arrival_rate_A=req.arrival_rate_A,
-        arrival_rate_B=req.arrival_rate_B,
-        arrival_rate_C=req.arrival_rate_C,
+        arrival_rates=req.arrival_rates,
         sla_hours=req.sla_hours,
     )
     asyncio.create_task(run_simulation(config, manager.broadcast))
@@ -140,7 +145,7 @@ async def get_state():
 
 
 class DispatchRequest(BaseModel):
-    selected_ids: List[str]
+    mbls: List[List[str]]   # 각 inner list = 하나의 MBL
     reason: str = ""
 
 
@@ -150,18 +155,24 @@ async def dispatch(req: DispatchRequest):
         raise HTTPException(400, "Simulation not started")
     if store.status != SimStatus.WAITING:
         raise HTTPException(400, f"Cannot dispatch in status: {store.status}")
-    if not req.selected_ids:
-        raise HTTPException(400, "selected_ids is empty")
+    if not req.mbls:
+        raise HTTPException(400, "mbls is empty")
 
     valid_ids = set(store.env.buffer.ids())
-    to_dispatch = [sid for sid in req.selected_ids if sid in valid_ids]
-    if not to_dispatch:
+    # 각 MBL에서 유효한 ID만 남기고, 빈 MBL은 제거
+    valid_mbls = [
+        [sid for sid in group if sid in valid_ids]
+        for group in req.mbls
+    ]
+    valid_mbls = [g for g in valid_mbls if g]
+    if not valid_mbls:
         raise HTTPException(400, "No valid shipment IDs in buffer")
 
-    store.env._dispatch(to_dispatch)
+    all_dispatched = [sid for g in valid_mbls for sid in g]
+    store.env._dispatch(valid_mbls)
     state = store.get_state()
-    await manager.broadcast({"type": "dispatch", "dispatched_ids": to_dispatch, "state": state})
-    return {"ok": True, "dispatched_count": len(to_dispatch), "state": state}
+    await manager.broadcast({"type": "dispatch", "dispatched_ids": all_dispatched, "mbl_count": len(valid_mbls), "state": state})
+    return {"ok": True, "dispatched_count": len(all_dispatched), "mbl_count": len(valid_mbls), "state": state}
 
 
 @app.get("/metrics")

@@ -1,21 +1,14 @@
 """
 agents/rule.py
 ==============
-Rule-based agents (호환성 인식 버전)
-- TimeBasedAgent
-- ThresholdAgent
-- HybridAgent
-
-모든 agent는 _compatible_greedy_select를 사용하여
-혼적 불가 화물을 스스로 분리 선택한다.
-(선택하지 않더라도 env가 자동 분리하지만, 그러면 extra MBL 비용 발생)
+Rule-based agents — 여러 MBL 패킹 지원
 """
 
 from .base import AgentBase
 
 
 class TimeBasedAgent(AgentBase):
-    """매 cutoff 시점마다 출고"""
+    """매 cutoff 시점마다 출고 (FFD bin packing)"""
     agent_id = "time_based"
 
     def act(self, observation: dict) -> dict:
@@ -24,13 +17,13 @@ class TimeBasedAgent(AgentBase):
         max_cbm = observation["config"]["max_cbm_per_mbl"]
 
         if time_to_cutoff <= 0 and shipments:
-            ids = self._compatible_greedy_select(shipments, max_cbm)
-            return self._make_action("DISPATCH", ids, "cutoff_reached")
+            mbls = self._compatible_bin_pack(shipments, max_cbm)
+            return self._make_action("DISPATCH", mbls, "cutoff_reached")
         return self._make_action("WAIT", [], "waiting_for_cutoff")
 
 
 class ThresholdAgent(AgentBase):
-    """effective CBM이 threshold 초과 시 출고"""
+    """effective CBM이 threshold 초과 시 출고 (FFD bin packing)"""
     agent_id = "threshold"
 
     def __init__(self, cbm_threshold: float = 8.0) -> None:
@@ -42,9 +35,9 @@ class ThresholdAgent(AgentBase):
         max_cbm = observation["config"]["max_cbm_per_mbl"]
 
         if total_effective_cbm >= self.cbm_threshold:
-            ids = self._compatible_greedy_select(shipments, max_cbm)
+            mbls = self._compatible_bin_pack(shipments, max_cbm)
             return self._make_action(
-                "DISPATCH", ids,
+                "DISPATCH", mbls,
                 f"effective_cbm_threshold_exceeded:{total_effective_cbm:.2f}"
             )
         return self._make_action(
@@ -54,7 +47,7 @@ class ThresholdAgent(AgentBase):
 
 
 class HybridAgent(AgentBase):
-    """cutoff 근접 OR effective CBM 초과 OR 최장 대기 초과 시 출고"""
+    """cutoff 근접 OR effective CBM 초과 OR 최장 대기 초과 시 출고 (FFD bin packing)"""
     agent_id = "hybrid"
 
     def __init__(
@@ -87,7 +80,7 @@ class HybridAgent(AgentBase):
                 "cbm_full" if cbm_full else "",
                 "too_old" if too_old else "",
             ]))
-            ids = self._compatible_greedy_select(shipments, max_cbm)
-            return self._make_action("DISPATCH", ids, reason)
+            mbls = self._compatible_bin_pack(shipments, max_cbm)
+            return self._make_action("DISPATCH", mbls, reason)
 
         return self._make_action("WAIT", [], "all_conditions_ok")

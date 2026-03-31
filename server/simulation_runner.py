@@ -69,7 +69,7 @@ async def run_simulation(
         # 잔여 화물 강제 출고
         remaining = store.env.buffer.ids()
         if remaining:
-            store.env._dispatch(remaining)
+            store.env._dispatch([remaining])
 
         store.status = SimStatus.DONE
         store.last_metrics = store.get_metrics()

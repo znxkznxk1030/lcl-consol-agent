@@ -9,53 +9,23 @@ from __future__ import annotations
 import uuid
 import random
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional
 
 from enum import Enum
 
 from .compatibility import CargoCategory, FRAGILE_CBM_MULTIPLIER
+from .distributions import sample_cbm, sample_weight, sample_packages, sample_category
 
 
 class ItemType(Enum):
-    A = "A"   # frequent, small
-    B = "B"   # medium
-    C = "C"   # rare, large
-
-
-ITEM_PROFILES: Dict[ItemType, Dict[str, tuple]] = {
-    ItemType.A: {"cbm": (0.1, 0.5),  "weight": (5,   50),  "packages": (1, 3)},
-    ItemType.B: {"cbm": (0.5, 2.0),  "weight": (50,  200), "packages": (2, 8)},
-    ItemType.C: {"cbm": (2.0, 5.0),  "weight": (200, 800), "packages": (5, 20)},
-}
-
-# ItemType별 CargoCategory 확률 분포 [(category, cumulative_prob)]
-CATEGORY_PROBS: Dict[ItemType, List[Tuple[CargoCategory, float]]] = {
-    ItemType.A: [
-        (CargoCategory.GENERAL,  0.60),
-        (CargoCategory.FOOD,     0.85),   # +0.25
-        (CargoCategory.FRAGILE,  1.00),   # +0.15
-    ],
-    ItemType.B: [
-        (CargoCategory.GENERAL,  0.50),
-        (CargoCategory.HAZMAT,   0.70),   # +0.20
-        (CargoCategory.FOOD,     0.85),   # +0.15
-        (CargoCategory.FRAGILE,  1.00),   # +0.15
-    ],
-    ItemType.C: [
-        (CargoCategory.GENERAL,   0.40),
-        (CargoCategory.HAZMAT,    0.65),  # +0.25
-        (CargoCategory.OVERSIZED, 0.90),  # +0.25
-        (CargoCategory.FRAGILE,   1.00),  # +0.10
-    ],
-}
-
-
-def _sample_category(rng: random.Random, item_type: ItemType) -> CargoCategory:
-    r = rng.random()
-    for category, cum_prob in CATEGORY_PROBS[item_type]:
-        if r <= cum_prob:
-            return category
-    return CargoCategory.GENERAL
+    ELECTRONICS   = "ELECTRONICS"    # 전자제품   — 소형·파손주의·고빈도
+    CLOTHING      = "CLOTHING"       # 의류/섬유  — 소형·일반·고빈도
+    COSMETICS     = "COSMETICS"      # 화장품     — 소형·일반/위험물·중빈도
+    FOOD_PRODUCTS = "FOOD_PRODUCTS"  # 식품/음료  — 중형·식품·중빈도
+    AUTO_PARTS    = "AUTO_PARTS"     # 자동차부품 — 중형·일반·중빈도
+    CHEMICALS     = "CHEMICALS"      # 화학물질   — 중형·위험물·저빈도
+    FURNITURE     = "FURNITURE"      # 가구/인테리어 — 대형·파손주의·저빈도
+    MACHINERY     = "MACHINERY"      # 기계/장비  — 대형·특대형·저빈도
 
 
 @dataclass
@@ -124,17 +94,18 @@ def generate_shipment(
     destination: str = "PORT_A",
     sla_hours: float = 48.0,
 ) -> Shipment:
-    profile = ITEM_PROFILES[item_type]
-    cargo_category = _sample_category(rng, item_type)
+    itv = item_type.value
+    cargo_category = sample_category(rng, itv)
+    cbm = sample_cbm(rng, itv)
     return Shipment(
         shipment_id=f"SHP-{uuid.uuid4().hex[:8].upper()}",
         item_type=item_type,
         cargo_category=cargo_category,
         arrival_time=current_time,
         destination=destination,
-        weight=round(rng.uniform(*profile["weight"]), 2),
-        cbm=round(rng.uniform(*profile["cbm"]), 3),
-        packages=rng.randint(*profile["packages"]),
+        weight=sample_weight(rng, cbm, cargo_category, itv),
+        cbm=cbm,
+        packages=sample_packages(rng, itv),
         due_time=current_time + sla_hours,
     )
 

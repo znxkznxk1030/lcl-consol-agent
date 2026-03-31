@@ -79,19 +79,42 @@ class SimulationStore:
                     for s in shipments
                 ],
             },
-            "mbls": [
-                {
-                    "mbl_id": m.mbl_id,
-                    "dispatch_time": m.dispatch_time,
-                    "total_cbm": m.total_cbm,
-                    "total_weight": m.total_weight,
-                    "shipment_count": len(m.shipment_ids),
-                    "fill_rate": round(m.total_cbm / self.env.cfg.max_cbm_per_mbl, 4),
-                }
-                for m in self.env.mbls
-            ],
+            "mbls": self._serialize_mbls(),
             "events": [e.to_dict() for e in self.env.events[-50:]],  # 최근 50개
         }
+
+    def _serialize_mbls(self) -> list:
+        ship_map = {s.shipment_id: s for s in self.env.all_shipments}
+        max_cbm = self.env.cfg.max_cbm_per_mbl
+        result = []
+        for m in self.env.mbls:
+            hbls = []
+            for h in m.hbls:
+                s = ship_map.get(h.shipment_id)
+                hbls.append({
+                    "hbl_id": h.hbl_id,
+                    "shipment_id": h.shipment_id,
+                    "item_type": s.item_type.value if s else "—",
+                    "cargo_category": h.cargo_category,
+                    "cbm": h.cbm,
+                    "weight": h.weight,
+                    "packages": h.packages,
+                    "arrival_time": s.arrival_time if s else None,
+                    "waiting_time": round(s.waiting_time, 2) if s else None,
+                    "is_late": s.is_late() if s else False,
+                })
+            result.append({
+                "mbl_id": m.mbl_id,
+                "dispatch_time": m.dispatch_time,
+                "total_cbm": m.total_cbm,
+                "total_effective_cbm": m.total_effective_cbm,
+                "total_weight": m.total_weight,
+                "total_packages": m.total_packages,
+                "shipment_count": len(m.shipment_ids),
+                "fill_rate": round(m.total_cbm / max_cbm, 4),
+                "hbls": hbls,
+            })
+        return result
 
     def get_metrics(self) -> dict:
         if self.env is None:

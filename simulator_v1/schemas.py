@@ -17,7 +17,8 @@ from dataclasses import dataclass, field, asdict
 @dataclass
 class ShipmentObservation:
     shipment_id: str
-    item_type: str              # "A" | "B" | "C"
+    item_type: str              # "ELECTRONICS"|"CLOTHING"|"COSMETICS"|"FOOD_PRODUCTS"|"AUTO_PARTS"|"CHEMICALS"|"FURNITURE"|"MACHINERY"
+
     cargo_category: str         # "GENERAL" | "HAZMAT" | "FOOD" | "FRAGILE" | "OVERSIZED"
     arrival_time: float
     waiting_time: float
@@ -69,7 +70,8 @@ class Action:
     schema: str
     agent_id: str
     action: Literal["WAIT", "DISPATCH"]
-    selected_ids: List[str]
+    # 여러 MBL을 한 번에 제안: 각 inner list = 하나의 MBL에 담을 shipment ID 목록
+    mbls: List[List[str]]
     reason: Optional[str] = None    # 디버깅 / LLM 해석용
 
     def to_dict(self) -> dict:
@@ -81,17 +83,17 @@ class Action:
             schema="action/v1",
             agent_id=agent_id,
             action="WAIT",
-            selected_ids=[],
+            mbls=[],
             reason=reason,
         )
 
     @classmethod
-    def dispatch(cls, agent_id: str, selected_ids: List[str], reason: str = "") -> "Action":
+    def dispatch(cls, agent_id: str, mbls: List[List[str]], reason: str = "") -> "Action":
         return cls(
             schema="action/v1",
             agent_id=agent_id,
             action="DISPATCH",
-            selected_ids=selected_ids,
+            mbls=mbls,
             reason=reason,
         )
 

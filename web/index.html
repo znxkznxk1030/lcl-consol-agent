@@ -6,10 +6,8 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 20px; }
-
 h1 { font-size: 16px; margin-bottom: 14px; color: #aaa; letter-spacing: 2px; text-transform: uppercase; }
 
-/* toolbar */
 .toolbar { display: flex; gap: 8px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
 button {
   padding: 7px 16px; border: 1px solid #444; background: #1a1a1a;
@@ -33,17 +31,13 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .ws-dot { width: 7px; height: 7px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
 .ws-dot.on { background: #4a4; }
 
-/* layout */
 .layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 .panel { background: #141414; border: 1px solid #2a2a2a; padding: 14px; }
 .panel.wide { grid-column: span 2; }
 .panel h2 { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
 
 /* agent panel */
-.agent-panel {
-  background: #0e1a0e; border: 1px solid #2a4a2a; padding: 14px;
-  margin-bottom: 14px;
-}
+.agent-panel { background: #0e1a0e; border: 1px solid #2a4a2a; padding: 14px; margin-bottom: 14px; }
 .agent-panel h2 { font-size: 11px; color: #4a7a4a; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
 .decision-box { background: #0a120a; border: 1px solid #2a4a2a; padding: 12px; margin-bottom: 10px; }
 .decision-action { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
@@ -55,9 +49,25 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .analysis-row .k { color: #556; }
 .analysis-row .v { color: #aaa; }
 .analysis-row .v.true { color: #fa8; }
-.agent-actions { display: flex; gap: 8px; align-items: center; }
-.shipment-chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
-.chip { padding: 2px 8px; font-size: 11px; background: #1a2a1a; border: 1px solid #3a5a3a; color: #7a9; }
+.agent-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* MBL 제안 카드 */
+.mbl-plan { margin-top: 10px; }
+.mbl-plan-title { font-size: 11px; color: #4a7a4a; margin-bottom: 6px; }
+.mbl-cards { display: flex; flex-wrap: wrap; gap: 8px; }
+.mbl-card {
+  background: #0d1a0d; border: 1px solid #2a4a2a; padding: 8px 10px;
+  min-width: 160px; max-width: 240px;
+}
+.mbl-card-header {
+  font-size: 11px; color: #7c7; margin-bottom: 5px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.mbl-card-bar { height: 6px; background: #1a1a1a; border: 1px solid #2a2a2a; margin-bottom: 5px; }
+.mbl-card-bar-fill { height: 100%; background: #1e4a1e; }
+.mbl-card-bar-fill.warn { background: #4a3a1a; }
+.mbl-card-bar-fill.full { background: #4a1e1e; }
+.mbl-card-ships { font-size: 10px; color: #556; line-height: 1.6; }
 
 /* metrics */
 .metric-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1e1e1e; font-size: 12px; }
@@ -74,7 +84,6 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .bar-fill.warn { background: #4a3a1a; }
 .bar-fill.full { background: #4a1e1e; }
 
-/* lists */
 .scroll-list { height: 160px; overflow-y: auto; }
 .scroll-list::-webkit-scrollbar { width: 4px; }
 .scroll-list::-webkit-scrollbar-thumb { background: #2a2a2a; }
@@ -82,8 +91,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .s-row { display: flex; gap: 8px; padding: 3px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; align-items: center; }
 .s-row input[type=checkbox] { accent-color: #4a7; cursor: pointer; }
 .s-row .sid { color: #555; width: 100px; }
-.s-row .type { width: 16px; text-align: center; }
-.type-A { color: #7af; } .type-B { color: #7c7; } .type-C { color: #fa8; }
+.s-row .type { width: 90px; font-size: 10px; color: #7af; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .s-row .cbm { color: #888; width: 55px; }
 .s-row .wait { color: #666; }
 .s-row .wait.urgent { color: #f77; }
@@ -92,22 +100,85 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .e-row .ts { color: #444; margin-right: 6px; }
 .e-row .et { margin-right: 6px; }
 .et.ARRIVAL { color: #7af; } .et.DISPATCH { color: #fa8; } .et.MBL { color: #7c7; }
-.et.TICK { color: #333; } .et.SLA { color: #f55; } .et.DONE { color: #7af; }
+.et.TICK { color: #333; } .et.SLA { color: #f55; } .et.DONE { color: #7af; } .et.ERR { color: #f55; }
 
-.mbl-row { padding: 3px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; display: flex; gap: 8px; }
-.mbl-row .mid { color: #7c7; width: 100px; }
+.mbl-row { padding: 4px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; }
+.mbl-row-header { display: flex; gap: 8px; align-items: center; margin-bottom: 3px; width: 100%; }
+.mbl-row .mid { color: #7c7; width: 110px; flex-shrink: 0; }
 .mbl-row .info { color: #666; }
+.mbl-row-bar { height: 5px; background: #1e1e1e; border: 1px solid #222; width: 100%; }
+.mbl-row-bar-fill { height: 100%; background: #1e4a1e; }
+.mbl-row-bar-fill.warn { background: #4a3a1a; }
+.mbl-row-bar-fill.full { background: #4a1e1e; }
 
-/* tick counter */
 .big-time { font-size: 32px; font-weight: bold; color: #fff; }
 .sub-time { font-size: 11px; color: #444; margin-top: 2px; }
+
+/* MBL Detail Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+  z-index: 1000; overflow-y: auto; padding: 40px 20px;
+}
+.modal-box {
+  max-width: 860px; margin: 0 auto;
+  background: #141414; border: 1px solid #2a2a2a; padding: 22px;
+}
+.modal-title { font-size: 17px; color: #7c7; font-weight: bold; letter-spacing: 1px; }
+.modal-sub { font-size: 11px; color: #555; margin-top: 3px; }
+.modal-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: #1e1e1e; border: 1px solid #222; margin: 14px 0;
+}
+.modal-stat { background: #141414; padding: 8px 12px; }
+.modal-stat .k { font-size: 10px; color: #555; text-transform: uppercase; }
+.modal-stat .v { font-size: 14px; color: #ccc; margin-top: 2px; }
+.modal-stat .v.good { color: #7c7; }
+.modal-stat .v.warn { color: #fa8; }
+.modal-stat .v.bad  { color: #f55; }
+
+.hbl-section-title {
+  font-size: 11px; color: #555; text-transform: uppercase;
+  letter-spacing: 1px; margin: 16px 0 8px;
+}
+.hbl-row {
+  border-bottom: 1px solid #1a1a1a;
+}
+.hbl-row-main {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; font-size: 11px; flex-wrap: wrap;
+}
+.hbl-row-main .hbl-id   { color: #556; width: 110px; flex-shrink: 0; font-size: 10px; }
+.hbl-row-main .hbl-ship { color: #7af; width: 110px; flex-shrink: 0; }
+.hbl-row-main .hbl-type { color: #aaa; width: 110px; flex-shrink: 0; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbl-row-main .hbl-cbm  { color: #888; width: 64px; }
+.hbl-row-main .hbl-wt   { color: #666; width: 64px; }
+.hbl-row-main .hbl-pkg  { color: #666; width: 44px; }
+.cat-badge {
+  font-size: 9px; padding: 1px 5px; border-radius: 2px;
+  border: 1px solid; white-space: nowrap;
+}
+.cat-GENERAL  { color: #7af; border-color: #2a4a7a; }
+.cat-HAZMAT   { color: #fa8; border-color: #6a4a1a; }
+.cat-FOOD     { color: #7c7; border-color: #3a6a3a; }
+.cat-FRAGILE  { color: #aaf; border-color: #4a4a8a; }
+.cat-OVERSIZED{ color: #f77; border-color: #6a2a2a; }
+
+.hbl-detail-panel {
+  background: #0d0d0d; border-top: 1px solid #1e1e1e;
+  padding: 10px 12px; font-size: 11px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 16px;
+}
+.hbl-detail-panel .dk { color: #555; }
+.hbl-detail-panel .dv { color: #aaa; }
+
+.mbl-row { cursor: pointer; }
+.mbl-row:hover { background: #1a1a1a; }
 </style>
 </head>
 <body>
 
 <h1>⬡ Consolidation Simulator</h1>
 
-<!-- Toolbar -->
 <div class="toolbar">
   <button class="green" id="btnStart" onclick="startSim()">▶ Start</button>
   <button id="btnNextTick" onclick="nextTick()" disabled>⏭ Next Tick</button>
@@ -123,14 +194,17 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 <!-- Agent Panel -->
 <div class="agent-panel">
   <h2>Agent Decision</h2>
-  <div style="display:flex; gap:14px; align-items:flex-start;">
-    <div style="flex:1;">
+  <div style="display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;">
+    <div style="flex:1; min-width:320px;">
       <div class="decision-box" id="decisionBox">
-        <div style="color:#333; font-size:12px;">
-          Ask agent to analyze current state
-        </div>
+        <div style="color:#333; font-size:12px;">Ask agent to analyze current state</div>
       </div>
-      <div class="agent-actions">
+      <!-- 제안된 MBL 카드 -->
+      <div class="mbl-plan" id="mblPlan" style="display:none;">
+        <div class="mbl-plan-title">제안된 MBL 패킹 계획 (<span id="mblPlanCount">0</span>개)</div>
+        <div class="mbl-cards" id="mblPlanCards"></div>
+      </div>
+      <div class="agent-actions" style="margin-top:10px;">
         <button class="blue" id="btnAsk" onclick="askAgent()" disabled>🤖 Ask Agent</button>
         <button id="btnAutoAsk" onclick="toggleAutoAsk()" disabled>자동 분석 OFF</button>
         <button class="orange" id="btnApply" onclick="applyDecision()" disabled>✓ Apply</button>
@@ -140,7 +214,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
     <div style="width:220px;">
       <div class="panel" style="background:#0a120a; border-color:#2a4a2a;">
         <h2>Manual Dispatch</h2>
-        <div style="font-size:11px; color:#556; margin-bottom:6px;">체크 후 직접 출고</div>
+        <div style="font-size:11px; color:#556; margin-bottom:6px;">체크 후 직접 출고 (자동 패킹)</div>
         <div id="manualList" class="scroll-list" style="height:100px;"></div>
         <button style="margin-top:8px; width:100%;" id="btnManual" onclick="manualDispatch()" disabled>Dispatch Selected</button>
       </div>
@@ -151,7 +225,6 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 <!-- Main Grid -->
 <div class="layout">
 
-  <!-- Time panel -->
   <div class="panel">
     <h2>시뮬레이션 시간</h2>
     <div class="big-time" id="bigTime">T = 0</div>
@@ -164,7 +237,6 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
     </div>
   </div>
 
-  <!-- Buffer panel -->
   <div class="panel wide">
     <h2>창고 버퍼</h2>
     <div class="bar-wrap">
@@ -176,16 +248,14 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
     </div>
   </div>
 
-  <!-- Events -->
   <div class="panel">
     <h2>이벤트 로그</h2>
     <div class="scroll-list" id="eventLog" style="height:200px;"></div>
   </div>
 
-  <!-- MBLs + Metrics -->
   <div class="panel wide">
     <h2>출고된 MBL 목록</h2>
-    <div class="scroll-list" id="mblList" style="height:110px;">
+    <div class="scroll-list" id="mblList" style="height:130px;">
       <div style="color:#333; font-size:11px;">No MBLs yet</div>
     </div>
     <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:0 20px;">
@@ -199,7 +269,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 </div>
 
 <script>
-const SIM = 'http://localhost:8000';
+const SIM   = 'http://localhost:8000';
 const AGENT = 'http://localhost:8001';
 
 let ws = null;
@@ -213,14 +283,8 @@ let autoAsk = false;
 
 function connectWS() {
   ws = new WebSocket('ws://localhost:8000/ws');
-  ws.onopen = () => {
-    document.getElementById('wsDot').classList.add('on');
-    checkAgent();
-  };
-  ws.onclose = () => {
-    document.getElementById('wsDot').classList.remove('on');
-    setTimeout(connectWS, 2000);
-  };
+  ws.onopen  = () => { document.getElementById('wsDot').classList.add('on'); checkAgent(); };
+  ws.onclose = () => { document.getElementById('wsDot').classList.remove('on'); setTimeout(connectWS, 2000); };
   ws.onmessage = e => handleMsg(JSON.parse(e.data));
 }
 
@@ -232,10 +296,7 @@ async function checkAgent() {
 }
 
 function handleMsg(msg) {
-  if (msg.state) {
-    lastState = msg.state;
-    renderState(msg.state);
-  }
+  if (msg.state) { lastState = msg.state; renderState(msg.state); }
   if (msg.type === 'tick') {
     addEvent(`T=${msg.tick}`, 'TICK', `화물 ${msg.new_arrivals}건 도착`);
     document.getElementById('btnNextTick').disabled = false;
@@ -243,35 +304,26 @@ function handleMsg(msg) {
     if (autoAsk) askAgent();
   }
   if (msg.type === 'dispatch') {
-    addEvent('', 'DISPATCH', `${msg.dispatched_ids.length}건 출고`);
+    addEvent('', 'DISPATCH', `${msg.dispatched_ids.length}건 출고 (MBL ${msg.mbl_count}개)`);
     clearDecision();
   }
   if (msg.type === 'started') {
     setBadge('waiting');
-    document.getElementById('btnNextTick').disabled = false;
-    document.getElementById('btnAsk').disabled = false;
-    document.getElementById('btnAutoAsk').disabled = false;
+    ['btnNextTick','btnAsk','btnAutoAsk'].forEach(id => document.getElementById(id).disabled = false);
     document.getElementById('btnStart').disabled = true;
   }
   if (msg.type === 'done') {
     setBadge('done');
     autoAsk = false;
-    document.getElementById('btnNextTick').disabled = true;
-    document.getElementById('btnAsk').disabled = true;
-    document.getElementById('btnAutoAsk').disabled = true;
+    ['btnNextTick','btnAsk','btnAutoAsk'].forEach(id => document.getElementById(id).disabled = true);
     document.getElementById('btnAutoAsk').textContent = '자동 분석 OFF';
     document.getElementById('btnAutoAsk').classList.remove('green');
     document.getElementById('btnStart').disabled = false;
     addEvent('', 'DONE', '시뮬레이션 완료');
     if (msg.metrics) renderMetrics(msg.metrics);
   }
-  if (msg.type === 'reset') {
-    clearAll();
-  }
-  if (msg.type === 'error') {
-    addEvent('', 'ERR', msg.message);
-    setBadge('idle');
-  }
+  if (msg.type === 'reset') clearAll();
+  if (msg.type === 'error') { addEvent('', 'ERR', msg.message); setBadge('idle'); }
 }
 
 // ---------------------------------------------------------------------------
@@ -316,14 +368,14 @@ function toggleAutoAsk() {
   autoAsk = !autoAsk;
   const btn = document.getElementById('btnAutoAsk');
   btn.textContent = autoAsk ? '자동 분석 ON' : '자동 분석 OFF';
-  if (autoAsk) btn.classList.add('green');
-  else btn.classList.remove('green');
+  autoAsk ? btn.classList.add('green') : btn.classList.remove('green');
 }
 
 async function askAgent() {
   if (!lastState) return;
   document.getElementById('btnAsk').disabled = true;
   document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking agent...</div>';
+  document.getElementById('mblPlan').style.display = 'none';
 
   try {
     const r = await fetch(`${AGENT}/decide`, {
@@ -334,9 +386,11 @@ async function askAgent() {
     const d = await r.json();
     pendingDecision = d;
     renderDecision(d);
-    document.getElementById('btnApply').disabled = d.action === 'WAIT' || !d.selected_ids.length;
-    document.getElementById('applyHint').textContent =
-      d.action === 'DISPATCH' ? `${d.selected_ids.length} shipments selected` : '';
+    const hasDispatch = d.action === 'DISPATCH' && d.mbls && d.mbls.length > 0;
+    document.getElementById('btnApply').disabled = !hasDispatch;
+    document.getElementById('applyHint').textContent = hasDispatch
+      ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.flat().length}건`
+      : '';
   } catch(e) {
     document.getElementById('decisionBox').innerHTML = `<div style="color:#f55;font-size:12px;">${e.message}</div>`;
     document.getElementById('agentDot').classList.remove('on');
@@ -350,10 +404,7 @@ async function applyDecision() {
 
   const r = await fetch(`${SIM}/dispatch`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      selected_ids: pendingDecision.selected_ids,
-      reason: pendingDecision.reason,
-    }),
+    body: JSON.stringify({ mbls: pendingDecision.mbls, reason: pendingDecision.reason }),
   });
   const d = await r.json();
   if (!d.ok) {
@@ -366,9 +417,6 @@ async function applyDecision() {
 function renderDecision(d) {
   const isDispatch = d.action === 'DISPATCH';
   const actionClass = isDispatch ? 'dispatch' : 'wait';
-  const chips = isDispatch
-    ? `<div class="shipment-chips">${d.selected_ids.map(id =>
-        `<span class="chip">${id}</span>`).join('')}</div>` : '';
 
   const LABELS = {
     buffer_count:    '버퍼 화물 수',
@@ -376,24 +424,55 @@ function renderDecision(d) {
     fill_pct:        '적재율 (%)',
     time_to_cutoff:  '마감까지 남은 시간',
     max_waiting_time:'최장 대기 시간',
-    near_cutoff:     '마감 임박 여부',
-    cbm_full:        '부피 초과 여부',
-    too_old:         '대기 초과 여부',
+    near_cutoff:     '마감 임박',
+    cbm_full:        '부피 초과',
+    too_old:         '대기 초과',
+    proposed_mbls:   '제안 MBL 수',
   };
-  const analysisRows = Object.entries(d.analysis).map(([k,v]) => {
+  const analysisRows = Object.entries(d.analysis).map(([k, v]) => {
     const isBool = typeof v === 'boolean';
     const valClass = isBool && v ? ' true' : '';
-    const label = LABELS[k] || k;
     const display = typeof v === 'boolean' ? (v ? '예' : '아니오') : v;
-    return `<div class="analysis-row"><span class="k">${label}</span><span class="v${valClass}">${display}</span></div>`;
+    return `<div class="analysis-row"><span class="k">${LABELS[k] || k}</span><span class="v${valClass}">${display}</span></div>`;
   }).join('');
 
   document.getElementById('decisionBox').innerHTML = `
     <div class="decision-action ${actionClass}">${d.action}</div>
     <div class="decision-reason">${d.reason}</div>
-    ${chips}
     <div class="analysis-grid" style="margin-top:8px;">${analysisRows}</div>
   `;
+
+  // MBL 패킹 계획 카드
+  const plan = document.getElementById('mblPlan');
+  const cards = document.getElementById('mblPlanCards');
+  if (isDispatch && d.mbls && d.mbls.length > 0) {
+    const maxCbm = lastState?.config?.max_cbm_per_mbl || 10;
+    document.getElementById('mblPlanCount').textContent = d.mbls.length;
+    const bufMap = {};
+    (lastState?.buffer?.shipments || []).forEach(s => { bufMap[s.shipment_id] = s; });
+
+    cards.innerHTML = d.mbls.map((ids, i) => {
+      const ships  = ids.map(id => bufMap[id]).filter(Boolean);
+      const cbm    = ships.reduce((a, s) => a + (s.effective_cbm || s.cbm), 0);
+      const pct    = Math.min(cbm / maxCbm * 100, 100);
+      const fillCls = pct >= 100 ? 'full' : pct >= 70 ? 'warn' : '';
+      const cats   = [...new Set(ships.map(s => s.cargo_category))].join(', ');
+      return `<div class="mbl-card">
+        <div class="mbl-card-header">
+          <span>MBL ${i + 1}</span>
+          <span style="color:#fa8;">${cbm.toFixed(2)} CBM</span>
+        </div>
+        <div class="mbl-card-bar"><div class="mbl-card-bar-fill ${fillCls}" style="width:${pct}%"></div></div>
+        <div class="mbl-card-ships">
+          <div style="color:#4a7a4a; margin-bottom:2px;">${ids.length}건 · ${cats}</div>
+          ${ids.map(id => `<span style="margin-right:4px;">${id}</span>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+    plan.style.display = 'block';
+  } else {
+    plan.style.display = 'none';
+  }
 }
 
 function clearDecision() {
@@ -402,6 +481,7 @@ function clearDecision() {
     '<div style="color:#333;font-size:12px;">Ask agent to analyze current state</div>';
   document.getElementById('btnApply').disabled = true;
   document.getElementById('applyHint').textContent = '';
+  document.getElementById('mblPlan').style.display = 'none';
 }
 
 // ---------------------------------------------------------------------------
@@ -419,7 +499,7 @@ function renderManualList(shipments) {
     `<div class="s-row">
       <input type="checkbox" class="manual-cb" value="${s.shipment_id}">
       <span class="sid">${s.shipment_id}</span>
-      <span class="type type-${s.item_type}">${s.item_type}</span>
+      <span class="type">${s.item_type}</span>
       <span class="cbm">${s.cbm}cbm</span>
     </div>`
   ).join('');
@@ -429,9 +509,10 @@ function renderManualList(shipments) {
 async function manualDispatch() {
   const checked = [...document.querySelectorAll('.manual-cb:checked')].map(cb => cb.value);
   if (!checked.length) { alert('Select shipments first'); return; }
+  // 선택한 화물을 단일 MBL로 묶어 전송 (서버에서 CBM 초과 시 자동 분할)
   const r = await fetch(`${SIM}/dispatch`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({selected_ids: checked, reason: 'manual'}),
+    body: JSON.stringify({ mbls: [checked], reason: 'manual' }),
   });
   const d = await r.json();
   if (!d.ok) alert(d.detail);
@@ -446,53 +527,60 @@ function renderState(s) {
   document.getElementById('bigTime').textContent = `T = ${s.current_time}`;
   document.getElementById('subTime').textContent = `/ ${s.sim_duration_hours} hrs`;
   document.getElementById('ttc').textContent = `${s.time_to_cutoff} hrs`;
-  document.getElementById('nc').textContent = `${s.next_cutoff} hrs`;
+  document.getElementById('nc').textContent  = `${s.next_cutoff} hrs`;
   document.getElementById('nMbls').textContent = s.mbls ? s.mbls.length : 0;
 
-  const buf = s.buffer || {count:0, total_cbm:0, shipments:[]};
+  const buf    = s.buffer || {count:0, total_cbm:0, shipments:[]};
   const maxCbm = s.config ? s.config.max_cbm_per_mbl : 10;
-  const pct = Math.min(buf.total_cbm / maxCbm * 100, 100);
+  const pct    = Math.min(buf.total_cbm / maxCbm * 100, 100);
 
-  document.getElementById('cbmLabel').textContent = `${buf.total_cbm?.toFixed(2)} / ${maxCbm}`;
+  document.getElementById('cbmLabel').textContent = `${(buf.total_cbm||0).toFixed(2)} / ${maxCbm}`;
   const fill = document.getElementById('barFill');
   fill.style.width = `${pct}%`;
-  fill.className = 'bar-fill' + (pct >= 100 ? ' full' : pct >= 70 ? ' warn' : '');
+  fill.className   = 'bar-fill' + (pct >= 100 ? ' full' : pct >= 70 ? ' warn' : '');
 
-  const ships = buf.shipments || [];
-  const totalDisp = (s.mbls || []).reduce((a,m) => a + m.shipment_count, 0);
+  const ships    = buf.shipments || [];
+  const totalDisp = (s.mbls || []).reduce((a, m) => a + m.shipment_count, 0);
   document.getElementById('nDisp').textContent = totalDisp;
 
   // Buffer list
-  const bl = document.getElementById('bufferList');
-  bl.innerHTML = ships.length ? ships.map(sh => {
-    const urgCls = sh.time_to_due < 12 ? ' urgent' : '';
-    return `<div class="s-row">
-      <span class="sid">${sh.shipment_id}</span>
-      <span class="type type-${sh.item_type}">${sh.item_type}</span>
-      <span class="cbm">${sh.cbm}cbm</span>
-      <span class="wait${urgCls}">대기 ${sh.waiting_time}h</span>
-      <span style="color:#444;font-size:10px;">납기 ${sh.time_to_due?.toFixed(1)}h 남음</span>
-    </div>`;
-  }).join('') : '<div style="color:#333;font-size:11px;">No shipments</div>';
+  document.getElementById('bufferList').innerHTML = ships.length
+    ? ships.map(sh => {
+        const urgCls = sh.time_to_due < 12 ? ' urgent' : '';
+        return `<div class="s-row">
+          <span class="sid">${sh.shipment_id}</span>
+          <span class="type">${sh.item_type}</span>
+          <span class="cbm">${sh.cbm}cbm</span>
+          <span class="wait${urgCls}">대기 ${sh.waiting_time}h</span>
+          <span style="color:#444;font-size:10px;">납기 ${sh.time_to_due?.toFixed(1)}h</span>
+        </div>`;
+      }).join('')
+    : '<div style="color:#333;font-size:11px;">No shipments</div>';
 
-  // Manual list
   renderManualList(ships);
 
-  // MBL list
+  // MBL list — 각 MBL에 fill bar 추가
   if (s.mbls && s.mbls.length) {
-    document.getElementById('mblList').innerHTML = [...s.mbls].reverse().map(m =>
-      `<div class="mbl-row">
-        <span class="mid">${m.mbl_id}</span>
-        <span class="info">출고 T=${m.dispatch_time} | ${m.total_cbm}CBM | 화물 ${m.shipment_count}건 | 적재율 ${(m.fill_rate*100).toFixed(0)}%</span>
-      </div>`
-    ).join('');
+    document.getElementById('mblList').innerHTML = [...s.mbls].reverse().map(m => {
+      const fillPct = Math.min(m.fill_rate * 100, 100);
+      const fillCls = fillPct >= 100 ? 'full' : fillPct >= 70 ? 'warn' : '';
+      const hblCount = (m.hbls || []).length;
+      return `<div class="mbl-row" onclick="openMBLDetail('${m.mbl_id}')" title="클릭하여 상세 보기">
+        <div class="mbl-row-header">
+          <span class="mid">${m.mbl_id}</span>
+          <span class="info">T=${m.dispatch_time} | ${m.total_cbm}CBM | HBL ${hblCount}건 | ${(m.fill_rate*100).toFixed(0)}%</span>
+          <span style="font-size:10px; color:#444; margin-left:auto;">상세 →</span>
+        </div>
+        <div class="mbl-row-bar"><div class="mbl-row-bar-fill ${fillCls}" style="width:${fillPct}%"></div></div>
+      </div>`;
+    }).join('');
   }
 }
 
 function renderMetrics(m) {
   const el = (id, v, cls) => { const e = document.getElementById(id); e.textContent = v; e.className = `v ${cls}`; };
   el('mFill', (m.avg_fill_rate*100).toFixed(1)+'%', m.avg_fill_rate >= 0.6 ? 'good' : 'bad');
-  el('mSla', (m.sla_violation_rate*100).toFixed(1)+'%', m.sla_violation_rate === 0 ? 'good' : 'bad');
+  el('mSla',  (m.sla_violation_rate*100).toFixed(1)+'%', m.sla_violation_rate === 0 ? 'good' : 'bad');
   el('mCost', '$' + (m.total_cost||0).toLocaleString(), '');
   el('mWait', (m.avg_waiting_time_hrs||0).toFixed(1)+'h', '');
 }
@@ -503,37 +591,132 @@ function addEvent(ts, type, detail) {
   row.className = 'e-row';
   row.innerHTML = `<span class="ts">${ts}</span><span class="et ${type}">[${type}]</span>${detail}`;
   log.insertBefore(row, log.firstChild);
-  // 너무 많으면 제거
   while (log.children.length > 200) log.removeChild(log.lastChild);
 }
 
 function setBadge(status) {
   const b = document.getElementById('badge');
   b.textContent = status;
-  b.className = `badge ${status}`;
+  b.className   = `badge ${status}`;
 }
 
 function clearAll() {
-  lastState = null;
-  pendingDecision = null;
+  lastState = pendingDecision = null;
   document.getElementById('bigTime').textContent = 'T = 0';
-  document.getElementById('ttc').textContent = '—';
-  document.getElementById('nc').textContent = '—';
+  ['ttc','nc'].forEach(id => document.getElementById(id).textContent = '—');
   document.getElementById('nMbls').textContent = '0';
   document.getElementById('nDisp').textContent = '0';
   document.getElementById('barFill').style.width = '0%';
   document.getElementById('cbmLabel').textContent = '0 / 10';
   document.getElementById('bufferList').innerHTML = '<div style="color:#333;font-size:11px;">No shipments in buffer</div>';
-  document.getElementById('mblList').innerHTML = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
-  document.getElementById('eventLog').innerHTML = '';
+  document.getElementById('mblList').innerHTML    = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
+  document.getElementById('eventLog').innerHTML   = '';
   document.getElementById('manualList').innerHTML = '';
   clearDecision();
-  ['mFill','mSla','mCost','mWait'].forEach(id => {
-    document.getElementById(id).textContent = '—';
-  });
+  ['mFill','mSla','mCost','mWait'].forEach(id => document.getElementById(id).textContent = '—');
 }
 
 connectWS();
+
+// ---------------------------------------------------------------------------
+// MBL Detail Modal
+// ---------------------------------------------------------------------------
+
+const CAT_LABELS = { GENERAL:'일반', HAZMAT:'위험물', FOOD:'식품', FRAGILE:'파손주의', OVERSIZED:'특대형' };
+
+function openMBLDetail(mblId) {
+  if (!lastState || !lastState.mbls) return;
+  const mbl = lastState.mbls.find(m => m.mbl_id === mblId);
+  if (!mbl) return;
+
+  const maxCbm  = lastState?.config?.max_cbm_per_mbl || 10;
+  const fillPct = Math.min(mbl.fill_rate * 100, 100);
+  const fillCls = fillPct >= 100 ? 'full' : fillPct >= 70 ? 'warn' : '';
+  const fillValCls = fillPct >= 70 ? (fillPct >= 100 ? 'bad' : 'warn') : 'good';
+
+  const hblRows = (mbl.hbls || []).map(h => {
+    const effCbm = h.cargo_category === 'FRAGILE'
+      ? (h.cbm * 1.3).toFixed(3)
+      : h.cbm;
+    const lateTag = h.is_late
+      ? '<span style="color:#f55; font-size:9px; margin-left:4px;">SLA위반</span>' : '';
+    return `
+      <div class="hbl-row" id="hbl-row-${h.hbl_id}">
+        <div class="hbl-row-main">
+          <span class="hbl-id">${h.hbl_id}</span>
+          <span class="hbl-ship">${h.shipment_id}</span>
+          <span class="hbl-type">${h.item_type}</span>
+          <span class="cat-badge cat-${h.cargo_category}">${CAT_LABELS[h.cargo_category] || h.cargo_category}</span>
+          <span class="hbl-cbm">${h.cbm} CBM</span>
+          <span class="hbl-wt">${h.weight} kg</span>
+          <span class="hbl-pkg">${h.packages}pkg</span>
+          ${lateTag}
+          <button onclick="toggleHBLDetail('${h.hbl_id}')" style="margin-left:auto; font-size:10px; padding:2px 8px;">상세 ▼</button>
+        </div>
+        <div class="hbl-detail-panel" id="hbl-detail-${h.hbl_id}" style="display:none;">
+          <div><span class="dk">HBL ID</span><br><span class="dv">${h.hbl_id}</span></div>
+          <div><span class="dk">화물 ID</span><br><span class="dv">${h.shipment_id}</span></div>
+          <div><span class="dk">Linked MBL</span><br><span class="dv">${mblId}</span></div>
+          <div><span class="dk">품목</span><br><span class="dv">${h.item_type}</span></div>
+          <div><span class="dk">카테고리</span><br><span class="dv">${h.cargo_category} (${CAT_LABELS[h.cargo_category] || '—'})</span></div>
+          <div><span class="dk">실효 CBM</span><br><span class="dv">${effCbm} m³${h.cargo_category==='FRAGILE'?' (×1.3)':''}</span></div>
+          <div><span class="dk">CBM</span><br><span class="dv">${h.cbm} m³</span></div>
+          <div><span class="dk">무게</span><br><span class="dv">${h.weight} kg</span></div>
+          <div><span class="dk">패키지 수</span><br><span class="dv">${h.packages}개</span></div>
+          <div><span class="dk">도착 시각</span><br><span class="dv">T = ${h.arrival_time}</span></div>
+          <div><span class="dk">대기 시간</span><br><span class="dv">${h.waiting_time !== null ? h.waiting_time + 'h' : '—'}</span></div>
+          <div><span class="dk">SLA 상태</span><br><span class="dv ${h.is_late ? 'bad' : 'good'}">${h.is_late ? '위반' : '정상'}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('mblModalContent').innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+      <div>
+        <div class="modal-title">${mbl.mbl_id}</div>
+        <div class="modal-sub">T = ${mbl.dispatch_time} 출고 &nbsp;|&nbsp; HBL ${(mbl.hbls||[]).length}건</div>
+      </div>
+      <button onclick="closeMBLDetail()" style="background:none; border:1px solid #333; color:#666; font-size:14px; padding:4px 10px; cursor:pointer;">✕ 닫기</button>
+    </div>
+
+    <div class="modal-stats">
+      <div class="modal-stat"><div class="k">총 CBM</div><div class="v">${mbl.total_cbm} m³</div></div>
+      <div class="modal-stat"><div class="k">실효 CBM</div><div class="v">${mbl.total_effective_cbm} m³</div></div>
+      <div class="modal-stat"><div class="k">적재율</div><div class="v ${fillValCls}">${fillPct.toFixed(1)}% / ${maxCbm} CBM</div></div>
+      <div class="modal-stat"><div class="k">총 무게</div><div class="v">${mbl.total_weight} kg</div></div>
+      <div class="modal-stat"><div class="k">총 패키지</div><div class="v">${mbl.total_packages}개</div></div>
+      <div class="modal-stat"><div class="k">출고 시각</div><div class="v">T = ${mbl.dispatch_time}</div></div>
+    </div>
+
+    <div class="bar-wrap">
+      <div class="bar-label">CBM 적재율 (${mbl.total_cbm} / ${maxCbm})</div>
+      <div class="bar-track"><div class="bar-fill ${fillCls}" style="width:${fillPct}%;"></div></div>
+    </div>
+
+    <div class="hbl-section-title">HBL 목록 — ${(mbl.hbls||[]).length}건</div>
+    <div style="border-top:1px solid #2a2a2a;">${hblRows || '<div style="color:#333;padding:8px;">HBL 없음</div>'}</div>
+  `;
+
+  document.getElementById('mblModal').style.display = 'block';
+}
+
+function closeMBLDetail() {
+  document.getElementById('mblModal').style.display = 'none';
+}
+
+function toggleHBLDetail(hblId) {
+  const detail = document.getElementById(`hbl-detail-${hblId}`);
+  const btn    = document.querySelector(`#hbl-row-${hblId} .hbl-row-main button`);
+  const open   = detail.style.display === 'none';
+  detail.style.display = open ? 'grid' : 'none';
+  if (btn) btn.textContent = open ? '상세 ▲' : '상세 ▼';
+}
 </script>
+
+<!-- MBL Detail Modal -->
+<div id="mblModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeMBLDetail()">
+  <div id="mblModalContent" class="modal-box"></div>
+</div>
+
 </body>
 </html>

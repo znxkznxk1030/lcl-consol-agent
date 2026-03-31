@@ -2,7 +2,6 @@
 agents/base.py
 ==============
 AgentBase: 모든 agent가 구현해야 하는 인터페이스
-- act(observation: dict) -> dict 하나만 구현하면 됨
 """
 
 from abc import ABC, abstractmethod
@@ -29,100 +28,105 @@ class AgentBase(ABC):
                 "schema": "action/v1",
                 "agent_id": str,
                 "action": "WAIT" | "DISPATCH",
-                "selected_ids": List[str],
+                "mbls": List[List[str]],   # 각 inner list = 하나의 MBL
                 "reason": str  (optional)
             }
         """
         raise NotImplementedError
 
     # ------------------------------------------------------------------
-    # 유틸: 단순 greedy 선택 (effective_cbm 기준, 호환성 무시)
+    # 유틸: First-Fit Decreasing bin packing
     # ------------------------------------------------------------------
 
-    def _greedy_select(self, shipments: List[dict], max_cbm: float) -> List[str]:
-        """도착 순 정렬 후 effective_cbm 기준 CBM 한도 내 greedy 선택.
-        호환성은 고려하지 않으며 env가 위반 시 자동 분리한다."""
-        selected, total = [], 0.0
-        for s in sorted(shipments, key=lambda x: x["arrival_time"]):
+    def _bin_pack(
+        self,
+        shipments: List[dict],
+        max_cbm: float,
+    ) -> List[List[str]]:
+        """
+        FFD(First-Fit Decreasing) 알고리즘으로 shipments를 여러 MBL에 배분.
+        effective_cbm 내림차순 정렬 후, 먼저 들어갈 수 있는 빈에 배치.
+        반환값: [[id1, id2], [id3], ...] (MBL별 shipment ID 목록)
+        """
+        sorted_ships = sorted(
+            shipments,
+            key=lambda s: s.get("effective_cbm", s["cbm"]),
+            reverse=True,
+        )
+        bins: List[Dict] = []  # {"ids": [...], "cbm": float}
+
+        for s in sorted_ships:
             ecbm = s.get("effective_cbm", s["cbm"])
-            if total + ecbm <= max_cbm:
-                selected.append(s["shipment_id"])
-                total += ecbm
-        return selected
+            placed = False
+            for b in bins:
+                if b["cbm"] + ecbm <= max_cbm:
+                    b["ids"].append(s["shipment_id"])
+                    b["cbm"] += ecbm
+                    placed = True
+                    break
+            if not placed:
+                bins.append({"ids": [s["shipment_id"]], "cbm": ecbm})
+
+        return [b["ids"] for b in bins] if bins else []
 
     # ------------------------------------------------------------------
-    # 유틸: 호환성 인식 greedy 선택
+    # 유틸: 호환성 인식 bin packing
     # ------------------------------------------------------------------
 
-    def _compatible_greedy_select(
-        self, shipments: List[dict], max_cbm: float
-    ) -> List[str]:
+    def _compatible_bin_pack(
+        self,
+        shipments: List[dict],
+        max_cbm: float,
+    ) -> List[List[str]]:
         """
-        1단계: 호환 가능한 그룹으로 분리 (HAZMAT끼리, FOOD+FRAGILE끼리, GENERAL 등)
-        2단계: 각 그룹 내 effective_cbm 기준 greedy 선택
-        3단계: 가장 많은 CBM을 채울 수 있는 그룹의 결과를 반환
-
-        이 helper를 쓰면 호환성 위반 없이 단일 MBL을 최대한 채울 수 있다.
+        카테고리별로 혼적 가능한 그룹을 먼저 나누고,
+        각 그룹 내에서 FFD bin packing 수행.
+        결과를 모두 합쳐 반환.
         """
-        # 카테고리별로 묶기
         by_category: Dict[str, List[dict]] = defaultdict(list)
         for s in sorted(shipments, key=lambda x: x["arrival_time"]):
             by_category[s.get("cargo_category", "GENERAL")].append(s)
 
-        # 호환 가능한 카테고리 조합 후보 생성
-        # 규칙 요약:
-        #   OVERSIZED → 단독
-        #   HAZMAT    → GENERAL과만 혼적 가능
-        #   FOOD      → GENERAL, FRAGILE과 혼적 가능
-        #   FRAGILE   → GENERAL, FOOD과 혼적 가능
-        #   GENERAL   → HAZMAT, FOOD, FRAGILE과 혼적 가능 (단, OVERSIZED 제외)
-        candidate_groups: List[List[dict]] = []
+        all_mbl_ids: List[List[str]] = []
 
-        # OVERSIZED 단독 후보
+        # OVERSIZED: 각각 단독 MBL
         for s in by_category.get("OVERSIZED", []):
-            candidate_groups.append([s])
+            all_mbl_ids.append([s["shipment_id"]])
 
         # HAZMAT + GENERAL
         hazmat_group = by_category.get("HAZMAT", []) + by_category.get("GENERAL", [])
         if hazmat_group:
-            candidate_groups.append(hazmat_group)
+            all_mbl_ids.extend(self._bin_pack(hazmat_group, max_cbm))
 
-        # FOOD + FRAGILE + GENERAL
-        food_group = (
-            by_category.get("FOOD", [])
-            + by_category.get("FRAGILE", [])
-            + by_category.get("GENERAL", [])
-        )
+        # FOOD + FRAGILE + GENERAL (HAZMAT 없는 경우)
+        food_group = by_category.get("FOOD", []) + by_category.get("FRAGILE", [])
         if food_group:
-            candidate_groups.append(food_group)
+            # GENERAL은 HAZMAT 그룹과 중복되므로 제외
+            if not by_category.get("HAZMAT"):
+                food_group += by_category.get("GENERAL", [])
+            all_mbl_ids.extend(self._bin_pack(food_group, max_cbm))
 
-        # GENERAL만 (위 두 후보에 포함되지만 HAZMAT/FOOD 없는 경우)
-        general_only = by_category.get("GENERAL", [])
-        if general_only and not by_category.get("HAZMAT") and not by_category.get("FOOD"):
-            candidate_groups.append(general_only)
+        # 중복 제거 (GENERAL이 여러 그룹에 들어간 경우)
+        seen: set = set()
+        result: List[List[str]] = []
+        for mbl in all_mbl_ids:
+            filtered = [sid for sid in mbl if sid not in seen]
+            seen.update(filtered)
+            if filtered:
+                result.append(filtered)
 
-        # 각 후보에서 greedy 선택 후 가장 CBM이 높은 결과 반환
-        best_ids: List[str] = []
-        best_cbm: float = -1.0
+        return result
 
-        for group in candidate_groups:
-            selected, total = [], 0.0
-            for s in group:
-                ecbm = s.get("effective_cbm", s["cbm"])
-                if total + ecbm <= max_cbm:
-                    selected.append(s["shipment_id"])
-                    total += ecbm
-            if total > best_cbm:
-                best_cbm = total
-                best_ids = selected
-
-        return best_ids
-
-    def _make_action(self, action: str, selected_ids: List[str], reason: str = "") -> dict:
+    def _make_action(
+        self,
+        action: str,
+        mbls: List[List[str]],
+        reason: str = "",
+    ) -> dict:
         return {
             "schema": "action/v1",
             "agent_id": self.agent_id,
             "action": action,
-            "selected_ids": selected_ids,
+            "mbls": mbls,
             "reason": reason,
         }

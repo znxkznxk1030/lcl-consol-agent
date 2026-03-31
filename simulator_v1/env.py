@@ -11,13 +11,14 @@ from __future__ import annotations
 
 import uuid
 import random
-from dataclasses import dataclass
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional, Dict
 
 from .entities import (
     ItemType, Shipment, MBL,
     generate_shipment, create_mbl,
 )
+from .distributions import thinning_arrivals
 from .compatibility import split_into_compatible_groups, count_violation_pairs
 from .buffer import WarehouseBuffer
 from .cost import CostEngine
@@ -39,9 +40,19 @@ class EnvConfig:
     max_cbm_per_mbl: float = 10.0
     destination: str = "PORT_A"
 
-    arrival_rate_A: float = 2.0
-    arrival_rate_B: float = 0.8
-    arrival_rate_C: float = 0.2
+    # ItemType별 시간당 평균 도착 화물 수 (기본값: 실측 통계 기반)
+    arrival_rates: Dict[str, float] = field(default_factory=lambda: {
+        "ELECTRONICS":   2.0,
+        "CLOTHING":      1.5,
+        "COSMETICS":     0.8,
+        "FOOD_PRODUCTS": 0.7,
+        "AUTO_PARTS":    0.5,
+        "CHEMICALS":     0.3,
+        "FURNITURE":     0.2,
+        "MACHINERY":     0.15,
+    })
+
+    use_real_distributions: bool = True  # False 시 기존 균등분포 동작 유지
 
     fixed_cost_per_mbl: float = 100.0
     variable_cost_per_cbm: float = 10.0
@@ -118,7 +129,7 @@ class ConsolidationEnv:
             self._log_event("AGENT_DECISION", {
                 "agent_id": action.agent_id,
                 "action": action.action,
-                "selected_ids": action.selected_ids,
+                "mbl_count": len(action.mbls),
                 "reason": action.reason,
                 "buffer_cbm": self.buffer.total_cbm,
                 "buffer_effective_cbm": self.buffer.total_effective_cbm,
@@ -126,8 +137,8 @@ class ConsolidationEnv:
             })
 
             # 4. Action 실행
-            if action.action == "DISPATCH" and action.selected_ids:
-                self._dispatch(action.selected_ids)
+            if action.action == "DISPATCH" and action.mbls:
+                self._dispatch(action.mbls)
 
             # 5. Cutoff 갱신
             if self.current_time >= self.next_cutoff:
@@ -135,10 +146,10 @@ class ConsolidationEnv:
 
             self.current_time += 1.0
 
-        # 잔여 화물 강제 출고
+        # 잔여 화물 강제 출고 (자동 CBM 분할)
         remaining = self.buffer.ids()
         if remaining:
-            self._dispatch(remaining)
+            self._dispatch([remaining])
 
         return self._build_result(agent)
 
@@ -189,35 +200,43 @@ class ConsolidationEnv:
             schema=action_dict.get("schema", "action/v1"),
             agent_id=action_dict.get("agent_id", "unknown"),
             action=action_dict.get("action", "WAIT"),
-            selected_ids=action_dict.get("selected_ids", []),
+            mbls=action_dict.get("mbls", []),
             reason=action_dict.get("reason"),
         )
 
-    def _dispatch(self, shipment_ids: List[str]) -> None:
-        candidates = self.buffer.remove(shipment_ids)
+    def _dispatch(self, mbl_assignments: List[List[str]]) -> None:
+        """mbl_assignments: 각 inner list = 하나의 MBL에 담을 shipment ID 목록."""
+        # 전체 ID 한 번에 버퍼에서 제거
+        all_ids = [sid for group in mbl_assignments for sid in group]
+        all_ships = {s.shipment_id: s for s in self.buffer.remove(all_ids)}
 
-        # Step 1: 호환성 검사 → 위반 시 자동 분리
-        violation_pairs = count_violation_pairs(candidates)
-        if violation_pairs > 0:
-            self._compatibility_violations += 1
-            compat_groups = split_into_compatible_groups(candidates)
-            extra = len(compat_groups) - 1
-            self._compatibility_extra_mbls += extra
+        for group_ids in mbl_assignments:
+            candidates = [all_ships[sid] for sid in group_ids if sid in all_ships]
+            if not candidates:
+                continue
 
-            self._log_event("COMPATIBILITY_VIOLATION", {
-                "original_count": len(candidates),
-                "violation_pairs": violation_pairs,
-                "split_into_groups": len(compat_groups),
-                "extra_mbls_created": extra,
-                "categories": [s.cargo_category.value for s in candidates],
-            })
-        else:
-            compat_groups = [candidates]
+            # 호환성 검사 → 위반 시 자동 분리
+            violation_pairs = count_violation_pairs(candidates)
+            if violation_pairs > 0:
+                self._compatibility_violations += 1
+                compat_groups = split_into_compatible_groups(candidates)
+                extra = len(compat_groups) - 1
+                self._compatibility_extra_mbls += extra
 
-        # Step 2: 각 호환 그룹을 CBM 한도 내로 추가 분할 후 MBL 생성
-        for group in compat_groups:
-            for cbm_group in self._split_by_cbm(group):
-                self._create_mbl(cbm_group)
+                self._log_event("COMPATIBILITY_VIOLATION", {
+                    "original_count": len(candidates),
+                    "violation_pairs": violation_pairs,
+                    "split_into_groups": len(compat_groups),
+                    "extra_mbls_created": extra,
+                    "categories": [s.cargo_category.value for s in candidates],
+                })
+            else:
+                compat_groups = [candidates]
+
+            # 각 호환 그룹을 CBM 한도 내로 추가 분할 후 MBL 생성
+            for group in compat_groups:
+                for cbm_group in self._split_by_cbm(group):
+                    self._create_mbl(cbm_group)
 
     def _split_by_cbm(self, shipments: List[Shipment]) -> List[List[Shipment]]:
         """effective_cbm 기준으로 max_cbm_per_mbl을 초과하지 않도록 분할."""
@@ -281,17 +300,23 @@ class ConsolidationEnv:
 
     def _generate_arrivals(self, hour: float) -> List[Shipment]:
         arrivals = []
-        for item_type, rate in [
-            (ItemType.A, self.cfg.arrival_rate_A),
-            (ItemType.B, self.cfg.arrival_rate_B),
-            (ItemType.C, self.cfg.arrival_rate_C),
-        ]:
-            t = 0.0
-            while True:
-                inter = self.rng.expovariate(rate)
-                t += inter
-                if t > 1.0:
-                    break
+        for item_type in ItemType:
+            rate = self.cfg.arrival_rates.get(item_type.value, 0.0)
+            if rate <= 0:
+                continue
+
+            if self.cfg.use_real_distributions:
+                offsets = thinning_arrivals(self.rng, rate, hour)
+            else:
+                offsets = []
+                t = 0.0
+                while True:
+                    t += self.rng.expovariate(rate)
+                    if t > 1.0:
+                        break
+                    offsets.append(t)
+
+            for t in offsets:
                 s = generate_shipment(
                     self.rng, hour + t, item_type,
                     destination=self.cfg.destination,
