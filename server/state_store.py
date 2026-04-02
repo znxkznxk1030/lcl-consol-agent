@@ -52,6 +52,7 @@ class SimulationStore:
 
         shipments = self.env.buffer.all()
         return {
+            "schema": "observation/v2",
             "status": self.status,
             "current_time": self.env.current_time,
             "time_to_cutoff": round(self.env.next_cutoff - self.env.current_time, 2),
@@ -64,14 +65,17 @@ class SimulationStore:
             "buffer": {
                 "count": self.env.buffer.count,
                 "total_cbm": self.env.buffer.total_cbm,
+                "total_effective_cbm": self.env.buffer.total_effective_cbm,
                 "total_weight": self.env.buffer.total_weight,
                 "shipments": [
                     {
                         "shipment_id": s.shipment_id,
                         "item_type": s.item_type.value,
+                        "cargo_category": s.cargo_category.value,
                         "arrival_time": s.arrival_time,
                         "waiting_time": round(self.env.current_time - s.arrival_time, 2),
                         "cbm": s.cbm,
+                        "effective_cbm": s.effective_cbm,
                         "weight": s.weight,
                         "packages": s.packages,
                         "due_time": s.due_time,

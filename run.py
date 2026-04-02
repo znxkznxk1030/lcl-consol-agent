@@ -3,10 +3,14 @@
 run.py — LCL Simulator CLI
 ===========================
 사용법:
-  python run.py sim        # 시뮬레이션 단독 실행 (터미널 출력)
+  python run.py sim        # 시뮬레이션 단독 실행 (규칙 기반 에이전트)
   python run.py server     # 시뮬레이션 서버 실행 (:8000)
-  python run.py agent      # 에이전트 서버 실행 (:8001)
+  python run.py agent      # LLM AI Agent 서버 실행 (:8001)
   python run.py all        # 시뮬레이션 서버 + 에이전트 서버 동시 실행
+
+LLM Agent 환경변수:
+  ANTHROPIC_API_KEY       # Claude API 키 (없으면 fallback 모드)
+  DEFAULT_CONTAINER_TYPE  # 기본 컨테이너 타입 (기본: 40GP)
 """
 
 import sys
@@ -15,6 +19,10 @@ import subprocess
 
 def run_sim():
     subprocess.run([sys.executable, "-m", "simulator_v1.run"])
+
+
+def run_ai_sim():
+    raise SystemExit("`ai_sim` is deprecated. Run `python run.py server` and `python run.py agent` instead.")
 
 
 def run_server():
@@ -72,6 +80,7 @@ def run_all():
 
 COMMANDS = {
     "sim": run_sim,
+    "ai_sim": run_ai_sim,
     "server": run_server,
     "agent": run_agent,
     "all": run_all,

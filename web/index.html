@@ -376,7 +376,7 @@ function toggleAutoAsk() {
 async function askAgent() {
   if (!lastState) return;
   document.getElementById('btnAsk').disabled = true;
-  document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking agent...</div>';
+  document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking LLM agent...</div>';
   document.getElementById('mblPlan').style.display = 'none';
 
   try {

@@ -2,14 +2,13 @@
 main.py — Simulation Server :8000
 ===================================
 역할: 시뮬레이션 실행 + 상태 제공 + dispatch 수신
-브라우저가 중재자. Agent Server와는 직접 통신하지 않음.
+브라우저/외부 Agent가 중재자. 시뮬레이터는 환경만 제공한다.
 """
 
 from __future__ import annotations
 
 import asyncio
 import io
-import os
 from pathlib import Path
 from typing import Dict, List
 
@@ -135,6 +134,7 @@ async def start_simulation(req: StartRequest):
             arrival_rates=req.arrival_rates,
             sla_hours=req.sla_hours,
         )
+
     asyncio.create_task(run_simulation(config, manager.broadcast))
     return {"ok": True}
 
@@ -373,6 +373,33 @@ async def export_mbl_xlsx(mbl_id: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers=headers,
     )
+
+
+# ---------------------------------------------------------------------------
+# AI 보고서 프록시 엔드포인트
+# ---------------------------------------------------------------------------
+
+@app.get("/simulation/report")
+async def get_ai_report():
+    """AI Agent Server(:8001)의 최신 보고서를 프록시해서 반환."""
+    import urllib.request, urllib.error, json as _json
+    try:
+        with urllib.request.urlopen("http://localhost:8001/report/latest", timeout=3) as r:
+            return _json.loads(r.read())
+    except urllib.error.URLError:
+        return {"error": "Agent server not available. Start with: python run.py agent"}
+
+
+@app.get("/simulation/report.md")
+async def get_ai_report_markdown():
+    """AI Agent Server(:8001)의 최신 보고서를 Markdown으로 프록시."""
+    import urllib.request, urllib.error
+    from fastapi.responses import PlainTextResponse
+    try:
+        with urllib.request.urlopen("http://localhost:8001/report/latest.md", timeout=3) as r:
+            return PlainTextResponse(r.read().decode("utf-8"))
+    except urllib.error.URLError:
+        return PlainTextResponse("# Agent server not available\nStart with: python run.py agent\n")
 
 
 # ---------------------------------------------------------------------------
