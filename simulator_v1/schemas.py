@@ -28,6 +28,9 @@ class ShipmentObservation:
     packages: int
     due_time: float
     time_to_due: float          # due_time - current_time
+    length_cm: Optional[float] = None
+    height_cm: Optional[float] = None
+    width_cm: Optional[float] = None
 
 
 @dataclass

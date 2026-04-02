@@ -8,19 +8,22 @@ main.py — Simulation Server :8000
 from __future__ import annotations
 
 import asyncio
-from typing import List
+import io
+import os
+from pathlib import Path
+from typing import Dict, List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from openpyxl import Workbook
+from openpyxl.styles import Font
 from pydantic import BaseModel
 
 from simulator_v1.env import EnvConfig
 from .state_store import store, SimStatus
 from .simulation_runner import run_simulation
-
-import os
 
 app = FastAPI(title="Simulation Server")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -52,6 +55,14 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+CAT_LABELS: Dict[str, str] = {
+    "GENERAL": "일반",
+    "HAZMAT": "위험물",
+    "FOOD": "식품",
+    "FRAGILE": "파손주의",
+    "OVERSIZED": "특대형",
+}
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
@@ -73,6 +84,9 @@ class StartRequest(BaseModel):
     sim_duration_hours: int = 72
     cutoff_interval_hours: int = 24
     max_cbm_per_mbl: float = 10.0
+    use_olist_data: bool = True
+    use_olist_cbm: bool = False
+    olist_archive_dir: str | None = None
     arrival_rates: dict = {
         "ELECTRONICS":   2.0,
         "CLOTHING":      1.5,
@@ -86,19 +100,41 @@ class StartRequest(BaseModel):
     sla_hours: float = 48.0
 
 
+def _default_olist_archive_dir() -> Path:
+    return Path(__file__).resolve().parent.parent / "olist_dataset"
+
+
 @app.post("/simulation/start")
 async def start_simulation(req: StartRequest):
     if store.status not in (SimStatus.IDLE, SimStatus.DONE):
         raise HTTPException(400, "Simulation already running. Reset first.")
 
-    config = EnvConfig(
-        seed=req.seed,
-        sim_duration_hours=req.sim_duration_hours,
-        cutoff_interval_hours=req.cutoff_interval_hours,
-        max_cbm_per_mbl=req.max_cbm_per_mbl,
-        arrival_rates=req.arrival_rates,
-        sla_hours=req.sla_hours,
-    )
+    if req.use_olist_data:
+        from simulator_v1.olist_calibration import make_olist_config
+
+        archive_dir = Path(req.olist_archive_dir) if req.olist_archive_dir else _default_olist_archive_dir()
+        if not archive_dir.exists():
+            raise HTTPException(400, f"Olist archive directory not found: {archive_dir}")
+
+        config = make_olist_config(
+            archive_dir=archive_dir,
+            total_rate=sum(req.arrival_rates.values()),
+            use_olist_cbm=req.use_olist_cbm,
+            seed=req.seed,
+            sim_duration_hours=req.sim_duration_hours,
+            cutoff_interval_hours=req.cutoff_interval_hours,
+            max_cbm_per_mbl=req.max_cbm_per_mbl,
+            sla_hours=req.sla_hours,
+        )
+    else:
+        config = EnvConfig(
+            seed=req.seed,
+            sim_duration_hours=req.sim_duration_hours,
+            cutoff_interval_hours=req.cutoff_interval_hours,
+            max_cbm_per_mbl=req.max_cbm_per_mbl,
+            arrival_rates=req.arrival_rates,
+            sla_hours=req.sla_hours,
+        )
     asyncio.create_task(run_simulation(config, manager.broadcast))
     return {"ok": True}
 
@@ -187,6 +223,156 @@ async def get_events(limit: int = 100):
     if store.env is None:
         return {"events": []}
     return {"events": [e.to_dict() for e in store.env.events[-limit:]]}
+
+
+def _get_serialized_mbl_or_404(mbl_id: str) -> dict:
+    if store.env is None:
+        raise HTTPException(400, "Simulation not started")
+
+    mbl = store.get_serialized_mbl(mbl_id)
+    if mbl is None:
+        raise HTTPException(404, f"MBL not found: {mbl_id}")
+    return mbl
+
+
+def _autosize_columns(ws) -> None:
+    for column_cells in ws.columns:
+        lengths = [len(str(cell.value)) for cell in column_cells if cell.value is not None]
+        max_length = max(lengths, default=10)
+        ws.column_dimensions[column_cells[0].column_letter].width = min(max_length + 2, 30)
+
+
+def _build_mbl_markdown(mbl: dict, max_cbm: float) -> str:
+    fill_pct = round(mbl["fill_rate"] * 100, 1)
+    lines = [
+        f"# {mbl['mbl_id']}",
+        "",
+        "## Summary",
+        "",
+        f"- Dispatch Time: T = {mbl['dispatch_time']}",
+        f"- Shipment Count: {mbl['shipment_count']}",
+        f"- Total CBM: {mbl['total_cbm']} m3",
+        f"- Effective CBM: {mbl['total_effective_cbm']} m3",
+        f"- Fill Rate: {fill_pct}% / {max_cbm} CBM",
+        f"- Total Weight: {mbl['total_weight']} kg",
+        f"- Total Packages: {mbl['total_packages']}",
+        "",
+        "## HBLs",
+        "",
+        "| HBL ID | Shipment ID | Item Type | Category | Category Label | Length (cm) | Height (cm) | Width (cm) | CBM | Effective CBM | Weight (kg) | Packages | Arrival Time | Waiting Time (h) | SLA |",
+        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+    ]
+
+    for h in mbl["hbls"]:
+        waiting_time = h["waiting_time"] if h["waiting_time"] is not None else "—"
+        arrival_time = h["arrival_time"] if h["arrival_time"] is not None else "—"
+        length_cm = h["length_cm"] if h["length_cm"] is not None else "—"
+        height_cm = h["height_cm"] if h["height_cm"] is not None else "—"
+        width_cm = h["width_cm"] if h["width_cm"] is not None else "—"
+        lines.append(
+            f"| {h['hbl_id']} | {h['shipment_id']} | {h['item_type']} | {h['cargo_category']} | "
+            f"{CAT_LABELS.get(h['cargo_category'], h['cargo_category'])} | {length_cm} | {height_cm} | {width_cm} | {h['cbm']} | {h['effective_cbm']} | "
+            f"{h['weight']} | {h['packages']} | {arrival_time} | {waiting_time} | "
+            f"{'Late' if h['is_late'] else 'OK'} |"
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def _build_mbl_workbook(mbl: dict, max_cbm: float) -> Workbook:
+    wb = Workbook()
+    summary = wb.active
+    summary.title = "Summary"
+    summary_rows = [
+        ("MBL ID", mbl["mbl_id"]),
+        ("Dispatch Time", f"T = {mbl['dispatch_time']}"),
+        ("Shipment Count", mbl["shipment_count"]),
+        ("Total CBM", mbl["total_cbm"]),
+        ("Effective CBM", mbl["total_effective_cbm"]),
+        ("Fill Rate (%)", round(mbl["fill_rate"] * 100, 1)),
+        ("Max CBM", max_cbm),
+        ("Total Weight (kg)", mbl["total_weight"]),
+        ("Total Packages", mbl["total_packages"]),
+    ]
+    for key, value in summary_rows:
+        summary.append([key, value])
+    for cell in summary["A"]:
+        cell.font = Font(bold=True)
+    _autosize_columns(summary)
+
+    hbl_sheet = wb.create_sheet("HBLs")
+    headers = [
+        "HBL ID",
+        "Shipment ID",
+        "Linked MBL",
+        "Item Type",
+        "Category",
+        "Category Label",
+        "Length (cm)",
+        "Height (cm)",
+        "Width (cm)",
+        "CBM",
+        "Effective CBM",
+        "Weight (kg)",
+        "Packages",
+        "Arrival Time",
+        "Waiting Time (h)",
+        "SLA Status",
+    ]
+    hbl_sheet.append(headers)
+    for cell in hbl_sheet[1]:
+        cell.font = Font(bold=True)
+
+    for h in mbl["hbls"]:
+        hbl_sheet.append([
+            h["hbl_id"],
+            h["shipment_id"],
+            mbl["mbl_id"],
+            h["item_type"],
+            h["cargo_category"],
+            CAT_LABELS.get(h["cargo_category"], h["cargo_category"]),
+            h["length_cm"],
+            h["height_cm"],
+            h["width_cm"],
+            h["cbm"],
+            h["effective_cbm"],
+            h["weight"],
+            h["packages"],
+            h["arrival_time"],
+            h["waiting_time"],
+            "Late" if h["is_late"] else "OK",
+        ])
+    _autosize_columns(hbl_sheet)
+    return wb
+
+
+@app.get("/export/mbl/{mbl_id}.md")
+async def export_mbl_markdown(mbl_id: str):
+    mbl = _get_serialized_mbl_or_404(mbl_id)
+    max_cbm = store.env.cfg.max_cbm_per_mbl
+    content = _build_mbl_markdown(mbl, max_cbm).encode("utf-8")
+    headers = {"Content-Disposition": f'attachment; filename="{mbl_id}.md"'}
+    return StreamingResponse(
+        io.BytesIO(content),
+        media_type="text/markdown; charset=utf-8",
+        headers=headers,
+    )
+
+
+@app.get("/export/mbl/{mbl_id}.xlsx")
+async def export_mbl_xlsx(mbl_id: str):
+    mbl = _get_serialized_mbl_or_404(mbl_id)
+    max_cbm = store.env.cfg.max_cbm_per_mbl
+    workbook = _build_mbl_workbook(mbl, max_cbm)
+    stream = io.BytesIO()
+    workbook.save(stream)
+    stream.seek(0)
+    headers = {"Content-Disposition": f'attachment; filename="{mbl_id}.xlsx"'}
+    return StreamingResponse(
+        stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 # ---------------------------------------------------------------------------

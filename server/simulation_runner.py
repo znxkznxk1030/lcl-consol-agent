@@ -51,6 +51,9 @@ async def run_simulation(
                     "cbm": s.cbm,
                     "weight": s.weight,
                     "due_time": s.due_time,
+                    "length_cm": s.length_cm,
+                    "height_cm": s.height_cm,
+                    "width_cm": s.width_cm,
                 })
 
             if store.env.current_time >= store.env.next_cutoff:

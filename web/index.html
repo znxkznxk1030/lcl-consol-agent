@@ -125,6 +125,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 }
 .modal-title { font-size: 17px; color: #7c7; font-weight: bold; letter-spacing: 1px; }
 .modal-sub { font-size: 11px; color: #555; margin-top: 3px; }
+.modal-actions { display: flex; gap: 8px; align-items: center; }
 .modal-stats {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
   background: #1e1e1e; border: 1px solid #222; margin: 14px 0;
@@ -276,6 +277,7 @@ let ws = null;
 let lastState = null;
 let pendingDecision = null;
 let autoAsk = false;
+let activeMblId = null;
 
 // ---------------------------------------------------------------------------
 // WebSocket
@@ -496,7 +498,7 @@ function renderManualList(shipments) {
     return;
   }
   el.innerHTML = shipments.map(s =>
-    `<div class="s-row">
+    `<div class="s-row" title="${formatDims(s)}">
       <input type="checkbox" class="manual-cb" value="${s.shipment_id}">
       <span class="sid">${s.shipment_id}</span>
       <span class="type">${s.item_type}</span>
@@ -553,6 +555,7 @@ function renderState(s) {
           <span class="cbm">${sh.cbm}cbm</span>
           <span class="wait${urgCls}">대기 ${sh.waiting_time}h</span>
           <span style="color:#444;font-size:10px;">납기 ${sh.time_to_due?.toFixed(1)}h</span>
+          <span style="color:#555;font-size:10px;">${formatDims(sh)}</span>
         </div>`;
       }).join('')
     : '<div style="color:#333;font-size:11px;">No shipments</div>';
@@ -602,6 +605,8 @@ function setBadge(status) {
 
 function clearAll() {
   lastState = pendingDecision = null;
+  activeMblId = null;
+  document.getElementById('mblModal').style.display = 'none';
   document.getElementById('bigTime').textContent = 'T = 0';
   ['ttc','nc'].forEach(id => document.getElementById(id).textContent = '—');
   document.getElementById('nMbls').textContent = '0';
@@ -624,10 +629,16 @@ connectWS();
 
 const CAT_LABELS = { GENERAL:'일반', HAZMAT:'위험물', FOOD:'식품', FRAGILE:'파손주의', OVERSIZED:'특대형' };
 
+function formatDims(obj) {
+  if (obj?.length_cm == null || obj?.height_cm == null || obj?.width_cm == null) return '치수 없음';
+  return `${obj.length_cm} x ${obj.height_cm} x ${obj.width_cm} cm`;
+}
+
 function openMBLDetail(mblId) {
   if (!lastState || !lastState.mbls) return;
   const mbl = lastState.mbls.find(m => m.mbl_id === mblId);
   if (!mbl) return;
+  activeMblId = mblId;
 
   const maxCbm  = lastState?.config?.max_cbm_per_mbl || 10;
   const fillPct = Math.min(mbl.fill_rate * 100, 100);
@@ -635,9 +646,9 @@ function openMBLDetail(mblId) {
   const fillValCls = fillPct >= 70 ? (fillPct >= 100 ? 'bad' : 'warn') : 'good';
 
   const hblRows = (mbl.hbls || []).map(h => {
-    const effCbm = h.cargo_category === 'FRAGILE'
+    const effCbm = h.effective_cbm ?? (h.cargo_category === 'FRAGILE'
       ? (h.cbm * 1.3).toFixed(3)
-      : h.cbm;
+      : h.cbm);
     const lateTag = h.is_late
       ? '<span style="color:#f55; font-size:9px; margin-left:4px;">SLA위반</span>' : '';
     return `
@@ -659,6 +670,7 @@ function openMBLDetail(mblId) {
           <div><span class="dk">Linked MBL</span><br><span class="dv">${mblId}</span></div>
           <div><span class="dk">품목</span><br><span class="dv">${h.item_type}</span></div>
           <div><span class="dk">카테고리</span><br><span class="dv">${h.cargo_category} (${CAT_LABELS[h.cargo_category] || '—'})</span></div>
+          <div><span class="dk">치수</span><br><span class="dv">${formatDims(h)}</span></div>
           <div><span class="dk">실효 CBM</span><br><span class="dv">${effCbm} m³${h.cargo_category==='FRAGILE'?' (×1.3)':''}</span></div>
           <div><span class="dk">CBM</span><br><span class="dv">${h.cbm} m³</span></div>
           <div><span class="dk">무게</span><br><span class="dv">${h.weight} kg</span></div>
@@ -676,7 +688,11 @@ function openMBLDetail(mblId) {
         <div class="modal-title">${mbl.mbl_id}</div>
         <div class="modal-sub">T = ${mbl.dispatch_time} 출고 &nbsp;|&nbsp; HBL ${(mbl.hbls||[]).length}건</div>
       </div>
-      <button onclick="closeMBLDetail()" style="background:none; border:1px solid #333; color:#666; font-size:14px; padding:4px 10px; cursor:pointer;">✕ 닫기</button>
+      <div class="modal-actions">
+        <button class="blue" onclick="downloadMBL('xlsx')">⬇ .xlsx</button>
+        <button class="blue" onclick="downloadMBL('md')">⬇ .md</button>
+        <button onclick="closeMBLDetail()" style="background:none; border:1px solid #333; color:#666; font-size:14px; padding:4px 10px; cursor:pointer;">✕ 닫기</button>
+      </div>
     </div>
 
     <div class="modal-stats">
@@ -701,6 +717,7 @@ function openMBLDetail(mblId) {
 }
 
 function closeMBLDetail() {
+  activeMblId = null;
   document.getElementById('mblModal').style.display = 'none';
 }
 
@@ -710,6 +727,32 @@ function toggleHBLDetail(hblId) {
   const open   = detail.style.display === 'none';
   detail.style.display = open ? 'grid' : 'none';
   if (btn) btn.textContent = open ? '상세 ▲' : '상세 ▼';
+}
+
+async function downloadMBL(format) {
+  if (!activeMblId) return;
+
+  try {
+    const res = await fetch(`${SIM}/export/mbl/${encodeURIComponent(activeMblId)}.${format}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || '다운로드에 실패했습니다.');
+    }
+
+    const blob = await res.blob();
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename=\"?([^\"]+)\"?/i);
+    link.href = href;
+    link.download = match ? match[1] : `${activeMblId}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(href);
+  } catch (error) {
+    alert(error.message || '다운로드에 실패했습니다.');
+  }
 }
 </script>
 

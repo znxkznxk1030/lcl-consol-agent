@@ -60,9 +60,17 @@ class EnvConfig:
     late_penalty: float = 50.0
 
     sla_hours: float = 48.0
+    _olist_dimension_samples: Optional[Dict[str, List[tuple[float, float, float]]]] = field(
+        default=None,
+        repr=False,
+    )
 
     def to_dict(self) -> dict:
-        return self.__dict__.copy()
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if not key.startswith("_")
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -118,6 +126,9 @@ class ConsolidationEnv:
                     "effective_cbm": s.effective_cbm,
                     "weight": s.weight,
                     "due_time": s.due_time,
+                    "length_cm": s.length_cm,
+                    "height_cm": s.height_cm,
+                    "width_cm": s.width_cm,
                 })
 
             # 2. Observation 생성 → Agent에 전달
@@ -185,6 +196,9 @@ class ConsolidationEnv:
                         packages=s.packages,
                         due_time=s.due_time,
                         time_to_due=round(s.due_time - self.current_time, 2),
+                        length_cm=s.length_cm,
+                        height_cm=s.height_cm,
+                        width_cm=s.width_cm,
                     )
                     for s in shipments
                 ],
@@ -317,13 +331,22 @@ class ConsolidationEnv:
                     offsets.append(t)
 
             for t in offsets:
+                dimensions_cm = self._sample_dimensions(item_type.value)
                 s = generate_shipment(
                     self.rng, hour + t, item_type,
                     destination=self.cfg.destination,
                     sla_hours=self.cfg.sla_hours,
+                    dimensions_cm=dimensions_cm,
                 )
                 arrivals.append(s)
         return arrivals
+
+    def _sample_dimensions(self, item_type_value: str) -> Optional[tuple[float, float, float]]:
+        samples = self.cfg._olist_dimension_samples or {}
+        choices = samples.get(item_type_value)
+        if not choices:
+            return None
+        return self.rng.choice(choices)
 
     # ------------------------------------------------------------------
     # Event logging
