@@ -44,6 +44,105 @@ LCL (Less than Container Load) 컨테이너 통합 시뮬레이션을 위한 프
 - 에이전트 서버는 현재 state를 입력받아 LLM 기반으로 출하 결정을 반환합니다.
 - 웹 인터페이스의 `Ask Agent`는 에이전트 서버의 `/decide`를 호출합니다.
 
+## LLM 연결 설정
+
+에이전트 서버는 LLM SDK와 API 키가 모두 준비되어야 실제 LLM으로 동작합니다.
+설정이 없으면 서버는 실행되지만 `fallback mode`로 동작합니다.
+
+### 1. SDK 설치
+
+사용할 provider에 맞는 패키지를 설치합니다.
+
+```bash
+pip install anthropic
+pip install openai
+pip install google-generativeai
+```
+
+필요한 provider만 설치해도 됩니다.
+
+### 2. 환경변수 설정
+
+#### Anthropic 사용 예시
+
+```bash
+export LLM_PROVIDER=anthropic
+export ANTHROPIC_API_KEY=YOUR_KEY
+export LLM_MODEL=claude-sonnet-4-6
+```
+
+#### OpenAI 사용 예시
+
+```bash
+export LLM_PROVIDER=openai
+export OPENAI_API_KEY=YOUR_KEY
+export LLM_MODEL=gpt-4o
+```
+
+#### Google Gemini 사용 예시
+
+```bash
+export LLM_PROVIDER=google
+export GOOGLE_API_KEY=YOUR_KEY
+export LLM_MODEL=gemini-1.5-flash
+```
+
+추가로 기본 컨테이너 타입을 지정할 수 있습니다.
+
+```bash
+export DEFAULT_CONTAINER_TYPE=40GP
+```
+
+### 3. Agent 서버 실행
+
+```bash
+python run.py agent
+```
+
+또는 시뮬레이터와 함께 실행:
+
+```bash
+python run.py all
+```
+
+### 4. 연결 확인
+
+아래 endpoint로 실제 LLM 연결 여부를 확인할 수 있습니다.
+
+```bash
+curl http://localhost:8001/health
+```
+
+정상적으로 LLM이 연결되면 아래처럼 보입니다.
+
+```json
+{
+  "ok": true,
+  "agent": "llm-ai",
+  "ai_agent_available": true,
+  "llm_enabled": true,
+  "ai_fallback_mode": false
+}
+```
+
+반대로 아래 상태면 에이전트 객체는 생성됐지만 실제 LLM은 연결되지 않은 상태입니다.
+
+```json
+{
+  "ok": true,
+  "agent": "llm-ai",
+  "ai_agent_available": true,
+  "llm_enabled": false,
+  "ai_fallback_mode": true
+}
+```
+
+이 경우에는 보통 다음 중 하나입니다.
+
+- API 키가 설정되지 않음
+- 해당 provider SDK가 설치되지 않음
+- `LLM_PROVIDER`와 API 키 종류가 맞지 않음
+
 ---
 
 ## Olist 실제 데이터 기반 물동량 시뮬레이션

@@ -32,6 +32,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .ws-dot.on { background: #4a4; }
 
 .layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.insight-grid { display: grid; grid-template-columns: 1.1fr 0.9fr 1fr; gap: 14px; margin-top: 14px; }
 .panel { background: #141414; border: 1px solid #2a2a2a; padding: 14px; }
 .panel.wide { grid-column: span 2; }
 .panel h2 { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
@@ -50,6 +51,119 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .analysis-row .v { color: #aaa; }
 .analysis-row .v.true { color: #fa8; }
 .agent-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.payload-panel {
+  display: none;
+  margin-top: 10px;
+  background: #091109;
+  border: 1px solid #244224;
+  padding: 10px;
+}
+.payload-panel pre {
+  margin: 0;
+  max-height: 260px;
+  overflow: auto;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #9fb89f;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.flow-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.flow-stage {
+  position: relative;
+  background: linear-gradient(180deg, #111915 0%, #0d120f 100%);
+  border: 1px solid #274127;
+  padding: 10px;
+  min-height: 118px;
+}
+.flow-stage::after {
+  content: '→';
+  position: absolute;
+  right: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #355235;
+  font-size: 16px;
+}
+.flow-stage:last-child::after { content: ''; }
+.flow-stage .label {
+  font-size: 10px;
+  color: #5f8b5f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.flow-stage .value {
+  font-size: 18px;
+  color: #e7f0e7;
+  margin-bottom: 6px;
+}
+.flow-stage .meta {
+  font-size: 11px;
+  color: #7f937f;
+  line-height: 1.45;
+}
+.trace-list { height: 230px; overflow-y: auto; }
+.trace-item {
+  border-bottom: 1px solid #1d1d1d;
+  padding: 8px 0;
+  font-size: 11px;
+}
+.trace-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.trace-action { color: #fa8; }
+.trace-action.wait { color: #7af; }
+.trace-meta { color: #666; }
+.trace-reason { color: #9caa9c; line-height: 1.45; }
+.report-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.report-card {
+  background: #101610;
+  border: 1px solid #233423;
+  padding: 10px;
+}
+.report-card .k {
+  font-size: 10px;
+  color: #5f785f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.report-card .v {
+  font-size: 16px;
+  color: #dbe6db;
+  margin-top: 4px;
+}
+.report-body {
+  background: #0c100c;
+  border: 1px solid #1f2a1f;
+  padding: 10px;
+  font-size: 11px;
+  color: #9cad9c;
+  line-height: 1.5;
+  min-height: 120px;
+}
+.report-actions { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.mini-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #2f4e2f;
+  color: #8fbe8f;
+  font-size: 10px;
+  margin-right: 6px;
+}
+
+@media (max-width: 1100px) {
+  .layout, .insight-grid, .flow-grid, .report-cards { grid-template-columns: 1fr; }
+  .flow-stage::after { content: ''; }
+}
 
 /* MBL 제안 카드 */
 .mbl-plan { margin-top: 10px; }
@@ -207,9 +321,13 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
       </div>
       <div class="agent-actions" style="margin-top:10px;">
         <button class="blue" id="btnAsk" onclick="askAgent()" disabled>🤖 Ask Agent</button>
+        <button id="btnShowPayload" onclick="toggleAgentPayload()" disabled>Payload 보기</button>
         <button id="btnAutoAsk" onclick="toggleAutoAsk()" disabled>자동 분석 OFF</button>
         <button class="orange" id="btnApply" onclick="applyDecision()" disabled>✓ Apply</button>
         <span style="font-size:11px; color:#444;" id="applyHint"></span>
+      </div>
+      <div class="payload-panel" id="payloadPanel">
+        <pre id="payloadJson">{}</pre>
       </div>
     </div>
     <div style="width:220px;">
@@ -269,6 +387,40 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 
 </div>
 
+<div class="insight-grid">
+  <div class="panel wide">
+    <h2>AI Flow</h2>
+    <div class="flow-grid" id="flowStages">
+      <div class="flow-stage"><div class="label">Simulator</div><div class="value">Idle</div><div class="meta">시뮬레이션 시작 전</div></div>
+      <div class="flow-stage"><div class="label">Payload</div><div class="value">-</div><div class="meta">Agent 서버로 보낼 state</div></div>
+      <div class="flow-stage"><div class="label">LLM Agent</div><div class="value">-</div><div class="meta">아직 결정 없음</div></div>
+      <div class="flow-stage"><div class="label">Dispatch</div><div class="value">-</div><div class="meta">적용 대기</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Recent AI Trace</h2>
+    <div class="trace-list" id="traceList">
+      <div style="color:#333; font-size:11px;">No AI decisions yet</div>
+    </div>
+  </div>
+
+  <div class="panel wide">
+    <h2>Agent Report</h2>
+    <div class="report-actions">
+      <button id="btnRefreshReport" onclick="refreshAgentReport()" disabled>Report 새로고침</button>
+      <span style="font-size:11px; color:#555;" id="reportStatus">보고서 없음</span>
+    </div>
+    <div class="report-cards" id="reportCards">
+      <div class="report-card"><div class="k">Action</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Fallback</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Forecast CBM</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">SLA Critical</div><div class="v">-</div></div>
+    </div>
+    <div class="report-body" id="reportBody">Agent report will appear here after a decision.</div>
+  </div>
+</div>
+
 <script>
 const SIM   = 'http://localhost:8000';
 const AGENT = 'http://localhost:8001';
@@ -278,6 +430,9 @@ let lastState = null;
 let pendingDecision = null;
 let autoAsk = false;
 let activeMblId = null;
+let payloadVisible = false;
+let decisionTrace = [];
+let latestReport = null;
 
 // ---------------------------------------------------------------------------
 // WebSocket
@@ -303,26 +458,38 @@ function handleMsg(msg) {
     addEvent(`T=${msg.tick}`, 'TICK', `화물 ${msg.new_arrivals}건 도착`);
     document.getElementById('btnNextTick').disabled = false;
     document.getElementById('btnAsk').disabled = false;
+    document.getElementById('btnShowPayload').disabled = false;
+    document.getElementById('btnRefreshReport').disabled = false;
+    renderFlow();
     if (autoAsk) askAgent();
   }
   if (msg.type === 'dispatch') {
     addEvent('', 'DISPATCH', `${msg.dispatched_ids.length}건 출고 (MBL ${msg.mbl_count}개)`);
+    pushTrace({
+      tick: lastState?.current_time ?? 0,
+      action: 'APPLIED',
+      reason: `${msg.dispatched_ids.length}건 출고 / MBL ${msg.mbl_count}개`,
+      mode: 'dispatch',
+    });
+    renderFlow();
     clearDecision();
   }
   if (msg.type === 'started') {
     setBadge('waiting');
-    ['btnNextTick','btnAsk','btnAutoAsk'].forEach(id => document.getElementById(id).disabled = false);
+    ['btnNextTick','btnAsk','btnShowPayload','btnAutoAsk','btnRefreshReport'].forEach(id => document.getElementById(id).disabled = false);
     document.getElementById('btnStart').disabled = true;
+    renderFlow();
   }
   if (msg.type === 'done') {
     setBadge('done');
     autoAsk = false;
-    ['btnNextTick','btnAsk','btnAutoAsk'].forEach(id => document.getElementById(id).disabled = true);
+    ['btnNextTick','btnAsk','btnShowPayload','btnAutoAsk','btnRefreshReport'].forEach(id => document.getElementById(id).disabled = true);
     document.getElementById('btnAutoAsk').textContent = '자동 분석 OFF';
     document.getElementById('btnAutoAsk').classList.remove('green');
     document.getElementById('btnStart').disabled = false;
     addEvent('', 'DONE', '시뮬레이션 완료');
     if (msg.metrics) renderMetrics(msg.metrics);
+    renderFlow();
   }
   if (msg.type === 'reset') clearAll();
   if (msg.type === 'error') { addEvent('', 'ERR', msg.message); setBadge('idle'); }
@@ -344,12 +511,14 @@ async function startSim() {
 async function nextTick() {
   document.getElementById('btnNextTick').disabled = true;
   document.getElementById('btnAsk').disabled = true;
+  document.getElementById('btnShowPayload').disabled = true;
   clearDecision();
   const r = await fetch(`${SIM}/simulation/next_tick`, {method:'POST'});
   if (!r.ok) {
     const d = await r.json();
     alert(d.detail);
     document.getElementById('btnNextTick').disabled = false;
+    document.getElementById('btnShowPayload').disabled = false;
   }
 }
 
@@ -358,6 +527,8 @@ async function resetSim() {
   document.getElementById('btnStart').disabled = false;
   document.getElementById('btnNextTick').disabled = true;
   document.getElementById('btnAsk').disabled = true;
+  document.getElementById('btnShowPayload').disabled = true;
+  document.getElementById('btnRefreshReport').disabled = true;
   setBadge('idle');
   clearAll();
 }
@@ -373,8 +544,151 @@ function toggleAutoAsk() {
   autoAsk ? btn.classList.add('green') : btn.classList.remove('green');
 }
 
+function buildAgentPayload() {
+  return { state: lastState };
+}
+
+function renderAgentPayload() {
+  const payload = buildAgentPayload();
+  document.getElementById('payloadJson').textContent = JSON.stringify(payload, null, 2);
+}
+
+function renderFlow() {
+  const state = lastState;
+  const decision = pendingDecision;
+  const shipments = state?.buffer?.shipments || [];
+  const totalCbm = state?.buffer?.total_effective_cbm ?? state?.buffer?.total_cbm ?? 0;
+  const payload = state ? buildAgentPayload() : null;
+  const payloadSize = payload ? JSON.stringify(payload).length : 0;
+  const report = latestReport?.decision || {};
+  const latestApplied = decisionTrace.find(entry => entry.mode === 'dispatch');
+
+  document.getElementById('flowStages').innerHTML = `
+    <div class="flow-stage">
+      <div class="label">Simulator</div>
+      <div class="value">${state ? `T+${state.current_time}h` : 'Idle'}</div>
+      <div class="meta">buffer ${shipments.length}건<br>effective cbm ${Number(totalCbm).toFixed(2)}<br>cutoff in ${state?.time_to_cutoff ?? '-'}h</div>
+    </div>
+    <div class="flow-stage">
+      <div class="label">Payload</div>
+      <div class="value">${payload ? `${payloadSize}B` : '-'}</div>
+      <div class="meta">schema ${state?.schema || '-'}<br>shipments ${shipments.length}건<br>${payloadVisible ? '패널에서 JSON 확인 중' : 'Payload 보기 버튼으로 열기'}</div>
+    </div>
+    <div class="flow-stage">
+      <div class="label">LLM Agent</div>
+      <div class="value">${decision?.action || report?.action || '-'}</div>
+      <div class="meta">confidence ${formatMaybeNumber(report?.claude_confidence)}<br>fallback ${formatBool(report?.fallback_used)}<br>${decision?.reason || '아직 판단 없음'}</div>
+    </div>
+    <div class="flow-stage">
+      <div class="label">Dispatch</div>
+      <div class="value">${latestApplied ? 'Applied' : (decision?.action === 'DISPATCH' ? 'Pending' : '-')}</div>
+      <div class="meta">${latestApplied ? latestApplied.reason : (decision?.action === 'DISPATCH' ? `MBL ${decision.mbls?.length || 0}개 적용 대기` : '출고 적용 전')}</div>
+    </div>
+  `;
+}
+
+function formatMaybeNumber(v) {
+  return typeof v === 'number' ? v.toFixed(3) : '-';
+}
+
+function formatBool(v) {
+  if (typeof v !== 'boolean') return '-';
+  return v ? 'yes' : 'no';
+}
+
+function pushTrace(entry) {
+  decisionTrace.unshift(entry);
+  decisionTrace = decisionTrace.slice(0, 20);
+  renderTrace();
+}
+
+function renderTrace() {
+  const el = document.getElementById('traceList');
+  if (!decisionTrace.length) {
+    el.innerHTML = '<div style="color:#333; font-size:11px;">No AI decisions yet</div>';
+    return;
+  }
+  el.innerHTML = decisionTrace.map(entry => `
+    <div class="trace-item">
+      <div class="trace-head">
+        <span class="trace-action ${String(entry.action).toLowerCase()}">${entry.action}</span>
+        <span class="trace-meta">T+${entry.tick}h</span>
+      </div>
+      <div class="trace-reason">${entry.reason || '-'}</div>
+      <div class="trace-meta" style="margin-top:4px;">${entry.extra || ''}</div>
+    </div>
+  `).join('');
+}
+
+async function refreshAgentReport() {
+  try {
+    const r = await fetch(`${SIM}/simulation/report`);
+    const d = await r.json();
+    latestReport = d.error ? null : d;
+    renderReport();
+    renderFlow();
+  } catch (e) {
+    latestReport = null;
+    renderReport(`report fetch failed: ${e.message}`);
+  }
+}
+
+function renderReport(errorMessage = '') {
+  const statusEl = document.getElementById('reportStatus');
+  const cardsEl = document.getElementById('reportCards');
+  const bodyEl = document.getElementById('reportBody');
+  if (!latestReport) {
+    statusEl.textContent = errorMessage || '보고서 없음';
+    cardsEl.innerHTML = `
+      <div class="report-card"><div class="k">Action</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Fallback</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Forecast CBM</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">SLA Critical</div><div class="v">-</div></div>
+    `;
+    bodyEl.textContent = errorMessage || 'Agent report will appear here after a decision.';
+    return;
+  }
+
+  const decision = latestReport.decision || {};
+  const forecast = latestReport.volume_forecast || {};
+  const sla = latestReport.sla_assessment || {};
+  const cost = latestReport.cost_analysis || {};
+  const risk = sla.risk_summary || {};
+
+  statusEl.textContent = `report ${latestReport.report_id} · T+${latestReport.generated_at_sim_hour}h`;
+  cardsEl.innerHTML = `
+    <div class="report-card"><div class="k">Action</div><div class="v">${decision.action || '-'}</div></div>
+    <div class="report-card"><div class="k">Fallback</div><div class="v">${decision.fallback_used ? 'YES' : 'NO'}</div></div>
+    <div class="report-card"><div class="k">Forecast CBM</div><div class="v">${forecast.total_expected_cbm ?? '-'}</div></div>
+    <div class="report-card"><div class="k">SLA Critical</div><div class="v">${risk.critical ?? 0}</div></div>
+  `;
+  bodyEl.innerHTML = `
+    <span class="mini-pill">confidence ${formatMaybeNumber(decision.claude_confidence)}</span>
+    <span class="mini-pill">cost/ship ${cost.cost_per_shipment ?? '-'}</span>
+    <span class="mini-pill">fill ${cost.consolidation_efficiency ?? '-'}</span>
+    <br><br>
+    <strong style="color:#dfe8df;">Reasoning</strong><br>
+    ${decision.claude_reasoning || 'No reasoning available'}
+    <br><br>
+    <strong style="color:#dfe8df;">Forecast</strong><br>
+    shipments ${forecast.total_expected_shipments ?? '-'} / peak hour ${forecast.peak_hour ?? '-'}
+    <br>
+    <strong style="color:#dfe8df;">SLA</strong><br>
+    critical ${risk.critical ?? 0}, high ${risk.high ?? 0}, medium ${risk.medium ?? 0}
+  `;
+}
+
+function toggleAgentPayload() {
+  if (!lastState) return;
+  payloadVisible = !payloadVisible;
+  renderAgentPayload();
+  document.getElementById('payloadPanel').style.display = payloadVisible ? 'block' : 'none';
+  document.getElementById('btnShowPayload').textContent = payloadVisible ? 'Payload 숨기기' : 'Payload 보기';
+}
+
 async function askAgent() {
   if (!lastState) return;
+  renderAgentPayload();
   document.getElementById('btnAsk').disabled = true;
   document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking LLM agent...</div>';
   document.getElementById('mblPlan').style.display = 'none';
@@ -382,17 +696,26 @@ async function askAgent() {
   try {
     const r = await fetch(`${AGENT}/decide`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({state: lastState}),
+      body: JSON.stringify(buildAgentPayload()),
     });
     if (!r.ok) throw new Error(`Agent error: ${r.status}`);
     const d = await r.json();
     pendingDecision = d;
     renderDecision(d);
+    pushTrace({
+      tick: lastState?.current_time ?? 0,
+      action: d.action,
+      reason: d.reason,
+      extra: `MBL ${d.mbls?.length || 0} / fallback ${formatBool(d.analysis?.fallback_used)}`,
+      mode: 'decision',
+    });
     const hasDispatch = d.action === 'DISPATCH' && d.mbls && d.mbls.length > 0;
     document.getElementById('btnApply').disabled = !hasDispatch;
     document.getElementById('applyHint').textContent = hasDispatch
       ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.flat().length}건`
       : '';
+    await refreshAgentReport();
+    renderFlow();
   } catch(e) {
     document.getElementById('decisionBox').innerHTML = `<div style="color:#f55;font-size:12px;">${e.message}</div>`;
     document.getElementById('agentDot').classList.remove('on');
@@ -526,6 +849,7 @@ async function manualDispatch() {
 
 function renderState(s) {
   setBadge(s.status);
+  if (payloadVisible) renderAgentPayload();
   document.getElementById('bigTime').textContent = `T = ${s.current_time}`;
   document.getElementById('subTime').textContent = `/ ${s.sim_duration_hours} hrs`;
   document.getElementById('ttc').textContent = `${s.time_to_cutoff} hrs`;
@@ -577,7 +901,10 @@ function renderState(s) {
         <div class="mbl-row-bar"><div class="mbl-row-bar-fill ${fillCls}" style="width:${fillPct}%"></div></div>
       </div>`;
     }).join('');
+  } else {
+    document.getElementById('mblList').innerHTML = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
   }
+  renderFlow();
 }
 
 function renderMetrics(m) {
@@ -606,7 +933,14 @@ function setBadge(status) {
 function clearAll() {
   lastState = pendingDecision = null;
   activeMblId = null;
+  payloadVisible = false;
+  decisionTrace = [];
+  latestReport = null;
   document.getElementById('mblModal').style.display = 'none';
+  document.getElementById('payloadPanel').style.display = 'none';
+  document.getElementById('payloadJson').textContent = '{}';
+  document.getElementById('btnShowPayload').textContent = 'Payload 보기';
+  document.getElementById('reportStatus').textContent = '보고서 없음';
   document.getElementById('bigTime').textContent = 'T = 0';
   ['ttc','nc'].forEach(id => document.getElementById(id).textContent = '—');
   document.getElementById('nMbls').textContent = '0';
@@ -619,6 +953,9 @@ function clearAll() {
   document.getElementById('manualList').innerHTML = '';
   clearDecision();
   ['mFill','mSla','mCost','mWait'].forEach(id => document.getElementById(id).textContent = '—');
+  renderTrace();
+  renderReport();
+  renderFlow();
 }
 
 connectWS();

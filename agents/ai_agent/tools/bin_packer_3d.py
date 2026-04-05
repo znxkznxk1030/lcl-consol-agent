@@ -191,11 +191,12 @@ class BinPacker3D:
 
             # 컨테이너 구역 제약
             x_min, x_max = _get_zone_limits(item["cargo_category"], C_L)
+            candidate_points = list({*extreme_points, (x_min, 0, 0)})
 
             # 크기 (회전 포함: 수평 90°만 허용)
             dims_options = _get_rotation_options(item)
 
-            for ep in extreme_points:
+            for ep in candidate_points:
                 px, py, pz = ep
                 if px < x_min or px >= x_max:
                     continue
