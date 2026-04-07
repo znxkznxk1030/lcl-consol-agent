@@ -14,6 +14,7 @@ from enum import Enum
 
 from simulator_v1.env import ConsolidationEnv, EnvConfig
 from simulator_v1.entities import Shipment, MBL
+from simulator_v1.compatibility import FRAGILE_CBM_MULTIPLIER
 from simulator_v1.schemas import Event
 
 
@@ -51,6 +52,7 @@ class SimulationStore:
 
         shipments = self.env.buffer.all()
         return {
+            "schema": "observation/v2",
             "status": self.status,
             "current_time": self.env.current_time,
             "time_to_cutoff": round(self.env.next_cutoff - self.env.current_time, 2),
@@ -63,18 +65,24 @@ class SimulationStore:
             "buffer": {
                 "count": self.env.buffer.count,
                 "total_cbm": self.env.buffer.total_cbm,
+                "total_effective_cbm": self.env.buffer.total_effective_cbm,
                 "total_weight": self.env.buffer.total_weight,
                 "shipments": [
                     {
                         "shipment_id": s.shipment_id,
                         "item_type": s.item_type.value,
+                        "cargo_category": s.cargo_category.value,
                         "arrival_time": s.arrival_time,
                         "waiting_time": round(self.env.current_time - s.arrival_time, 2),
                         "cbm": s.cbm,
+                        "effective_cbm": s.effective_cbm,
                         "weight": s.weight,
                         "packages": s.packages,
                         "due_time": s.due_time,
                         "time_to_due": round(s.due_time - self.env.current_time, 2),
+                        "length_cm": s.length_cm,
+                        "height_cm": s.height_cm,
+                        "width_cm": s.width_cm,
                     }
                     for s in shipments
                 ],
@@ -88,33 +96,52 @@ class SimulationStore:
         max_cbm = self.env.cfg.max_cbm_per_mbl
         result = []
         for m in self.env.mbls:
-            hbls = []
-            for h in m.hbls:
-                s = ship_map.get(h.shipment_id)
-                hbls.append({
-                    "hbl_id": h.hbl_id,
-                    "shipment_id": h.shipment_id,
-                    "item_type": s.item_type.value if s else "—",
-                    "cargo_category": h.cargo_category,
-                    "cbm": h.cbm,
-                    "weight": h.weight,
-                    "packages": h.packages,
-                    "arrival_time": s.arrival_time if s else None,
-                    "waiting_time": round(s.waiting_time, 2) if s else None,
-                    "is_late": s.is_late() if s else False,
-                })
-            result.append({
-                "mbl_id": m.mbl_id,
-                "dispatch_time": m.dispatch_time,
-                "total_cbm": m.total_cbm,
-                "total_effective_cbm": m.total_effective_cbm,
-                "total_weight": m.total_weight,
-                "total_packages": m.total_packages,
-                "shipment_count": len(m.shipment_ids),
-                "fill_rate": round(m.total_cbm / max_cbm, 4),
-                "hbls": hbls,
-            })
+            result.append(self._serialize_mbl(m, ship_map, max_cbm))
         return result
+
+    def _serialize_mbl(self, m: MBL, ship_map: dict, max_cbm: float) -> dict:
+        hbls = []
+        for h in m.hbls:
+            s = ship_map.get(h.shipment_id)
+            effective_cbm = round(h.cbm * FRAGILE_CBM_MULTIPLIER, 3) if h.cargo_category == "FRAGILE" else h.cbm
+            hbls.append({
+                "hbl_id": h.hbl_id,
+                "shipment_id": h.shipment_id,
+                "item_type": s.item_type.value if s else "—",
+                "cargo_category": h.cargo_category,
+                "cbm": h.cbm,
+                "effective_cbm": effective_cbm,
+                "weight": h.weight,
+                "packages": h.packages,
+                "arrival_time": s.arrival_time if s else None,
+                "waiting_time": round(s.waiting_time, 2) if s else None,
+                "is_late": s.is_late() if s else False,
+                "length_cm": h.length_cm,
+                "height_cm": h.height_cm,
+                "width_cm": h.width_cm,
+            })
+        return {
+            "mbl_id": m.mbl_id,
+            "dispatch_time": m.dispatch_time,
+            "total_cbm": m.total_cbm,
+            "total_effective_cbm": m.total_effective_cbm,
+            "total_weight": m.total_weight,
+            "total_packages": m.total_packages,
+            "shipment_count": len(m.shipment_ids),
+            "fill_rate": round(m.total_cbm / max_cbm, 4),
+            "hbls": hbls,
+        }
+
+    def get_serialized_mbl(self, mbl_id: str) -> Optional[dict]:
+        if self.env is None:
+            return None
+
+        ship_map = {s.shipment_id: s for s in self.env.all_shipments}
+        max_cbm = self.env.cfg.max_cbm_per_mbl
+        for m in self.env.mbls:
+            if m.mbl_id == mbl_id:
+                return self._serialize_mbl(m, ship_map, max_cbm)
+        return None
 
     def get_metrics(self) -> dict:
         if self.env is None:

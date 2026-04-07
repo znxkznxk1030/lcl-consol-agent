@@ -2,8 +2,10 @@
 simulation_runner.py
 ====================
 백그라운드 tick 루프.
-next_tick 신호를 기다렸다가 tick 1개 처리 후 WebSocket broadcast.
-Agent는 관여하지 않음 — 브라우저가 중재자.
+
+시뮬레이터는 환경만 조성한다.
+각 tick은 next_tick 신호를 기다렸다가 처리되고,
+의사결정은 외부 Agent Server가 현재 state를 읽어 수행한다.
 """
 
 from __future__ import annotations
@@ -51,20 +53,26 @@ async def run_simulation(
                     "cbm": s.cbm,
                     "weight": s.weight,
                     "due_time": s.due_time,
+                    "length_cm": s.length_cm,
+                    "height_cm": s.height_cm,
+                    "width_cm": s.width_cm,
                 })
 
             if store.env.current_time >= store.env.next_cutoff:
                 store.env.next_cutoff += store.env.cfg.cutoff_interval_hours
 
             store.env.current_time += 1.0
+
             store.status = SimStatus.WAITING
 
-            await broadcast({
+            tick_payload = {
                 "type": "tick",
                 "tick": store.env.current_time,
                 "new_arrivals": len(new_shipments),
                 "state": store.get_state(),
-            })
+            }
+
+            await broadcast(tick_payload)
 
         # 잔여 화물 강제 출고
         remaining = store.env.buffer.ids()

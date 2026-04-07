@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Consolidation Simulator</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 20px; }
@@ -32,6 +33,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .ws-dot.on { background: #4a4; }
 
 .layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.insight-grid { display: grid; grid-template-columns: 1.1fr 0.9fr 1fr; gap: 14px; margin-top: 14px; }
 .panel { background: #141414; border: 1px solid #2a2a2a; padding: 14px; }
 .panel.wide { grid-column: span 2; }
 .panel h2 { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
@@ -50,6 +52,119 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .analysis-row .v { color: #aaa; }
 .analysis-row .v.true { color: #fa8; }
 .agent-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.payload-panel {
+  display: none;
+  margin-top: 10px;
+  background: #091109;
+  border: 1px solid #244224;
+  padding: 10px;
+}
+.payload-panel pre {
+  margin: 0;
+  max-height: 260px;
+  overflow: auto;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #9fb89f;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.flow-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.flow-stage {
+  position: relative;
+  background: linear-gradient(180deg, #111915 0%, #0d120f 100%);
+  border: 1px solid #274127;
+  padding: 10px;
+  min-height: 118px;
+}
+.flow-stage::after {
+  content: '→';
+  position: absolute;
+  right: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #355235;
+  font-size: 16px;
+}
+.flow-stage:last-child::after { content: ''; }
+.flow-stage .label {
+  font-size: 10px;
+  color: #5f8b5f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.flow-stage .value {
+  font-size: 18px;
+  color: #e7f0e7;
+  margin-bottom: 6px;
+}
+.flow-stage .meta {
+  font-size: 11px;
+  color: #7f937f;
+  line-height: 1.45;
+}
+.trace-list { height: 230px; overflow-y: auto; }
+.trace-item {
+  border-bottom: 1px solid #1d1d1d;
+  padding: 8px 0;
+  font-size: 11px;
+}
+.trace-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.trace-action { color: #fa8; }
+.trace-action.wait { color: #7af; }
+.trace-meta { color: #666; }
+.trace-reason { color: #9caa9c; line-height: 1.45; }
+.report-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.report-card {
+  background: #101610;
+  border: 1px solid #233423;
+  padding: 10px;
+}
+.report-card .k {
+  font-size: 10px;
+  color: #5f785f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.report-card .v {
+  font-size: 16px;
+  color: #dbe6db;
+  margin-top: 4px;
+}
+.report-body {
+  background: #0c100c;
+  border: 1px solid #1f2a1f;
+  padding: 10px;
+  font-size: 11px;
+  color: #9cad9c;
+  line-height: 1.5;
+  min-height: 120px;
+}
+.report-actions { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.mini-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #2f4e2f;
+  color: #8fbe8f;
+  font-size: 10px;
+  margin-right: 6px;
+}
+
+@media (max-width: 1100px) {
+  .layout, .insight-grid, .flow-grid, .report-cards { grid-template-columns: 1fr; }
+  .flow-stage::after { content: ''; }
+}
 
 /* MBL 제안 카드 */
 .mbl-plan { margin-top: 10px; }
@@ -125,6 +240,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 }
 .modal-title { font-size: 17px; color: #7c7; font-weight: bold; letter-spacing: 1px; }
 .modal-sub { font-size: 11px; color: #555; margin-top: 3px; }
+.modal-actions { display: flex; gap: 8px; align-items: center; }
 .modal-stats {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
   background: #1e1e1e; border: 1px solid #222; margin: 14px 0;
@@ -191,6 +307,26 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
   </span>
 </div>
 
+<!-- 3D Container View -->
+<div style="margin-bottom:14px;">
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin-bottom:0;">20ft 컨테이너 — 인바운드 화물 3D 뷰</h2>
+      <div style="display:flex; gap:10px; font-size:10px; align-items:center; flex-wrap:wrap; color:#444;">
+        <span>내부 590×235×239cm / 33.2 CBM</span>
+        <span id="c3dInfo" style="color:#7c7;">0건</span>
+        <span style="color:#4477aa;">■</span><span>일반</span>
+        <span style="color:#cc7733;">■</span><span>위험물</span>
+        <span style="color:#44aa44;">■</span><span>식품</span>
+        <span style="color:#8888dd;">■</span><span>파손주의</span>
+        <span style="color:#cc4444;">■</span><span>특대형</span>
+      </div>
+    </div>
+    <canvas id="c3dCanvas" style="width:100%; height:340px; display:block; cursor:grab; border:1px solid #1e1e1e; border-radius:2px;"></canvas>
+    <div style="font-size:10px; color:#2a2a2a; margin-top:5px; text-align:center;">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동 &nbsp;·&nbsp; QE: 상하</div>
+  </div>
+</div>
+
 <!-- Agent Panel -->
 <div class="agent-panel">
   <h2>Agent Decision</h2>
@@ -206,9 +342,13 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
       </div>
       <div class="agent-actions" style="margin-top:10px;">
         <button class="blue" id="btnAsk" onclick="askAgent()" disabled>🤖 Ask Agent</button>
+        <button id="btnShowPayload" onclick="toggleAgentPayload()" disabled>Payload 보기</button>
         <button id="btnAutoAsk" onclick="toggleAutoAsk()" disabled>자동 분석 OFF</button>
         <button class="orange" id="btnApply" onclick="applyDecision()" disabled>✓ Apply</button>
         <span style="font-size:11px; color:#444;" id="applyHint"></span>
+      </div>
+      <div class="payload-panel" id="payloadPanel">
+        <pre id="payloadJson">{}</pre>
       </div>
     </div>
     <div style="width:220px;">
@@ -268,6 +408,40 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 
 </div>
 
+<div class="insight-grid">
+  <div class="panel wide">
+    <h2>AI Flow</h2>
+    <div class="flow-grid" id="flowStages">
+      <div class="flow-stage"><div class="label">Simulator</div><div class="value">Idle</div><div class="meta">시뮬레이션 시작 전</div></div>
+      <div class="flow-stage"><div class="label">Payload</div><div class="value">-</div><div class="meta">Agent 서버로 보낼 state</div></div>
+      <div class="flow-stage"><div class="label">LLM Agent</div><div class="value">-</div><div class="meta">아직 결정 없음</div></div>
+      <div class="flow-stage"><div class="label">Dispatch</div><div class="value">-</div><div class="meta">적용 대기</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Recent AI Trace</h2>
+    <div class="trace-list" id="traceList">
+      <div style="color:#333; font-size:11px;">No AI decisions yet</div>
+    </div>
+  </div>
+
+  <div class="panel wide">
+    <h2>Agent Report</h2>
+    <div class="report-actions">
+      <button id="btnRefreshReport" onclick="refreshAgentReport()" disabled>Report 새로고침</button>
+      <span style="font-size:11px; color:#555;" id="reportStatus">보고서 없음</span>
+    </div>
+    <div class="report-cards" id="reportCards">
+      <div class="report-card"><div class="k">Action</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Fallback</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Forecast CBM</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">SLA Critical</div><div class="v">-</div></div>
+    </div>
+    <div class="report-body" id="reportBody">Agent report will appear here after a decision.</div>
+  </div>
+</div>
+
 <script>
 const SIM   = 'http://localhost:8000';
 const AGENT = 'http://localhost:8001';
@@ -276,6 +450,10 @@ let ws = null;
 let lastState = null;
 let pendingDecision = null;
 let autoAsk = false;
+let activeMblId = null;
+let payloadVisible = false;
+let decisionTrace = [];
+let latestReport = null;
 
 // ---------------------------------------------------------------------------
 // WebSocket
@@ -301,26 +479,38 @@ function handleMsg(msg) {
     addEvent(`T=${msg.tick}`, 'TICK', `화물 ${msg.new_arrivals}건 도착`);
     document.getElementById('btnNextTick').disabled = false;
     document.getElementById('btnAsk').disabled = false;
+    document.getElementById('btnShowPayload').disabled = false;
+    document.getElementById('btnRefreshReport').disabled = false;
+    renderFlow();
     if (autoAsk) askAgent();
   }
   if (msg.type === 'dispatch') {
     addEvent('', 'DISPATCH', `${msg.dispatched_ids.length}건 출고 (MBL ${msg.mbl_count}개)`);
+    pushTrace({
+      tick: lastState?.current_time ?? 0,
+      action: 'APPLIED',
+      reason: `${msg.dispatched_ids.length}건 출고 / MBL ${msg.mbl_count}개`,
+      mode: 'dispatch',
+    });
+    renderFlow();
     clearDecision();
   }
   if (msg.type === 'started') {
     setBadge('waiting');
-    ['btnNextTick','btnAsk','btnAutoAsk'].forEach(id => document.getElementById(id).disabled = false);
+    ['btnNextTick','btnAsk','btnShowPayload','btnAutoAsk','btnRefreshReport'].forEach(id => document.getElementById(id).disabled = false);
     document.getElementById('btnStart').disabled = true;
+    renderFlow();
   }
   if (msg.type === 'done') {
     setBadge('done');
     autoAsk = false;
-    ['btnNextTick','btnAsk','btnAutoAsk'].forEach(id => document.getElementById(id).disabled = true);
+    ['btnNextTick','btnAsk','btnShowPayload','btnAutoAsk','btnRefreshReport'].forEach(id => document.getElementById(id).disabled = true);
     document.getElementById('btnAutoAsk').textContent = '자동 분석 OFF';
     document.getElementById('btnAutoAsk').classList.remove('green');
     document.getElementById('btnStart').disabled = false;
     addEvent('', 'DONE', '시뮬레이션 완료');
     if (msg.metrics) renderMetrics(msg.metrics);
+    renderFlow();
   }
   if (msg.type === 'reset') clearAll();
   if (msg.type === 'error') { addEvent('', 'ERR', msg.message); setBadge('idle'); }
@@ -333,7 +523,7 @@ function handleMsg(msg) {
 async function startSim() {
   const r = await fetch(`${SIM}/simulation/start`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({seed:42, sim_duration_hours:72}),
+    body: JSON.stringify({seed:42, sim_duration_hours:72, max_cbm_per_mbl:33.2}),
   });
   const d = await r.json();
   if (!d.ok) alert(d.detail || 'Error');
@@ -342,12 +532,14 @@ async function startSim() {
 async function nextTick() {
   document.getElementById('btnNextTick').disabled = true;
   document.getElementById('btnAsk').disabled = true;
+  document.getElementById('btnShowPayload').disabled = true;
   clearDecision();
   const r = await fetch(`${SIM}/simulation/next_tick`, {method:'POST'});
   if (!r.ok) {
     const d = await r.json();
     alert(d.detail);
     document.getElementById('btnNextTick').disabled = false;
+    document.getElementById('btnShowPayload').disabled = false;
   }
 }
 
@@ -356,6 +548,8 @@ async function resetSim() {
   document.getElementById('btnStart').disabled = false;
   document.getElementById('btnNextTick').disabled = true;
   document.getElementById('btnAsk').disabled = true;
+  document.getElementById('btnShowPayload').disabled = true;
+  document.getElementById('btnRefreshReport').disabled = true;
   setBadge('idle');
   clearAll();
 }
@@ -371,26 +565,178 @@ function toggleAutoAsk() {
   autoAsk ? btn.classList.add('green') : btn.classList.remove('green');
 }
 
+function buildAgentPayload() {
+  return { state: lastState };
+}
+
+function renderAgentPayload() {
+  const payload = buildAgentPayload();
+  document.getElementById('payloadJson').textContent = JSON.stringify(payload, null, 2);
+}
+
+function renderFlow() {
+  const state = lastState;
+  const decision = pendingDecision;
+  const shipments = state?.buffer?.shipments || [];
+  const totalCbm = state?.buffer?.total_effective_cbm ?? state?.buffer?.total_cbm ?? 0;
+  const payload = state ? buildAgentPayload() : null;
+  const payloadSize = payload ? JSON.stringify(payload).length : 0;
+  const report = latestReport?.decision || {};
+  const latestApplied = decisionTrace.find(entry => entry.mode === 'dispatch');
+
+  document.getElementById('flowStages').innerHTML = `
+    <div class="flow-stage">
+      <div class="label">Simulator</div>
+      <div class="value">${state ? `T+${state.current_time}h` : 'Idle'}</div>
+      <div class="meta">buffer ${shipments.length}건<br>effective cbm ${Number(totalCbm).toFixed(2)}<br>cutoff in ${state?.time_to_cutoff ?? '-'}h</div>
+    </div>
+    <div class="flow-stage">
+      <div class="label">Payload</div>
+      <div class="value">${payload ? `${payloadSize}B` : '-'}</div>
+      <div class="meta">schema ${state?.schema || '-'}<br>shipments ${shipments.length}건<br>${payloadVisible ? '패널에서 JSON 확인 중' : 'Payload 보기 버튼으로 열기'}</div>
+    </div>
+    <div class="flow-stage">
+      <div class="label">LLM Agent</div>
+      <div class="value">${decision?.action || report?.action || '-'}</div>
+      <div class="meta">confidence ${formatMaybeNumber(report?.claude_confidence)}<br>fallback ${formatBool(report?.fallback_used)}<br>${decision?.reason || '아직 판단 없음'}</div>
+    </div>
+    <div class="flow-stage">
+      <div class="label">Dispatch</div>
+      <div class="value">${latestApplied ? 'Applied' : (decision?.action === 'DISPATCH' ? 'Pending' : '-')}</div>
+      <div class="meta">${latestApplied ? latestApplied.reason : (decision?.action === 'DISPATCH' ? `MBL ${decision.mbls?.length || 0}개 적용 대기` : '출고 적용 전')}</div>
+    </div>
+  `;
+}
+
+function formatMaybeNumber(v) {
+  return typeof v === 'number' ? v.toFixed(3) : '-';
+}
+
+function formatBool(v) {
+  if (typeof v !== 'boolean') return '-';
+  return v ? 'yes' : 'no';
+}
+
+function pushTrace(entry) {
+  decisionTrace.unshift(entry);
+  decisionTrace = decisionTrace.slice(0, 20);
+  renderTrace();
+}
+
+function renderTrace() {
+  const el = document.getElementById('traceList');
+  if (!decisionTrace.length) {
+    el.innerHTML = '<div style="color:#333; font-size:11px;">No AI decisions yet</div>';
+    return;
+  }
+  el.innerHTML = decisionTrace.map(entry => `
+    <div class="trace-item">
+      <div class="trace-head">
+        <span class="trace-action ${String(entry.action).toLowerCase()}">${entry.action}</span>
+        <span class="trace-meta">T+${entry.tick}h</span>
+      </div>
+      <div class="trace-reason">${entry.reason || '-'}</div>
+      <div class="trace-meta" style="margin-top:4px;">${entry.extra || ''}</div>
+    </div>
+  `).join('');
+}
+
+async function refreshAgentReport() {
+  try {
+    const r = await fetch(`${SIM}/simulation/report`);
+    const d = await r.json();
+    latestReport = d.error ? null : d;
+    renderReport();
+    renderFlow();
+  } catch (e) {
+    latestReport = null;
+    renderReport(`report fetch failed: ${e.message}`);
+  }
+}
+
+function renderReport(errorMessage = '') {
+  const statusEl = document.getElementById('reportStatus');
+  const cardsEl = document.getElementById('reportCards');
+  const bodyEl = document.getElementById('reportBody');
+  if (!latestReport) {
+    statusEl.textContent = errorMessage || '보고서 없음';
+    cardsEl.innerHTML = `
+      <div class="report-card"><div class="k">Action</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Fallback</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">Forecast CBM</div><div class="v">-</div></div>
+      <div class="report-card"><div class="k">SLA Critical</div><div class="v">-</div></div>
+    `;
+    bodyEl.textContent = errorMessage || 'Agent report will appear here after a decision.';
+    return;
+  }
+
+  const decision = latestReport.decision || {};
+  const forecast = latestReport.volume_forecast || {};
+  const sla = latestReport.sla_assessment || {};
+  const cost = latestReport.cost_analysis || {};
+  const risk = sla.risk_summary || {};
+
+  statusEl.textContent = `report ${latestReport.report_id} · T+${latestReport.generated_at_sim_hour}h`;
+  cardsEl.innerHTML = `
+    <div class="report-card"><div class="k">Action</div><div class="v">${decision.action || '-'}</div></div>
+    <div class="report-card"><div class="k">Fallback</div><div class="v">${decision.fallback_used ? 'YES' : 'NO'}</div></div>
+    <div class="report-card"><div class="k">Forecast CBM</div><div class="v">${forecast.total_expected_cbm ?? '-'}</div></div>
+    <div class="report-card"><div class="k">SLA Critical</div><div class="v">${risk.critical ?? 0}</div></div>
+  `;
+  bodyEl.innerHTML = `
+    <span class="mini-pill">confidence ${formatMaybeNumber(decision.claude_confidence)}</span>
+    <span class="mini-pill">cost/ship ${cost.cost_per_shipment ?? '-'}</span>
+    <span class="mini-pill">fill ${cost.consolidation_efficiency ?? '-'}</span>
+    <br><br>
+    <strong style="color:#dfe8df;">Reasoning</strong><br>
+    ${decision.claude_reasoning || 'No reasoning available'}
+    <br><br>
+    <strong style="color:#dfe8df;">Forecast</strong><br>
+    shipments ${forecast.total_expected_shipments ?? '-'} / peak hour ${forecast.peak_hour ?? '-'}
+    <br>
+    <strong style="color:#dfe8df;">SLA</strong><br>
+    critical ${risk.critical ?? 0}, high ${risk.high ?? 0}, medium ${risk.medium ?? 0}
+  `;
+}
+
+function toggleAgentPayload() {
+  if (!lastState) return;
+  payloadVisible = !payloadVisible;
+  renderAgentPayload();
+  document.getElementById('payloadPanel').style.display = payloadVisible ? 'block' : 'none';
+  document.getElementById('btnShowPayload').textContent = payloadVisible ? 'Payload 숨기기' : 'Payload 보기';
+}
+
 async function askAgent() {
   if (!lastState) return;
+  renderAgentPayload();
   document.getElementById('btnAsk').disabled = true;
-  document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking agent...</div>';
+  document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking LLM agent...</div>';
   document.getElementById('mblPlan').style.display = 'none';
 
   try {
     const r = await fetch(`${AGENT}/decide`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({state: lastState}),
+      body: JSON.stringify(buildAgentPayload()),
     });
     if (!r.ok) throw new Error(`Agent error: ${r.status}`);
     const d = await r.json();
     pendingDecision = d;
     renderDecision(d);
+    pushTrace({
+      tick: lastState?.current_time ?? 0,
+      action: d.action,
+      reason: d.reason,
+      extra: `MBL ${d.mbls?.length || 0} / fallback ${formatBool(d.analysis?.fallback_used)}`,
+      mode: 'decision',
+    });
     const hasDispatch = d.action === 'DISPATCH' && d.mbls && d.mbls.length > 0;
     document.getElementById('btnApply').disabled = !hasDispatch;
     document.getElementById('applyHint').textContent = hasDispatch
       ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.flat().length}건`
       : '';
+    await refreshAgentReport();
+    renderFlow();
   } catch(e) {
     document.getElementById('decisionBox').innerHTML = `<div style="color:#f55;font-size:12px;">${e.message}</div>`;
     document.getElementById('agentDot').classList.remove('on');
@@ -446,7 +792,7 @@ function renderDecision(d) {
   const plan = document.getElementById('mblPlan');
   const cards = document.getElementById('mblPlanCards');
   if (isDispatch && d.mbls && d.mbls.length > 0) {
-    const maxCbm = lastState?.config?.max_cbm_per_mbl || 10;
+    const maxCbm = lastState?.config?.max_cbm_per_mbl || 33.2;
     document.getElementById('mblPlanCount').textContent = d.mbls.length;
     const bufMap = {};
     (lastState?.buffer?.shipments || []).forEach(s => { bufMap[s.shipment_id] = s; });
@@ -496,7 +842,7 @@ function renderManualList(shipments) {
     return;
   }
   el.innerHTML = shipments.map(s =>
-    `<div class="s-row">
+    `<div class="s-row" title="${formatDims(s)}">
       <input type="checkbox" class="manual-cb" value="${s.shipment_id}">
       <span class="sid">${s.shipment_id}</span>
       <span class="type">${s.item_type}</span>
@@ -524,6 +870,7 @@ async function manualDispatch() {
 
 function renderState(s) {
   setBadge(s.status);
+  if (payloadVisible) renderAgentPayload();
   document.getElementById('bigTime').textContent = `T = ${s.current_time}`;
   document.getElementById('subTime').textContent = `/ ${s.sim_duration_hours} hrs`;
   document.getElementById('ttc').textContent = `${s.time_to_cutoff} hrs`;
@@ -531,7 +878,7 @@ function renderState(s) {
   document.getElementById('nMbls').textContent = s.mbls ? s.mbls.length : 0;
 
   const buf    = s.buffer || {count:0, total_cbm:0, shipments:[]};
-  const maxCbm = s.config ? s.config.max_cbm_per_mbl : 10;
+  const maxCbm = s.config ? s.config.max_cbm_per_mbl : 33.2;
   const pct    = Math.min(buf.total_cbm / maxCbm * 100, 100);
 
   document.getElementById('cbmLabel').textContent = `${(buf.total_cbm||0).toFixed(2)} / ${maxCbm}`;
@@ -553,11 +900,13 @@ function renderState(s) {
           <span class="cbm">${sh.cbm}cbm</span>
           <span class="wait${urgCls}">대기 ${sh.waiting_time}h</span>
           <span style="color:#444;font-size:10px;">납기 ${sh.time_to_due?.toFixed(1)}h</span>
+          <span style="color:#555;font-size:10px;">${formatDims(sh)}</span>
         </div>`;
       }).join('')
     : '<div style="color:#333;font-size:11px;">No shipments</div>';
 
   renderManualList(ships);
+  updateContainer3D(ships);
 
   // MBL list — 각 MBL에 fill bar 추가
   if (s.mbls && s.mbls.length) {
@@ -574,7 +923,10 @@ function renderState(s) {
         <div class="mbl-row-bar"><div class="mbl-row-bar-fill ${fillCls}" style="width:${fillPct}%"></div></div>
       </div>`;
     }).join('');
+  } else {
+    document.getElementById('mblList').innerHTML = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
   }
+  renderFlow();
 }
 
 function renderMetrics(m) {
@@ -602,21 +954,273 @@ function setBadge(status) {
 
 function clearAll() {
   lastState = pendingDecision = null;
+  activeMblId = null;
+  payloadVisible = false;
+  decisionTrace = [];
+  latestReport = null;
+  document.getElementById('mblModal').style.display = 'none';
+  document.getElementById('payloadPanel').style.display = 'none';
+  document.getElementById('payloadJson').textContent = '{}';
+  document.getElementById('btnShowPayload').textContent = 'Payload 보기';
+  document.getElementById('reportStatus').textContent = '보고서 없음';
   document.getElementById('bigTime').textContent = 'T = 0';
   ['ttc','nc'].forEach(id => document.getElementById(id).textContent = '—');
   document.getElementById('nMbls').textContent = '0';
   document.getElementById('nDisp').textContent = '0';
   document.getElementById('barFill').style.width = '0%';
-  document.getElementById('cbmLabel').textContent = '0 / 10';
+  document.getElementById('cbmLabel').textContent = '0 / 33.2';
   document.getElementById('bufferList').innerHTML = '<div style="color:#333;font-size:11px;">No shipments in buffer</div>';
   document.getElementById('mblList').innerHTML    = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
+  updateContainer3D([]);
   document.getElementById('eventLog').innerHTML   = '';
   document.getElementById('manualList').innerHTML = '';
   clearDecision();
   ['mFill','mSla','mCost','mWait'].forEach(id => document.getElementById(id).textContent = '—');
+  renderTrace();
+  renderReport();
+  renderFlow();
+}
+
+// ---------------------------------------------------------------------------
+// 3D Container View
+// ---------------------------------------------------------------------------
+const CONT_20FT = { L: 590, W: 235, H: 239 }; // cm (20ft 내부 치수)
+
+const CAT_COLORS_3D = {
+  GENERAL:   0x3366aa,
+  HAZMAT:    0xcc6622,
+  FOOD:      0x33aa44,
+  FRAGILE:   0x7777cc,
+  OVERSIZED: 0xbb3333,
+};
+
+let _c3d = null;
+
+function initContainer3D() {
+  const canvas = document.getElementById('c3dCanvas');
+  if (!canvas) return;
+  if (typeof THREE === 'undefined') {
+    console.error('[3D] Three.js not loaded');
+    const ctx = canvas.getContext('2d');
+    if (ctx) { ctx.fillStyle = '#f55'; ctx.font = '14px monospace'; ctx.fillText('THREE.js 로드 실패 — 네트워크 확인', 20, 40); }
+    return;
+  }
+
+  // offsetWidth/Height are reliable after layout; fall back to sensible defaults
+  const W = canvas.offsetWidth  || 800;
+  const H = canvas.offsetHeight || 340;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0d0d);
+
+  const camera = new THREE.PerspectiveCamera(40, W / H, 1, 8000);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // false = do NOT override CSS width/height (preserves width:100%)
+  renderer.setSize(W, H, false);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(600, 1000, 500);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0x6699ff, 0.3);
+  dir2.position.set(-400, 300, -400);
+  scene.add(dir2);
+
+  // Container wireframe (20ft 내부 치수)
+  const CL = CONT_20FT.L, CH = CONT_20FT.H, CW = CONT_20FT.W;
+  const contGeo = new THREE.BoxGeometry(CL, CH, CW);
+  const contEdges = new THREE.EdgesGeometry(contGeo);
+  const contLine = new THREE.LineSegments(
+    contEdges,
+    new THREE.LineBasicMaterial({ color: 0x3a7a3a })
+  );
+  contLine.position.set(CL / 2, CH / 2, 0);
+  scene.add(contLine);
+
+  // Floor plane inside container
+  const floorGeo = new THREE.PlaneGeometry(CL, CW);
+  const floorMat = new THREE.MeshLambertMaterial({ color: 0x111811, side: THREE.DoubleSide });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(CL / 2, 0, 0);
+  scene.add(floor);
+
+  // Cargo group
+  const cargoGroup = new THREE.Group();
+  scene.add(cargoGroup);
+
+  // Spherical orbit camera
+  let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
+  const center = new THREE.Vector3(CL / 2, CH / 2, 0);
+
+  function positionCamera() {
+    const { theta, phi, radius } = spherical;
+    camera.position.set(
+      center.x + radius * Math.sin(phi) * Math.cos(theta),
+      center.y + radius * Math.cos(phi),
+      center.z + radius * Math.sin(phi) * Math.sin(theta)
+    );
+    camera.lookAt(center);
+  }
+  positionCamera();
+
+  let dragging = false, lastMouse = { x: 0, y: 0 };
+  canvas.addEventListener('mousedown', e => { dragging = true; lastMouse = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; canvas.focus(); });
+  canvas.addEventListener('mouseup',   () => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('mouseleave',() => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastMouse.x, dy = e.clientY - lastMouse.y;
+    spherical.theta -= dx * 0.008;
+    spherical.phi    = Math.max(0.08, Math.min(Math.PI / 2.05, spherical.phi - dy * 0.008));
+    lastMouse = { x: e.clientX, y: e.clientY };
+    positionCamera();
+  });
+  canvas.addEventListener('wheel', e => {
+    spherical.radius = Math.max(200, Math.min(4000, spherical.radius + e.deltaY * 0.6));
+    positionCamera();
+    e.preventDefault();
+  }, { passive: false });
+
+  // WASD: 입력창 포커스 중이 아닐 때 항상 수신 (e.code: 물리 키 기준, 한글 입력모드 무관)
+  const keys = {};
+  const CODE_MAP = { KeyW:'w', KeyS:'s', KeyA:'a', KeyD:'d', KeyQ:'q', KeyE:'e' };
+  window.addEventListener('keydown', e => {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.code in CODE_MAP) { keys[CODE_MAP[e.code]] = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e => { if (e.code in CODE_MAP) keys[CODE_MAP[e.code]] = false; });
+
+  // Responsive resize
+  new ResizeObserver(entries => {
+    const rect = entries[0].contentRect;
+    const nW = rect.width || 800, nH = rect.height || 340;
+    renderer.setSize(nW, nH, false);
+    camera.aspect = nW / nH;
+    camera.updateProjectionMatrix();
+  }).observe(canvas);
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // WASD 이동: theta 기준 forward/right 벡터로 center 이동
+    const speed = spherical.radius * 0.012;
+    const fwdX = Math.cos(spherical.theta), fwdZ = Math.sin(spherical.theta);
+    const rtX  = -fwdZ,                    rtZ  = fwdX;
+    if (keys['w']) { center.x -= fwdX * speed; center.z -= fwdZ * speed; positionCamera(); }
+    if (keys['s']) { center.x += fwdX * speed; center.z += fwdZ * speed; positionCamera(); }
+    if (keys['a']) { center.x += rtX  * speed; center.z += rtZ  * speed; positionCamera(); }
+    if (keys['d']) { center.x -= rtX  * speed; center.z -= rtZ  * speed; positionCamera(); }
+    if (keys['q']) { center.y += speed * 0.6; positionCamera(); }
+    if (keys['e']) { center.y -= speed * 0.6; positionCamera(); }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  _c3d = { scene, camera, renderer, cargoGroup };
+}
+
+function _packBoxes(shipments) {
+  const { L, W, H } = CONT_20FT;
+  const GAP = 4;
+  const OVERFLOW_GAP = 40; // 컨테이너 옆 여백
+
+  const result = [];
+  // 컨테이너 내부 커서
+  let x = 0, z = 0, y = 0, rowW = 0, layerH = 0;
+  // 컨테이너 외부(오른쪽) 커서
+  const ox0 = L + OVERFLOW_GAP;
+  let ox = ox0, oy = 0, oStack = 0, oRowW = 0, oLayerH = 0;
+  let inside = true; // 아직 컨테이너 내부에 배치 중
+
+  for (const s of shipments) {
+    const cbm = (s.effective_cbm != null ? s.effective_cbm : s.cbm) || 0.05;
+    const h = Math.cbrt(cbm * 1e6);
+    const bL = h * 1.5, bH = h, bW = h * 0.9;
+
+    if (inside) {
+      if (x + bL > L)  { x = 0; z += rowW + GAP; rowW = 0; }
+      if (z + bW > W)  { x = 0; z = 0; rowW = 0; y += layerH + GAP; layerH = 0; }
+      if (y + bH > H)  { inside = false; } // 컨테이너 꽉 참 → 외부로 전환
+    }
+
+    if (!inside) {
+      // 3층씩 쌓고 옆으로 이어붙임
+      result.push({ id: s.shipment_id, x: ox, y: oy, z: (W - bW) / 2, bL, bH, bW, category: s.cargo_category, out: true });
+      oLayerH = Math.max(oLayerH, bH);
+      oRowW   = Math.max(oRowW,   bL);
+      if (++oStack >= 3) {
+        // 3층 완료 → 다음 열로
+        ox     += oRowW + GAP;
+        oy      = 0;
+        oStack  = 0;
+        oRowW   = 0;
+        oLayerH = 0;
+      } else {
+        oy += bH + GAP;
+      }
+      continue;
+    }
+
+    result.push({ id: s.shipment_id, x, y, z, bL, bH, bW, category: s.cargo_category, out: false });
+    x += bL + GAP;
+    rowW   = Math.max(rowW,   bW);
+    layerH = Math.max(layerH, bH);
+  }
+  return result;
+}
+
+function updateContainer3D(shipments) {
+  if (!_c3d) return;
+  const { cargoGroup } = _c3d;
+  const { L, W } = CONT_20FT;
+
+  // Clear previous cargo meshes
+  while (cargoGroup.children.length > 0) {
+    const child = cargoGroup.children[0];
+    cargoGroup.remove(child);
+    child.traverse(obj => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+    });
+  }
+
+  const infoEl = document.getElementById('c3dInfo');
+  if (!shipments || !shipments.length) {
+    if (infoEl) infoEl.textContent = '0건';
+    return;
+  }
+
+  const packed = _packBoxes(shipments);
+  const outCount = packed.filter(b => b.out).length;
+  if (infoEl) infoEl.textContent = outCount > 0
+    ? `${packed.length}건 (컨테이너 외 ${outCount}건)`
+    : `${packed.length}건`;
+
+  for (const b of packed) {
+    const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
+    const col = CAT_COLORS_3D[b.category] || 0x445566;
+    // 외부 박스는 밝기를 낮춰 구분
+    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - W / 2);
+    cargoGroup.add(mesh);
+
+    // Subtle edge lines
+    const edgeGeo = new THREE.EdgesGeometry(geo);
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 });
+    mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
+  }
 }
 
 connectWS();
+// 레이아웃 완료 후 초기화 (offsetWidth 정상화)
+requestAnimationFrame(initContainer3D);
 
 // ---------------------------------------------------------------------------
 // MBL Detail Modal
@@ -624,20 +1228,26 @@ connectWS();
 
 const CAT_LABELS = { GENERAL:'일반', HAZMAT:'위험물', FOOD:'식품', FRAGILE:'파손주의', OVERSIZED:'특대형' };
 
+function formatDims(obj) {
+  if (obj?.length_cm == null || obj?.height_cm == null || obj?.width_cm == null) return '치수 없음';
+  return `${obj.length_cm} x ${obj.height_cm} x ${obj.width_cm} cm`;
+}
+
 function openMBLDetail(mblId) {
   if (!lastState || !lastState.mbls) return;
   const mbl = lastState.mbls.find(m => m.mbl_id === mblId);
   if (!mbl) return;
+  activeMblId = mblId;
 
-  const maxCbm  = lastState?.config?.max_cbm_per_mbl || 10;
+  const maxCbm  = lastState?.config?.max_cbm_per_mbl || 33.2;
   const fillPct = Math.min(mbl.fill_rate * 100, 100);
   const fillCls = fillPct >= 100 ? 'full' : fillPct >= 70 ? 'warn' : '';
   const fillValCls = fillPct >= 70 ? (fillPct >= 100 ? 'bad' : 'warn') : 'good';
 
   const hblRows = (mbl.hbls || []).map(h => {
-    const effCbm = h.cargo_category === 'FRAGILE'
+    const effCbm = h.effective_cbm ?? (h.cargo_category === 'FRAGILE'
       ? (h.cbm * 1.3).toFixed(3)
-      : h.cbm;
+      : h.cbm);
     const lateTag = h.is_late
       ? '<span style="color:#f55; font-size:9px; margin-left:4px;">SLA위반</span>' : '';
     return `
@@ -659,6 +1269,7 @@ function openMBLDetail(mblId) {
           <div><span class="dk">Linked MBL</span><br><span class="dv">${mblId}</span></div>
           <div><span class="dk">품목</span><br><span class="dv">${h.item_type}</span></div>
           <div><span class="dk">카테고리</span><br><span class="dv">${h.cargo_category} (${CAT_LABELS[h.cargo_category] || '—'})</span></div>
+          <div><span class="dk">치수</span><br><span class="dv">${formatDims(h)}</span></div>
           <div><span class="dk">실효 CBM</span><br><span class="dv">${effCbm} m³${h.cargo_category==='FRAGILE'?' (×1.3)':''}</span></div>
           <div><span class="dk">CBM</span><br><span class="dv">${h.cbm} m³</span></div>
           <div><span class="dk">무게</span><br><span class="dv">${h.weight} kg</span></div>
@@ -676,7 +1287,11 @@ function openMBLDetail(mblId) {
         <div class="modal-title">${mbl.mbl_id}</div>
         <div class="modal-sub">T = ${mbl.dispatch_time} 출고 &nbsp;|&nbsp; HBL ${(mbl.hbls||[]).length}건</div>
       </div>
-      <button onclick="closeMBLDetail()" style="background:none; border:1px solid #333; color:#666; font-size:14px; padding:4px 10px; cursor:pointer;">✕ 닫기</button>
+      <div class="modal-actions">
+        <button class="blue" onclick="downloadMBL('xlsx')">⬇ .xlsx</button>
+        <button class="blue" onclick="downloadMBL('md')">⬇ .md</button>
+        <button onclick="closeMBLDetail()" style="background:none; border:1px solid #333; color:#666; font-size:14px; padding:4px 10px; cursor:pointer;">✕ 닫기</button>
+      </div>
     </div>
 
     <div class="modal-stats">
@@ -695,13 +1310,151 @@ function openMBLDetail(mblId) {
 
     <div class="hbl-section-title">HBL 목록 — ${(mbl.hbls||[]).length}건</div>
     <div style="border-top:1px solid #2a2a2a;">${hblRows || '<div style="color:#333;padding:8px;">HBL 없음</div>'}</div>
+
+    <div style="margin-top:16px;">
+      <div style="font-size:11px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+        3D 적재 뷰 — ${(mbl.hbls||[]).length}건 / ${maxCbm} CBM
+      </div>
+      <canvas id="mbl3dCanvas" style="width:100%; height:300px; display:block; cursor:grab; border:1px solid #1e1e1e;"></canvas>
+      <div style="font-size:10px; color:#2a2a2a; margin-top:4px; text-align:center;">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동</div>
+    </div>
   `;
 
   document.getElementById('mblModal').style.display = 'block';
+  requestAnimationFrame(() => initMBL3D(mbl.hbls || []));
 }
 
 function closeMBLDetail() {
+  activeMblId = null;
   document.getElementById('mblModal').style.display = 'none';
+  if (_mbl3d) { _mbl3d.kill(); _mbl3d.renderer.dispose(); _mbl3d = null; }
+}
+
+let _mbl3d = null;
+
+function initMBL3D(hbls) {
+  if (typeof THREE === 'undefined') return;
+  const canvas = document.getElementById('mbl3dCanvas');
+  if (!canvas) return;
+  if (_mbl3d) { _mbl3d.renderer.dispose(); _mbl3d = null; }
+
+  const W = canvas.offsetWidth || 800, H = canvas.offsetHeight || 300;
+  const { L, W: CW, H: CH } = CONT_20FT;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0d0d);
+
+  const camera = new THREE.PerspectiveCamera(40, W / H, 1, 8000);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H, false);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(600, 1000, 500); scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0x6699ff, 0.3);
+  dir2.position.set(-400, 300, -400); scene.add(dir2);
+
+  // 컨테이너 와이어프레임
+  const contEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry(L, CH, CW));
+  const contLine = new THREE.LineSegments(contEdges, new THREE.LineBasicMaterial({ color: 0x3a7a3a }));
+  contLine.position.set(L / 2, CH / 2, 0);
+  scene.add(contLine);
+
+  // 바닥
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(L, CW),
+    new THREE.MeshLambertMaterial({ color: 0x111811, side: THREE.DoubleSide })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(L / 2, 0, 0);
+  scene.add(floor);
+
+  // HBL → shipment 형태로 변환해 _packBoxes 재활용
+  const shipments = hbls.map(h => ({
+    shipment_id: h.hbl_id,
+    cbm: h.cbm,
+    effective_cbm: h.effective_cbm,
+    cargo_category: h.cargo_category,
+  }));
+  const packed = _packBoxes(shipments);
+
+  for (const b of packed) {
+    const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
+    const col = CAT_COLORS_3D[b.category] || 0x445566;
+    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - CW / 2);
+    scene.add(mesh);
+    mesh.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(geo),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 })
+    ));
+  }
+
+  // 카메라 orbit
+  let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
+  const center = new THREE.Vector3(L / 2, CH / 2, 0);
+  function positionCamera() {
+    const { theta, phi, radius } = spherical;
+    camera.position.set(
+      center.x + radius * Math.sin(phi) * Math.cos(theta),
+      center.y + radius * Math.cos(phi),
+      center.z + radius * Math.sin(phi) * Math.sin(theta)
+    );
+    camera.lookAt(center);
+  }
+  positionCamera();
+
+  let dragging = false, lastMouse = { x: 0, y: 0 };
+  canvas.addEventListener('mousedown', e => { dragging = true; lastMouse = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; });
+  canvas.addEventListener('mouseup',   () => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('mouseleave',() => { dragging = false; });
+  canvas.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    spherical.theta -= (e.clientX - lastMouse.x) * 0.008;
+    spherical.phi    = Math.max(0.08, Math.min(Math.PI / 2.05, spherical.phi - (e.clientY - lastMouse.y) * 0.008));
+    lastMouse = { x: e.clientX, y: e.clientY };
+    positionCamera();
+  });
+  canvas.addEventListener('wheel', e => {
+    spherical.radius = Math.max(200, Math.min(4000, spherical.radius + e.deltaY * 0.6));
+    positionCamera(); e.preventDefault();
+  }, { passive: false });
+
+  const mblKeys = {};
+  const mblCodeMap = { KeyW:'w', KeyS:'s', KeyA:'a', KeyD:'d', KeyQ:'q', KeyE:'e' };
+  window.addEventListener('keydown', e => {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.code in mblCodeMap) { mblKeys[mblCodeMap[e.code]] = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e => { if (e.code in mblCodeMap) mblKeys[mblCodeMap[e.code]] = false; });
+
+  new ResizeObserver(entries => {
+    const rect = entries[0].contentRect;
+    renderer.setSize(rect.width || 800, rect.height || 300, false);
+    camera.aspect = (rect.width || 800) / (rect.height || 300);
+    camera.updateProjectionMatrix();
+  }).observe(canvas);
+
+  let alive = true;
+  function animate() {
+    if (!alive) return;
+    requestAnimationFrame(animate);
+    const speed = spherical.radius * 0.012;
+    const fwdX = Math.cos(spherical.theta), fwdZ = Math.sin(spherical.theta);
+    const rtX = -fwdZ, rtZ = fwdX;
+    if (mblKeys['w']) { center.x -= fwdX * speed; center.z -= fwdZ * speed; positionCamera(); }
+    if (mblKeys['s']) { center.x += fwdX * speed; center.z += fwdZ * speed; positionCamera(); }
+    if (mblKeys['a']) { center.x += rtX  * speed; center.z += rtZ  * speed; positionCamera(); }
+    if (mblKeys['d']) { center.x -= rtX  * speed; center.z -= rtZ  * speed; positionCamera(); }
+    if (mblKeys['q']) { center.y += speed * 0.6; positionCamera(); }
+    if (mblKeys['e']) { center.y -= speed * 0.6; positionCamera(); }
+    renderer.render(scene, camera);
+  }
+  animate();
+  _mbl3d = { renderer, kill: () => { alive = false; } };
 }
 
 function toggleHBLDetail(hblId) {
@@ -710,6 +1463,32 @@ function toggleHBLDetail(hblId) {
   const open   = detail.style.display === 'none';
   detail.style.display = open ? 'grid' : 'none';
   if (btn) btn.textContent = open ? '상세 ▲' : '상세 ▼';
+}
+
+async function downloadMBL(format) {
+  if (!activeMblId) return;
+
+  try {
+    const res = await fetch(`${SIM}/export/mbl/${encodeURIComponent(activeMblId)}.${format}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || '다운로드에 실패했습니다.');
+    }
+
+    const blob = await res.blob();
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename=\"?([^\"]+)\"?/i);
+    link.href = href;
+    link.download = match ? match[1] : `${activeMblId}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(href);
+  } catch (error) {
+    alert(error.message || '다운로드에 실패했습니다.');
+  }
 }
 </script>
 

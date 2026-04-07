@@ -39,6 +39,9 @@ class Shipment:
     cbm: float
     packages: int
     due_time: float
+    length_cm: Optional[float] = None
+    height_cm: Optional[float] = None
+    width_cm: Optional[float] = None
 
     dispatched: bool = False
     dispatch_time: Optional[float] = None
@@ -69,6 +72,9 @@ class HBL:
     cbm: float
     packages: int
     cargo_category: str
+    length_cm: Optional[float] = None
+    height_cm: Optional[float] = None
+    width_cm: Optional[float] = None
 
 
 @dataclass
@@ -93,10 +99,14 @@ def generate_shipment(
     item_type: ItemType,
     destination: str = "PORT_A",
     sla_hours: float = 48.0,
+    dimensions_cm: Optional[tuple[float, float, float]] = None,
 ) -> Shipment:
     itv = item_type.value
     cargo_category = sample_category(rng, itv)
     cbm = sample_cbm(rng, itv)
+    length_cm = height_cm = width_cm = None
+    if dimensions_cm is not None:
+        length_cm, height_cm, width_cm = dimensions_cm
     return Shipment(
         shipment_id=f"SHP-{uuid.uuid4().hex[:8].upper()}",
         item_type=item_type,
@@ -107,6 +117,9 @@ def generate_shipment(
         cbm=cbm,
         packages=sample_packages(rng, itv),
         due_time=current_time + sla_hours,
+        length_cm=length_cm,
+        height_cm=height_cm,
+        width_cm=width_cm,
     )
 
 
@@ -130,5 +143,8 @@ def create_mbl(shipments: List[Shipment], dispatch_time: float) -> MBL:
             cbm=s.cbm,
             packages=s.packages,
             cargo_category=s.cargo_category.value,
+            length_cm=s.length_cm,
+            height_cm=s.height_cm,
+            width_cm=s.width_cm,
         ))
     return mbl
