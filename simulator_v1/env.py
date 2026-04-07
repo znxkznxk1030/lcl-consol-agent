@@ -37,7 +37,7 @@ class EnvConfig:
     seed: int = 42
     sim_duration_hours: int = 72
     cutoff_interval_hours: int = 24
-    max_cbm_per_mbl: float = 10.0
+    max_cbm_per_mbl: float = 33.2  # 20ft 컨테이너 기본 (590×235×239cm)
     destination: str = "PORT_A"
 
     # ItemType별 시간당 평균 도착 화물 수 (기본값: 실측 통계 기반)

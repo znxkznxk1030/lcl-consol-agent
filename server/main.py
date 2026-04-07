@@ -83,7 +83,7 @@ class StartRequest(BaseModel):
     seed: int = 42
     sim_duration_hours: int = 72
     cutoff_interval_hours: int = 24
-    max_cbm_per_mbl: float = 10.0
+    max_cbm_per_mbl: float = 33.2  # 20ft 컨테이너 기본
     use_olist_data: bool = True
     use_olist_cbm: bool = False
     olist_archive_dir: str | None = None

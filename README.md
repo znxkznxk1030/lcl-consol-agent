@@ -38,6 +38,43 @@ LCL (Less than Container Load) 컨테이너 통합 시뮬레이션을 위한 프
 
 4. 웹 브라우저에서 [http://localhost:8000](http://localhost:8000) 접속하여 시뮬레이션 인터페이스 사용.
 
+## 스크린샷
+
+### 메인 시뮬레이터 화면 — 3D 컨테이너 적재 뷰
+
+![메인 시뮬레이터](docs/screenshots/simulator_main.png)
+
+20FT 컨테이너(내부 590×235×239 cm / 33.2 CBM) 내 화물을 실시간 3D로 시각화합니다.
+
+- 상단: 시뮬레이터 컨트롤 (Start / Next Tick / Reset) 및 서버 상태 표시 (sim :8000 / agent :8001)
+- 중앙 3D 뷰: 컨테이너 안에 적재된 화물을 카테고리별 색상으로 표시 (일반/위험물/식품/파손주의/특대형)
+- 우측 MANUAL DISPATCH: 개별 Shipment를 선택 후 수동 출하 가능
+- 하단 AGENT DECISION: LLM 에이전트에게 현재 상태 분석을 요청하거나 자동 분석 ON/OFF 전환
+
+### MBL 출고 상세 팝업 — 적재 현황 및 3D 뷰
+
+![MBL 출고 상세](docs/screenshots/mbl_dispatch_detail.png)
+
+특정 MBL을 선택하면 출고 상세 모달이 열립니다.
+
+| 항목 | 예시 |
+|------|------|
+| 총 CBM / 실효 CBM | 2.591 m³ |
+| 적재율 | 7.8% / 33.2 CBM |
+| 총 무게 | 407.92 kg |
+| 총 패키지 | 1개 |
+| 출고 시간 | T = 14 |
+
+- HBL 목록에서 개별 Shipment의 상세 정보(CBM, 무게, 특대형 여부 등)를 확인할 수 있습니다.
+- 3D 뷰에서 해당 MBL에 포함된 화물의 컨테이너 내 배치를 시각적으로 확인합니다.
+- `.xlsx` / `.md` 버튼으로 출고 내역을 즉시 다운로드할 수 있습니다.
+
+> **이미지 파일 위치**: 위 스크린샷은 `docs/screenshots/` 폴더에 저장하세요.
+> - `docs/screenshots/simulator_main.png` — 메인 시뮬레이터 전체 화면
+> - `docs/screenshots/mbl_dispatch_detail.png` — MBL 출고 상세 팝업
+
+---
+
 ## 사용법
 
 - 시뮬레이션 서버는 화물 도착, 버퍼 상태, dispatch 적용만 담당합니다.

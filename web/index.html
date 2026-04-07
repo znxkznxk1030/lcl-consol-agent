@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Consolidation Simulator</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; padding: 20px; }
@@ -306,6 +307,26 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
   </span>
 </div>
 
+<!-- 3D Container View -->
+<div style="margin-bottom:14px;">
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin-bottom:0;">20ft 컨테이너 — 인바운드 화물 3D 뷰</h2>
+      <div style="display:flex; gap:10px; font-size:10px; align-items:center; flex-wrap:wrap; color:#444;">
+        <span>내부 590×235×239cm / 33.2 CBM</span>
+        <span id="c3dInfo" style="color:#7c7;">0건</span>
+        <span style="color:#4477aa;">■</span><span>일반</span>
+        <span style="color:#cc7733;">■</span><span>위험물</span>
+        <span style="color:#44aa44;">■</span><span>식품</span>
+        <span style="color:#8888dd;">■</span><span>파손주의</span>
+        <span style="color:#cc4444;">■</span><span>특대형</span>
+      </div>
+    </div>
+    <canvas id="c3dCanvas" style="width:100%; height:340px; display:block; cursor:grab; border:1px solid #1e1e1e; border-radius:2px;"></canvas>
+    <div style="font-size:10px; color:#2a2a2a; margin-top:5px; text-align:center;">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동 &nbsp;·&nbsp; QE: 상하</div>
+  </div>
+</div>
+
 <!-- Agent Panel -->
 <div class="agent-panel">
   <h2>Agent Decision</h2>
@@ -502,7 +523,7 @@ function handleMsg(msg) {
 async function startSim() {
   const r = await fetch(`${SIM}/simulation/start`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({seed:42, sim_duration_hours:72}),
+    body: JSON.stringify({seed:42, sim_duration_hours:72, max_cbm_per_mbl:33.2}),
   });
   const d = await r.json();
   if (!d.ok) alert(d.detail || 'Error');
@@ -771,7 +792,7 @@ function renderDecision(d) {
   const plan = document.getElementById('mblPlan');
   const cards = document.getElementById('mblPlanCards');
   if (isDispatch && d.mbls && d.mbls.length > 0) {
-    const maxCbm = lastState?.config?.max_cbm_per_mbl || 10;
+    const maxCbm = lastState?.config?.max_cbm_per_mbl || 33.2;
     document.getElementById('mblPlanCount').textContent = d.mbls.length;
     const bufMap = {};
     (lastState?.buffer?.shipments || []).forEach(s => { bufMap[s.shipment_id] = s; });
@@ -857,7 +878,7 @@ function renderState(s) {
   document.getElementById('nMbls').textContent = s.mbls ? s.mbls.length : 0;
 
   const buf    = s.buffer || {count:0, total_cbm:0, shipments:[]};
-  const maxCbm = s.config ? s.config.max_cbm_per_mbl : 10;
+  const maxCbm = s.config ? s.config.max_cbm_per_mbl : 33.2;
   const pct    = Math.min(buf.total_cbm / maxCbm * 100, 100);
 
   document.getElementById('cbmLabel').textContent = `${(buf.total_cbm||0).toFixed(2)} / ${maxCbm}`;
@@ -885,6 +906,7 @@ function renderState(s) {
     : '<div style="color:#333;font-size:11px;">No shipments</div>';
 
   renderManualList(ships);
+  updateContainer3D(ships);
 
   // MBL list — 각 MBL에 fill bar 추가
   if (s.mbls && s.mbls.length) {
@@ -946,9 +968,10 @@ function clearAll() {
   document.getElementById('nMbls').textContent = '0';
   document.getElementById('nDisp').textContent = '0';
   document.getElementById('barFill').style.width = '0%';
-  document.getElementById('cbmLabel').textContent = '0 / 10';
+  document.getElementById('cbmLabel').textContent = '0 / 33.2';
   document.getElementById('bufferList').innerHTML = '<div style="color:#333;font-size:11px;">No shipments in buffer</div>';
   document.getElementById('mblList').innerHTML    = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
+  updateContainer3D([]);
   document.getElementById('eventLog').innerHTML   = '';
   document.getElementById('manualList').innerHTML = '';
   clearDecision();
@@ -958,7 +981,246 @@ function clearAll() {
   renderFlow();
 }
 
+// ---------------------------------------------------------------------------
+// 3D Container View
+// ---------------------------------------------------------------------------
+const CONT_20FT = { L: 590, W: 235, H: 239 }; // cm (20ft 내부 치수)
+
+const CAT_COLORS_3D = {
+  GENERAL:   0x3366aa,
+  HAZMAT:    0xcc6622,
+  FOOD:      0x33aa44,
+  FRAGILE:   0x7777cc,
+  OVERSIZED: 0xbb3333,
+};
+
+let _c3d = null;
+
+function initContainer3D() {
+  const canvas = document.getElementById('c3dCanvas');
+  if (!canvas) return;
+  if (typeof THREE === 'undefined') {
+    console.error('[3D] Three.js not loaded');
+    const ctx = canvas.getContext('2d');
+    if (ctx) { ctx.fillStyle = '#f55'; ctx.font = '14px monospace'; ctx.fillText('THREE.js 로드 실패 — 네트워크 확인', 20, 40); }
+    return;
+  }
+
+  // offsetWidth/Height are reliable after layout; fall back to sensible defaults
+  const W = canvas.offsetWidth  || 800;
+  const H = canvas.offsetHeight || 340;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0d0d);
+
+  const camera = new THREE.PerspectiveCamera(40, W / H, 1, 8000);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // false = do NOT override CSS width/height (preserves width:100%)
+  renderer.setSize(W, H, false);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(600, 1000, 500);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0x6699ff, 0.3);
+  dir2.position.set(-400, 300, -400);
+  scene.add(dir2);
+
+  // Container wireframe (20ft 내부 치수)
+  const CL = CONT_20FT.L, CH = CONT_20FT.H, CW = CONT_20FT.W;
+  const contGeo = new THREE.BoxGeometry(CL, CH, CW);
+  const contEdges = new THREE.EdgesGeometry(contGeo);
+  const contLine = new THREE.LineSegments(
+    contEdges,
+    new THREE.LineBasicMaterial({ color: 0x3a7a3a })
+  );
+  contLine.position.set(CL / 2, CH / 2, 0);
+  scene.add(contLine);
+
+  // Floor plane inside container
+  const floorGeo = new THREE.PlaneGeometry(CL, CW);
+  const floorMat = new THREE.MeshLambertMaterial({ color: 0x111811, side: THREE.DoubleSide });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(CL / 2, 0, 0);
+  scene.add(floor);
+
+  // Cargo group
+  const cargoGroup = new THREE.Group();
+  scene.add(cargoGroup);
+
+  // Spherical orbit camera
+  let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
+  const center = new THREE.Vector3(CL / 2, CH / 2, 0);
+
+  function positionCamera() {
+    const { theta, phi, radius } = spherical;
+    camera.position.set(
+      center.x + radius * Math.sin(phi) * Math.cos(theta),
+      center.y + radius * Math.cos(phi),
+      center.z + radius * Math.sin(phi) * Math.sin(theta)
+    );
+    camera.lookAt(center);
+  }
+  positionCamera();
+
+  let dragging = false, lastMouse = { x: 0, y: 0 };
+  canvas.addEventListener('mousedown', e => { dragging = true; lastMouse = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; canvas.focus(); });
+  canvas.addEventListener('mouseup',   () => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('mouseleave',() => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastMouse.x, dy = e.clientY - lastMouse.y;
+    spherical.theta -= dx * 0.008;
+    spherical.phi    = Math.max(0.08, Math.min(Math.PI / 2.05, spherical.phi - dy * 0.008));
+    lastMouse = { x: e.clientX, y: e.clientY };
+    positionCamera();
+  });
+  canvas.addEventListener('wheel', e => {
+    spherical.radius = Math.max(200, Math.min(4000, spherical.radius + e.deltaY * 0.6));
+    positionCamera();
+    e.preventDefault();
+  }, { passive: false });
+
+  // WASD: 입력창 포커스 중이 아닐 때 항상 수신 (e.code: 물리 키 기준, 한글 입력모드 무관)
+  const keys = {};
+  const CODE_MAP = { KeyW:'w', KeyS:'s', KeyA:'a', KeyD:'d', KeyQ:'q', KeyE:'e' };
+  window.addEventListener('keydown', e => {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.code in CODE_MAP) { keys[CODE_MAP[e.code]] = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e => { if (e.code in CODE_MAP) keys[CODE_MAP[e.code]] = false; });
+
+  // Responsive resize
+  new ResizeObserver(entries => {
+    const rect = entries[0].contentRect;
+    const nW = rect.width || 800, nH = rect.height || 340;
+    renderer.setSize(nW, nH, false);
+    camera.aspect = nW / nH;
+    camera.updateProjectionMatrix();
+  }).observe(canvas);
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // WASD 이동: theta 기준 forward/right 벡터로 center 이동
+    const speed = spherical.radius * 0.012;
+    const fwdX = Math.cos(spherical.theta), fwdZ = Math.sin(spherical.theta);
+    const rtX  = -fwdZ,                    rtZ  = fwdX;
+    if (keys['w']) { center.x -= fwdX * speed; center.z -= fwdZ * speed; positionCamera(); }
+    if (keys['s']) { center.x += fwdX * speed; center.z += fwdZ * speed; positionCamera(); }
+    if (keys['a']) { center.x += rtX  * speed; center.z += rtZ  * speed; positionCamera(); }
+    if (keys['d']) { center.x -= rtX  * speed; center.z -= rtZ  * speed; positionCamera(); }
+    if (keys['q']) { center.y += speed * 0.6; positionCamera(); }
+    if (keys['e']) { center.y -= speed * 0.6; positionCamera(); }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  _c3d = { scene, camera, renderer, cargoGroup };
+}
+
+function _packBoxes(shipments) {
+  const { L, W, H } = CONT_20FT;
+  const GAP = 4;
+  const OVERFLOW_GAP = 40; // 컨테이너 옆 여백
+
+  const result = [];
+  // 컨테이너 내부 커서
+  let x = 0, z = 0, y = 0, rowW = 0, layerH = 0;
+  // 컨테이너 외부(오른쪽) 커서
+  const ox0 = L + OVERFLOW_GAP;
+  let ox = ox0, oy = 0, oStack = 0, oRowW = 0, oLayerH = 0;
+  let inside = true; // 아직 컨테이너 내부에 배치 중
+
+  for (const s of shipments) {
+    const cbm = (s.effective_cbm != null ? s.effective_cbm : s.cbm) || 0.05;
+    const h = Math.cbrt(cbm * 1e6);
+    const bL = h * 1.5, bH = h, bW = h * 0.9;
+
+    if (inside) {
+      if (x + bL > L)  { x = 0; z += rowW + GAP; rowW = 0; }
+      if (z + bW > W)  { x = 0; z = 0; rowW = 0; y += layerH + GAP; layerH = 0; }
+      if (y + bH > H)  { inside = false; } // 컨테이너 꽉 참 → 외부로 전환
+    }
+
+    if (!inside) {
+      // 3층씩 쌓고 옆으로 이어붙임
+      result.push({ id: s.shipment_id, x: ox, y: oy, z: (W - bW) / 2, bL, bH, bW, category: s.cargo_category, out: true });
+      oLayerH = Math.max(oLayerH, bH);
+      oRowW   = Math.max(oRowW,   bL);
+      if (++oStack >= 3) {
+        // 3층 완료 → 다음 열로
+        ox     += oRowW + GAP;
+        oy      = 0;
+        oStack  = 0;
+        oRowW   = 0;
+        oLayerH = 0;
+      } else {
+        oy += bH + GAP;
+      }
+      continue;
+    }
+
+    result.push({ id: s.shipment_id, x, y, z, bL, bH, bW, category: s.cargo_category, out: false });
+    x += bL + GAP;
+    rowW   = Math.max(rowW,   bW);
+    layerH = Math.max(layerH, bH);
+  }
+  return result;
+}
+
+function updateContainer3D(shipments) {
+  if (!_c3d) return;
+  const { cargoGroup } = _c3d;
+  const { L, W } = CONT_20FT;
+
+  // Clear previous cargo meshes
+  while (cargoGroup.children.length > 0) {
+    const child = cargoGroup.children[0];
+    cargoGroup.remove(child);
+    child.traverse(obj => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+    });
+  }
+
+  const infoEl = document.getElementById('c3dInfo');
+  if (!shipments || !shipments.length) {
+    if (infoEl) infoEl.textContent = '0건';
+    return;
+  }
+
+  const packed = _packBoxes(shipments);
+  const outCount = packed.filter(b => b.out).length;
+  if (infoEl) infoEl.textContent = outCount > 0
+    ? `${packed.length}건 (컨테이너 외 ${outCount}건)`
+    : `${packed.length}건`;
+
+  for (const b of packed) {
+    const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
+    const col = CAT_COLORS_3D[b.category] || 0x445566;
+    // 외부 박스는 밝기를 낮춰 구분
+    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - W / 2);
+    cargoGroup.add(mesh);
+
+    // Subtle edge lines
+    const edgeGeo = new THREE.EdgesGeometry(geo);
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 });
+    mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
+  }
+}
+
 connectWS();
+// 레이아웃 완료 후 초기화 (offsetWidth 정상화)
+requestAnimationFrame(initContainer3D);
 
 // ---------------------------------------------------------------------------
 // MBL Detail Modal
@@ -977,7 +1239,7 @@ function openMBLDetail(mblId) {
   if (!mbl) return;
   activeMblId = mblId;
 
-  const maxCbm  = lastState?.config?.max_cbm_per_mbl || 10;
+  const maxCbm  = lastState?.config?.max_cbm_per_mbl || 33.2;
   const fillPct = Math.min(mbl.fill_rate * 100, 100);
   const fillCls = fillPct >= 100 ? 'full' : fillPct >= 70 ? 'warn' : '';
   const fillValCls = fillPct >= 70 ? (fillPct >= 100 ? 'bad' : 'warn') : 'good';
@@ -1048,14 +1310,151 @@ function openMBLDetail(mblId) {
 
     <div class="hbl-section-title">HBL 목록 — ${(mbl.hbls||[]).length}건</div>
     <div style="border-top:1px solid #2a2a2a;">${hblRows || '<div style="color:#333;padding:8px;">HBL 없음</div>'}</div>
+
+    <div style="margin-top:16px;">
+      <div style="font-size:11px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+        3D 적재 뷰 — ${(mbl.hbls||[]).length}건 / ${maxCbm} CBM
+      </div>
+      <canvas id="mbl3dCanvas" style="width:100%; height:300px; display:block; cursor:grab; border:1px solid #1e1e1e;"></canvas>
+      <div style="font-size:10px; color:#2a2a2a; margin-top:4px; text-align:center;">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동</div>
+    </div>
   `;
 
   document.getElementById('mblModal').style.display = 'block';
+  requestAnimationFrame(() => initMBL3D(mbl.hbls || []));
 }
 
 function closeMBLDetail() {
   activeMblId = null;
   document.getElementById('mblModal').style.display = 'none';
+  if (_mbl3d) { _mbl3d.kill(); _mbl3d.renderer.dispose(); _mbl3d = null; }
+}
+
+let _mbl3d = null;
+
+function initMBL3D(hbls) {
+  if (typeof THREE === 'undefined') return;
+  const canvas = document.getElementById('mbl3dCanvas');
+  if (!canvas) return;
+  if (_mbl3d) { _mbl3d.renderer.dispose(); _mbl3d = null; }
+
+  const W = canvas.offsetWidth || 800, H = canvas.offsetHeight || 300;
+  const { L, W: CW, H: CH } = CONT_20FT;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0d0d);
+
+  const camera = new THREE.PerspectiveCamera(40, W / H, 1, 8000);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H, false);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(600, 1000, 500); scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0x6699ff, 0.3);
+  dir2.position.set(-400, 300, -400); scene.add(dir2);
+
+  // 컨테이너 와이어프레임
+  const contEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry(L, CH, CW));
+  const contLine = new THREE.LineSegments(contEdges, new THREE.LineBasicMaterial({ color: 0x3a7a3a }));
+  contLine.position.set(L / 2, CH / 2, 0);
+  scene.add(contLine);
+
+  // 바닥
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(L, CW),
+    new THREE.MeshLambertMaterial({ color: 0x111811, side: THREE.DoubleSide })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(L / 2, 0, 0);
+  scene.add(floor);
+
+  // HBL → shipment 형태로 변환해 _packBoxes 재활용
+  const shipments = hbls.map(h => ({
+    shipment_id: h.hbl_id,
+    cbm: h.cbm,
+    effective_cbm: h.effective_cbm,
+    cargo_category: h.cargo_category,
+  }));
+  const packed = _packBoxes(shipments);
+
+  for (const b of packed) {
+    const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
+    const col = CAT_COLORS_3D[b.category] || 0x445566;
+    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - CW / 2);
+    scene.add(mesh);
+    mesh.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(geo),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 })
+    ));
+  }
+
+  // 카메라 orbit
+  let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
+  const center = new THREE.Vector3(L / 2, CH / 2, 0);
+  function positionCamera() {
+    const { theta, phi, radius } = spherical;
+    camera.position.set(
+      center.x + radius * Math.sin(phi) * Math.cos(theta),
+      center.y + radius * Math.cos(phi),
+      center.z + radius * Math.sin(phi) * Math.sin(theta)
+    );
+    camera.lookAt(center);
+  }
+  positionCamera();
+
+  let dragging = false, lastMouse = { x: 0, y: 0 };
+  canvas.addEventListener('mousedown', e => { dragging = true; lastMouse = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; });
+  canvas.addEventListener('mouseup',   () => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('mouseleave',() => { dragging = false; });
+  canvas.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    spherical.theta -= (e.clientX - lastMouse.x) * 0.008;
+    spherical.phi    = Math.max(0.08, Math.min(Math.PI / 2.05, spherical.phi - (e.clientY - lastMouse.y) * 0.008));
+    lastMouse = { x: e.clientX, y: e.clientY };
+    positionCamera();
+  });
+  canvas.addEventListener('wheel', e => {
+    spherical.radius = Math.max(200, Math.min(4000, spherical.radius + e.deltaY * 0.6));
+    positionCamera(); e.preventDefault();
+  }, { passive: false });
+
+  const mblKeys = {};
+  const mblCodeMap = { KeyW:'w', KeyS:'s', KeyA:'a', KeyD:'d', KeyQ:'q', KeyE:'e' };
+  window.addEventListener('keydown', e => {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.code in mblCodeMap) { mblKeys[mblCodeMap[e.code]] = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e => { if (e.code in mblCodeMap) mblKeys[mblCodeMap[e.code]] = false; });
+
+  new ResizeObserver(entries => {
+    const rect = entries[0].contentRect;
+    renderer.setSize(rect.width || 800, rect.height || 300, false);
+    camera.aspect = (rect.width || 800) / (rect.height || 300);
+    camera.updateProjectionMatrix();
+  }).observe(canvas);
+
+  let alive = true;
+  function animate() {
+    if (!alive) return;
+    requestAnimationFrame(animate);
+    const speed = spherical.radius * 0.012;
+    const fwdX = Math.cos(spherical.theta), fwdZ = Math.sin(spherical.theta);
+    const rtX = -fwdZ, rtZ = fwdX;
+    if (mblKeys['w']) { center.x -= fwdX * speed; center.z -= fwdZ * speed; positionCamera(); }
+    if (mblKeys['s']) { center.x += fwdX * speed; center.z += fwdZ * speed; positionCamera(); }
+    if (mblKeys['a']) { center.x += rtX  * speed; center.z += rtZ  * speed; positionCamera(); }
+    if (mblKeys['d']) { center.x -= rtX  * speed; center.z -= rtZ  * speed; positionCamera(); }
+    if (mblKeys['q']) { center.y += speed * 0.6; positionCamera(); }
+    if (mblKeys['e']) { center.y -= speed * 0.6; positionCamera(); }
+    renderer.render(scene, camera);
+  }
+  animate();
+  _mbl3d = { renderer, kill: () => { alive = false; } };
 }
 
 function toggleHBLDetail(hblId) {
