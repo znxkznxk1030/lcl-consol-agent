@@ -89,21 +89,21 @@ class AgentBase(ABC):
 
         all_mbl_ids: List[List[str]] = []
 
-        # OVERSIZED: 각각 단독 MBL
-        for s in by_category.get("OVERSIZED", []):
-            all_mbl_ids.append([s["shipment_id"]])
-
         # HAZMAT + GENERAL
-        hazmat_group = by_category.get("HAZMAT", []) + by_category.get("GENERAL", [])
+        hazmat_group = (
+            by_category.get("HAZMAT", [])
+            + by_category.get("GENERAL", [])
+            + by_category.get("OVERSIZED", [])
+        )
         if hazmat_group:
             all_mbl_ids.extend(self._bin_pack(hazmat_group, max_cbm))
 
-        # FOOD + FRAGILE + GENERAL (HAZMAT 없는 경우)
+        # FOOD + FRAGILE + GENERAL + OVERSIZED (HAZMAT 없는 경우)
         food_group = by_category.get("FOOD", []) + by_category.get("FRAGILE", [])
         if food_group:
             # GENERAL은 HAZMAT 그룹과 중복되므로 제외
             if not by_category.get("HAZMAT"):
-                food_group += by_category.get("GENERAL", [])
+                food_group += by_category.get("GENERAL", []) + by_category.get("OVERSIZED", [])
             all_mbl_ids.extend(self._bin_pack(food_group, max_cbm))
 
         # 중복 제거 (GENERAL이 여러 그룹에 들어간 경우)

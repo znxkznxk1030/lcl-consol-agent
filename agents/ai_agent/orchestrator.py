@@ -106,7 +106,9 @@ class AIConsolidationAgent(AgentBase):
     def _act_internal(self, observation: dict) -> dict:
         buf = observation.get("buffer", {})
         shipments = buf.get("shipments", [])
-        max_cbm = observation.get("config", {}).get("max_cbm_per_mbl", 10.0)
+        max_cbm = observation.get("config", {}).get("usable_cbm_per_mbl")
+        if max_cbm is None:
+            max_cbm = observation.get("config", {}).get("max_cbm_per_mbl", 10.0)
 
         # 빈 버퍼 처리
         if not shipments:
@@ -364,7 +366,9 @@ class AIConsolidationAgent(AgentBase):
         logger.error("비상 fallback 실행")
         buf = observation.get("buffer", {})
         shipments = buf.get("shipments", [])
-        max_cbm = observation.get("config", {}).get("max_cbm_per_mbl", 10.0)
+        max_cbm = observation.get("config", {}).get("usable_cbm_per_mbl")
+        if max_cbm is None:
+            max_cbm = observation.get("config", {}).get("max_cbm_per_mbl", 10.0)
         time_to_cutoff = observation.get("time_to_cutoff", 999.0)
         total_cbm = buf.get("total_effective_cbm", buf.get("total_cbm", 0.0))
 

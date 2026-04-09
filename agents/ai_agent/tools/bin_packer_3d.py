@@ -250,6 +250,23 @@ class BinPacker3D:
                 extreme_points.append((px + L, py, pz))      # 오른쪽
                 extreme_points.append((px, py + W, pz))      # 옆
                 extreme_points.append((px, py, pz + H))      # 위
+
+                # 교차 투영점 (Crainic 2008): 기존 배치 박스와의 경계면 교차점 추가
+                # 같은 z 레벨의 아이템 → 수평 방향 격자 빈틈 채움
+                # 기존 아이템 상단 z 레벨 → 적층 위치 정확히 생성
+                for p in placed[:-1]:  # 방금 배치한 것 제외
+                    same_z = p.z_mm == pz
+                    if same_z:
+                        extreme_points.append((p.x_mm + p.length_mm, py, pz))
+                        extreme_points.append((px, p.y_mm + p.width_mm, pz))
+                        extreme_points.append((px + L, p.y_mm, pz))
+                        extreme_points.append((p.x_mm, py + W, pz))
+                    top_z = p.z_mm + p.height_mm
+                    extreme_points.append((px + L, py, top_z))
+                    extreme_points.append((px, py + W, top_z))
+                    extreme_points.append((p.x_mm + p.length_mm, p.y_mm, top_z))
+                    extreme_points.append((p.x_mm, p.y_mm + p.width_mm, top_z))
+
                 # 중복 제거 및 컨테이너 범위 내만 유지
                 extreme_points = list({
                     ep for ep in extreme_points

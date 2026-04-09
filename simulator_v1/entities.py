@@ -13,8 +13,9 @@ from typing import List, Optional
 
 from enum import Enum
 
-from .compatibility import CargoCategory, FRAGILE_CBM_MULTIPLIER
-from .distributions import sample_cbm, sample_weight, sample_packages, sample_category
+from .compatibility import CargoCategory
+from .volume_model import effective_cbm_from_raw
+from .distributions import sample_cbm, sample_weight, sample_packages, sample_category  # noqa: F401
 
 
 class ItemType(Enum):
@@ -48,10 +49,8 @@ class Shipment:
 
     @property
     def effective_cbm(self) -> float:
-        """패킹 시 실제 점유 CBM. FRAGILE은 완충 공간 포함."""
-        if self.cargo_category == CargoCategory.FRAGILE:
-            return round(self.cbm * FRAGILE_CBM_MULTIPLIER, 3)
-        return self.cbm
+        """패킹/혼적 시 실제 점유 CBM 추정치."""
+        return round(effective_cbm_from_raw(self.cbm, self.cargo_category.value), 3)
 
     @property
     def waiting_time(self) -> float:
@@ -103,10 +102,12 @@ def generate_shipment(
 ) -> Shipment:
     itv = item_type.value
     cargo_category = sample_category(rng, itv)
-    cbm = sample_cbm(rng, itv)
     length_cm = height_cm = width_cm = None
     if dimensions_cm is not None:
         length_cm, height_cm, width_cm = dimensions_cm
+        cbm = round(length_cm * height_cm * width_cm / 1_000_000, 6)
+    else:
+        cbm = sample_cbm(rng, itv)
     return Shipment(
         shipment_id=f"SHP-{uuid.uuid4().hex[:8].upper()}",
         item_type=item_type,

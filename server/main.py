@@ -245,6 +245,7 @@ def _autosize_columns(ws) -> None:
 
 def _build_mbl_markdown(mbl: dict, max_cbm: float) -> str:
     fill_pct = round(mbl["fill_rate"] * 100, 1)
+    usable_cbm = mbl.get("usable_cbm_per_mbl", max_cbm)
     lines = [
         f"# {mbl['mbl_id']}",
         "",
@@ -254,7 +255,7 @@ def _build_mbl_markdown(mbl: dict, max_cbm: float) -> str:
         f"- Shipment Count: {mbl['shipment_count']}",
         f"- Total CBM: {mbl['total_cbm']} m3",
         f"- Effective CBM: {mbl['total_effective_cbm']} m3",
-        f"- Fill Rate: {fill_pct}% / {max_cbm} CBM",
+        f"- Fill Rate: {fill_pct}% / usable {usable_cbm} CBM",
         f"- Total Weight: {mbl['total_weight']} kg",
         f"- Total Packages: {mbl['total_packages']}",
         "",
@@ -284,6 +285,7 @@ def _build_mbl_workbook(mbl: dict, max_cbm: float) -> Workbook:
     wb = Workbook()
     summary = wb.active
     summary.title = "Summary"
+    usable_cbm = mbl.get("usable_cbm_per_mbl", max_cbm)
     summary_rows = [
         ("MBL ID", mbl["mbl_id"]),
         ("Dispatch Time", f"T = {mbl['dispatch_time']}"),
@@ -291,7 +293,8 @@ def _build_mbl_workbook(mbl: dict, max_cbm: float) -> Workbook:
         ("Total CBM", mbl["total_cbm"]),
         ("Effective CBM", mbl["total_effective_cbm"]),
         ("Fill Rate (%)", round(mbl["fill_rate"] * 100, 1)),
-        ("Max CBM", max_cbm),
+        ("Usable CBM", usable_cbm),
+        ("Nominal CBM", max_cbm),
         ("Total Weight (kg)", mbl["total_weight"]),
         ("Total Packages", mbl["total_packages"]),
     ]
@@ -345,6 +348,41 @@ def _build_mbl_workbook(mbl: dict, max_cbm: float) -> Workbook:
         ])
     _autosize_columns(hbl_sheet)
     return wb
+
+
+@app.get("/mbl/{mbl_id}/loading_plan")
+async def get_mbl_loading_plan(mbl_id: str):
+    """BinPacker3D로 계산한 3D 적재 결과를 반환."""
+    from agents.ai_agent.tools.bin_packer_3d import BinPacker3D
+
+    mbl = _get_serialized_mbl_or_404(mbl_id)
+    max_cbm = store.env.cfg.max_cbm_per_mbl
+
+    # max_cbm으로 컨테이너 타입 결정 (Hapag-Lloyd 내부 용적 기준)
+    if max_cbm <= 34:
+        container_type = "20GP"
+    elif max_cbm <= 69:
+        container_type = "40GP"
+    elif max_cbm <= 78:
+        container_type = "40HC"
+    else:
+        container_type = "45HC"
+
+    shipments = [
+        {
+            "shipment_id": h["hbl_id"],
+            "cargo_category": h["cargo_category"],
+            "item_type": h["item_type"],
+            "cbm": h["cbm"],
+            "weight": h["weight"],
+            # length/width/height_cm 미전달: olist 치수는 낱개 상품 크기라 CBM과 최대 500배 불일치.
+            # _resolve_dimensions가 CBM 기반으로 역산하도록 강제.
+        }
+        for h in mbl["hbls"]
+    ]
+
+    plan = BinPacker3D().pack(shipments, container_type=container_type, mbl_id=mbl_id)
+    return plan.to_dict()
 
 
 @app.get("/export/mbl/{mbl_id}.md")

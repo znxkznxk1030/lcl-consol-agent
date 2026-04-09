@@ -99,17 +99,14 @@ class HybridAgentClient:
 
         result: List[List[str]] = []
 
-        for s in by_cat.get("OVERSIZED", []):
-            result.append([s["shipment_id"]])
-
-        haz = by_cat.get("HAZMAT", []) + by_cat.get("GENERAL", [])
+        haz = by_cat.get("HAZMAT", []) + by_cat.get("GENERAL", []) + by_cat.get("OVERSIZED", [])
         if haz:
             result.extend(self._bin_pack(haz, max_cbm))
 
         food = by_cat.get("FOOD", []) + by_cat.get("FRAGILE", [])
         if food:
             if not by_cat.get("HAZMAT"):
-                food += by_cat.get("GENERAL", [])
+                food += by_cat.get("GENERAL", []) + by_cat.get("OVERSIZED", [])
             result.extend(self._bin_pack(food, max_cbm))
 
         seen: set = set()

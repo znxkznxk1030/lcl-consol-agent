@@ -14,7 +14,7 @@ class TimeBasedAgent(AgentBase):
     def act(self, observation: dict) -> dict:
         time_to_cutoff = observation["time_to_cutoff"]
         shipments = observation["buffer"]["shipments"]
-        max_cbm = observation["config"]["max_cbm_per_mbl"]
+        max_cbm = observation["config"].get("usable_cbm_per_mbl", observation["config"]["max_cbm_per_mbl"])
 
         if time_to_cutoff <= 0 and shipments:
             mbls = self._compatible_bin_pack(shipments, max_cbm)
@@ -32,7 +32,7 @@ class ThresholdAgent(AgentBase):
     def act(self, observation: dict) -> dict:
         total_effective_cbm = observation["buffer"]["total_effective_cbm"]
         shipments = observation["buffer"]["shipments"]
-        max_cbm = observation["config"]["max_cbm_per_mbl"]
+        max_cbm = observation["config"].get("usable_cbm_per_mbl", observation["config"]["max_cbm_per_mbl"])
 
         if total_effective_cbm >= self.cbm_threshold:
             mbls = self._compatible_bin_pack(shipments, max_cbm)
@@ -67,7 +67,7 @@ class HybridAgent(AgentBase):
 
         time_to_cutoff = observation["time_to_cutoff"]
         total_effective_cbm = observation["buffer"]["total_effective_cbm"]
-        max_cbm = observation["config"]["max_cbm_per_mbl"]
+        max_cbm = observation["config"].get("usable_cbm_per_mbl", observation["config"]["max_cbm_per_mbl"])
         max_waiting = max(s["waiting_time"] for s in shipments)
 
         near_cutoff = time_to_cutoff <= self.cutoff_buffer_hours

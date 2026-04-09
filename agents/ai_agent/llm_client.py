@@ -47,10 +47,9 @@ SYSTEM_PROMPT = """당신은 국제 해운 포워더의 LCL(Less than Container 
 
 ## 절대 규칙 (위반 금지)
 1. HAZMAT + FOOD, HAZMAT + FRAGILE 혼적 절대 금지
-2. OVERSIZED 화물은 단독 MBL 배정
-3. 단일 MBL이 max_cbm_per_mbl 초과 금지
-4. CRITICAL SLA 화물 (time_to_due < 6h) 있으면 즉시 DISPATCH
-5. time_to_cutoff ≤ 2h이면 반드시 DISPATCH
+2. 단일 MBL이 max_cbm_per_mbl 초과 금지
+3. CRITICAL SLA 화물 (time_to_due < 6h) 있으면 즉시 DISPATCH
+4. time_to_cutoff ≤ 2h이면 반드시 DISPATCH
 
 ## 출하 판단 기준 (우선순위 순)
 1. SLA 위험 (CRITICAL > HIGH > MEDIUM)
@@ -371,6 +370,7 @@ def _build_user_message(
             "buffer_count": buf.get("count", 0),
             "buffer_total_cbm": buf.get("total_effective_cbm", buf.get("total_cbm", 0)),
             "max_cbm_per_mbl": observation.get("config", {}).get("max_cbm_per_mbl", 10.0),
+            "usable_cbm_per_mbl": observation.get("config", {}).get("usable_cbm_per_mbl"),
             "sla_hours": observation.get("config", {}).get("sla_hours", 48.0),
             "shipments": shipment_summary,
         },
