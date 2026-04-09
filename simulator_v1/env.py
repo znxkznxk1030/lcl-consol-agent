@@ -22,6 +22,7 @@ from .distributions import thinning_arrivals
 from .compatibility import split_into_compatible_groups, count_violation_pairs
 from .buffer import WarehouseBuffer
 from .cost import CostEngine
+from .volume_model import usable_container_cbm
 from .schemas import (
     Observation, ConfigObservation, BufferObservation, ShipmentObservation,
     Action, Event, Metrics, SimulationResult,
@@ -176,6 +177,7 @@ class ConsolidationEnv:
             time_to_cutoff=self.next_cutoff - self.current_time,
             config=ConfigObservation(
                 max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
+                usable_cbm_per_mbl=usable_container_cbm(self.cfg.max_cbm_per_mbl),
                 sla_hours=self.cfg.sla_hours,
             ),
             buffer=BufferObservation(
@@ -253,15 +255,16 @@ class ConsolidationEnv:
                     self._create_mbl(cbm_group)
 
     def _split_by_cbm(self, shipments: List[Shipment]) -> List[List[Shipment]]:
-        """effective_cbm 기준으로 max_cbm_per_mbl을 초과하지 않도록 분할."""
+        """effective_cbm 기준으로 usable container CBM을 초과하지 않도록 분할."""
         result: List[List[Shipment]] = []
         current: List[Shipment] = []
         current_cbm = 0.0
+        usable_cbm = usable_container_cbm(self.cfg.max_cbm_per_mbl)
 
         for s in shipments:
             ecbm = s.effective_cbm
             # 단일 화물 자체가 한도 초과인 경우: 단독 MBL로 처리
-            if current and current_cbm + ecbm > self.cfg.max_cbm_per_mbl:
+            if current and current_cbm + ecbm > usable_cbm:
                 result.append(current)
                 current = [s]
                 current_cbm = ecbm
@@ -302,7 +305,9 @@ class ConsolidationEnv:
             "total_cbm": mbl.total_cbm,
             "total_effective_cbm": mbl.total_effective_cbm,
             "total_weight": mbl.total_weight,
-            "fill_rate": round(mbl.total_cbm / self.cfg.max_cbm_per_mbl, 4),
+            "usable_cbm_per_mbl": usable_container_cbm(self.cfg.max_cbm_per_mbl),
+            "fill_rate": round(mbl.total_effective_cbm / usable_container_cbm(self.cfg.max_cbm_per_mbl), 4),
+            "nominal_fill_rate": round(mbl.total_cbm / self.cfg.max_cbm_per_mbl, 4),
             "effective_fill_rate": round(mbl.total_effective_cbm / self.cfg.max_cbm_per_mbl, 4),
             "categories": list({h.cargo_category for h in mbl.hbls}),
             "hbl_ids": [h.hbl_id for h in mbl.hbls],
@@ -380,7 +385,8 @@ class ConsolidationEnv:
 
         avg_waiting = sum(s.waiting_time for s in dispatched) / n if n else 0.0
         late_count = sum(1 for s in dispatched if s.is_late())
-        fill_rates = [m.total_cbm / self.cfg.max_cbm_per_mbl for m in self.mbls]
+        usable_cbm = usable_container_cbm(self.cfg.max_cbm_per_mbl)
+        fill_rates = [m.total_effective_cbm / usable_cbm for m in self.mbls] if usable_cbm > 0 else []
 
         return SimulationResult(
             schema=SimulationResult.version(),

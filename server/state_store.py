@@ -14,7 +14,7 @@ from enum import Enum
 
 from simulator_v1.env import ConsolidationEnv, EnvConfig
 from simulator_v1.entities import Shipment, MBL
-from simulator_v1.compatibility import FRAGILE_CBM_MULTIPLIER
+from simulator_v1.volume_model import effective_cbm_from_raw, usable_container_cbm
 from simulator_v1.schemas import Event
 
 
@@ -60,6 +60,7 @@ class SimulationStore:
             "sim_duration_hours": self.env.cfg.sim_duration_hours,
             "config": {
                 "max_cbm_per_mbl": self.env.cfg.max_cbm_per_mbl,
+                "usable_cbm_per_mbl": usable_container_cbm(self.env.cfg.max_cbm_per_mbl),
                 "sla_hours": self.env.cfg.sla_hours,
             },
             "buffer": {
@@ -103,7 +104,7 @@ class SimulationStore:
         hbls = []
         for h in m.hbls:
             s = ship_map.get(h.shipment_id)
-            effective_cbm = round(h.cbm * FRAGILE_CBM_MULTIPLIER, 3) if h.cargo_category == "FRAGILE" else h.cbm
+            effective_cbm = round(effective_cbm_from_raw(h.cbm, h.cargo_category), 3)
             hbls.append({
                 "hbl_id": h.hbl_id,
                 "shipment_id": h.shipment_id,
@@ -128,7 +129,9 @@ class SimulationStore:
             "total_weight": m.total_weight,
             "total_packages": m.total_packages,
             "shipment_count": len(m.shipment_ids),
-            "fill_rate": round(m.total_cbm / max_cbm, 4),
+            "usable_cbm_per_mbl": usable_container_cbm(max_cbm),
+            "fill_rate": round(m.total_effective_cbm / usable_container_cbm(max_cbm), 4),
+            "nominal_fill_rate": round(m.total_cbm / max_cbm, 4),
             "hbls": hbls,
         }
 
@@ -151,7 +154,8 @@ class SimulationStore:
         costs = self.env.cost_engine.compute(self.env.mbls, dispatched)
         avg_waiting = sum(s.waiting_time for s in dispatched) / n if n else 0.0
         late_count = sum(1 for s in dispatched if s.is_late())
-        fill_rates = [m.total_cbm / self.env.cfg.max_cbm_per_mbl for m in self.env.mbls]
+        usable_cbm = usable_container_cbm(self.env.cfg.max_cbm_per_mbl)
+        fill_rates = [m.total_effective_cbm / usable_cbm for m in self.env.mbls] if usable_cbm > 0 else []
 
         return {
             "total_shipments": len(self.env.all_shipments),

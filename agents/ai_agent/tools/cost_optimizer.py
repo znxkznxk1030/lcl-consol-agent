@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import List, Dict
+from simulator_v1.volume_model import usable_container_cbm
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +107,9 @@ class CostOptimizer:
         shipments = buf.get("shipments", [])
         current_time = observation.get("current_time", 0.0)
         time_to_cutoff = observation.get("time_to_cutoff", 24.0)
-        max_cbm = observation.get("config", {}).get("max_cbm_per_mbl", 10.0)
+        max_cbm = observation.get("config", {}).get("usable_cbm_per_mbl")
+        if max_cbm is None:
+            max_cbm = usable_container_cbm(observation.get("config", {}).get("max_cbm_per_mbl", 10.0))
 
         if not shipments:
             return CostAnalysis(

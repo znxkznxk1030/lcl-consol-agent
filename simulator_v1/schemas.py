@@ -23,7 +23,7 @@ class ShipmentObservation:
     arrival_time: float
     waiting_time: float
     cbm: float
-    effective_cbm: float        # 패킹 시 실제 점유 CBM (FRAGILE은 cbm × 1.3)
+    effective_cbm: float        # 패킹 시 실제 점유 CBM 추정치 (패키징/카테고리 보정 포함)
     weight: float
     packages: int
     due_time: float
@@ -37,7 +37,7 @@ class ShipmentObservation:
 class BufferObservation:
     count: int
     total_cbm: float
-    total_effective_cbm: float  # 패킹 계산 기준 CBM
+    total_effective_cbm: float  # 패킹 계산 기준 CBM 추정치
     total_weight: float
     shipments: List[ShipmentObservation]
 
@@ -45,6 +45,7 @@ class BufferObservation:
 @dataclass
 class ConfigObservation:
     max_cbm_per_mbl: float
+    usable_cbm_per_mbl: float
     sla_hours: float
 
 

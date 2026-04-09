@@ -6,7 +6,9 @@ run.py — LCL Simulator CLI
   python run.py sim        # 시뮬레이션 단독 실행 (규칙 기반 에이전트)
   python run.py server     # 시뮬레이션 서버 실행 (:8000)
   python run.py agent      # LLM AI Agent 서버 실행 (:8001)
+  python run.py greedy     # Greedy Agent 서버 실행 (:8002, LLM 없음)
   python run.py all        # 시뮬레이션 서버 + 에이전트 서버 동시 실행
+  python run.py all-greedy # 시뮬레이션 서버 + greedy 서버 동시 실행
 
 LLM Agent 환경변수:
   ANTHROPIC_API_KEY       # Claude API 키 (없으면 fallback 모드)
@@ -45,26 +47,22 @@ def run_agent():
     ])
 
 
-def run_all():
+def run_greedy():
+    subprocess.run([
+        sys.executable, "-m", "uvicorn",
+        "agents.greedy_agent_server:app",
+        "--host", "0.0.0.0",
+        "--port", "8002",
+        "--reload",
+    ])
+
+
+def _run_procs(procs: list, labels: list[str]) -> None:
     import signal
-    import os
 
-    procs = [
-        subprocess.Popen([
-            sys.executable, "-m", "uvicorn",
-            "server.main:app",
-            "--host", "0.0.0.0", "--port", "8000", "--reload",
-        ]),
-        subprocess.Popen([
-            sys.executable, "-m", "uvicorn",
-            "agents.agent_server:app",
-            "--host", "0.0.0.0", "--port", "8001", "--reload",
-        ]),
-    ]
-
-    print("Simulation server : http://localhost:8000")
-    print("Agent server      : http://localhost:8001")
-    print("Ctrl+C to stop both servers.")
+    for label in labels:
+        print(label)
+    print("Ctrl+C to stop all servers.")
 
     def _shutdown(sig, frame):
         for p in procs:
@@ -78,12 +76,52 @@ def run_all():
         p.wait()
 
 
+def run_all():
+    procs = [
+        subprocess.Popen([
+            sys.executable, "-m", "uvicorn",
+            "server.main:app",
+            "--host", "0.0.0.0", "--port", "8000", "--reload",
+        ]),
+        subprocess.Popen([
+            sys.executable, "-m", "uvicorn",
+            "agents.agent_server:app",
+            "--host", "0.0.0.0", "--port", "8001", "--reload",
+        ]),
+    ]
+    _run_procs(procs, [
+        "Simulation server : http://localhost:8000",
+        "Agent server (LLM): http://localhost:8001",
+    ])
+
+
+def run_all_greedy():
+    procs = [
+        subprocess.Popen([
+            sys.executable, "-m", "uvicorn",
+            "server.main:app",
+            "--host", "0.0.0.0", "--port", "8000", "--reload",
+        ]),
+        subprocess.Popen([
+            sys.executable, "-m", "uvicorn",
+            "agents.greedy_agent_server:app",
+            "--host", "0.0.0.0", "--port", "8002", "--reload",
+        ]),
+    ]
+    _run_procs(procs, [
+        "Simulation server   : http://localhost:8000",
+        "Greedy agent server : http://localhost:8002",
+    ])
+
+
 COMMANDS = {
     "sim": run_sim,
     "ai_sim": run_ai_sim,
     "server": run_server,
     "agent": run_agent,
+    "greedy": run_greedy,
     "all": run_all,
+    "all-greedy": run_all_greedy,
 }
 
 if __name__ == "__main__":

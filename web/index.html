@@ -41,6 +41,19 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 /* agent panel */
 .agent-panel { background: #0e1a0e; border: 1px solid #2a4a2a; padding: 14px; margin-bottom: 14px; }
 .agent-panel h2 { font-size: 11px; color: #4a7a4a; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+/* agent selector */
+.agent-selector { display: flex; align-items: center; gap: 0; border: 1px solid #333; }
+.agent-selector label {
+  padding: 5px 14px; font-size: 11px; cursor: pointer;
+  color: #555; background: #111; border-right: 1px solid #222;
+  transition: background 0.15s, color 0.15s; white-space: nowrap;
+}
+.agent-selector label:last-child { border-right: none; }
+.agent-selector input[type="radio"] { display: none; }
+.agent-selector input[type="radio"]:checked + span { color: #9cf; }
+.agent-selector label:has(input:checked) { background: #141e2a; color: #9cf; border-color: #2a4a7a; }
+.agent-selector label.greedy:has(input:checked) { background: #1a1a0a; color: #fa8; border-color: #6a4a1a; }
 .decision-box { background: #0a120a; border: 1px solid #2a4a2a; padding: 12px; margin-bottom: 10px; }
 .decision-action { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
 .decision-action.dispatch { color: #fa8; }
@@ -251,6 +264,25 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .modal-stat .v.good { color: #7c7; }
 .modal-stat .v.warn { color: #fa8; }
 .modal-stat .v.bad  { color: #f55; }
+.mbl-visual-section {
+  margin: 16px 0 18px;
+}
+.mbl-visual-canvas {
+  width: 100%;
+  height: 300px;
+  display: block;
+  cursor: grab;
+  border: 1px solid #1e1e1e;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(80,120,80,0.12), transparent 35%),
+    linear-gradient(180deg, #101310 0%, #0a0a0a 100%);
+}
+.mbl-visual-help {
+  font-size: 10px;
+  color: #2a2a2a;
+  margin-top: 4px;
+  text-align: center;
+}
 
 .hbl-section-title {
   font-size: 11px; color: #555; text-transform: uppercase;
@@ -300,10 +332,20 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
   <button id="btnNextTick" onclick="nextTick()" disabled>⏭ Next Tick</button>
   <button id="btnReset" onclick="resetSim()">↺ Reset</button>
   <span class="badge idle" id="badge">idle</span>
-  <span style="font-size:11px; color:#444; margin-left:auto;">
-    <span class="ws-dot" id="wsDot"></span>sim :8000
-    &nbsp;&nbsp;
-    <span class="ws-dot" id="agentDot"></span>agent :8001
+  <div class="agent-selector" style="margin-left:auto;">
+    <label>
+      <input type="radio" name="agentMode" value="llm" checked onchange="onAgentModeChange()">
+      <span>🤖 LLM Agent :8001</span>
+    </label>
+    <label class="greedy">
+      <input type="radio" name="agentMode" value="greedy" onchange="onAgentModeChange()">
+      <span>⚡ Greedy :8002</span>
+    </label>
+  </div>
+  <span style="font-size:11px; color:#444;">
+    <span class="ws-dot" id="wsDot"></span>sim
+    &nbsp;
+    <span class="ws-dot" id="agentDot"></span><span id="agentDotLabel">agent</span>
   </span>
 </div>
 
@@ -313,7 +355,7 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
       <h2 style="margin-bottom:0;">20ft 컨테이너 — 인바운드 화물 3D 뷰</h2>
       <div style="display:flex; gap:10px; font-size:10px; align-items:center; flex-wrap:wrap; color:#444;">
-        <span>내부 590×235×239cm / 33.2 CBM</span>
+        <span>내부 590×235×239cm / nominal 33.2 CBM / usable 29.9 CBM</span>
         <span id="c3dInfo" style="color:#7c7;">0건</span>
         <span style="color:#4477aa;">■</span><span>일반</span>
         <span style="color:#cc7733;">■</span><span>위험물</span>
@@ -443,8 +485,14 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 </div>
 
 <script>
-const SIM   = 'http://localhost:8000';
-const AGENT = 'http://localhost:8001';
+const SIM = 'http://localhost:8000';
+const AGENT_URLS = {
+  llm:    'http://localhost:8001',
+  greedy: 'http://localhost:8002',
+};
+
+let agentMode = 'llm';   // 'llm' | 'greedy'
+function getAgentUrl() { return AGENT_URLS[agentMode]; }
 
 let ws = null;
 let lastState = null;
@@ -454,6 +502,15 @@ let activeMblId = null;
 let payloadVisible = false;
 let decisionTrace = [];
 let latestReport = null;
+
+function onAgentModeChange() {
+  agentMode = document.querySelector('input[name="agentMode"]:checked').value;
+  const label = agentMode === 'greedy' ? 'greedy :8002' : 'agent :8001';
+  document.getElementById('agentDotLabel').textContent = label;
+  document.getElementById('agentDot').classList.remove('on');
+  checkAgent();
+  clearDecision();
+}
 
 // ---------------------------------------------------------------------------
 // WebSocket
@@ -468,8 +525,9 @@ function connectWS() {
 
 async function checkAgent() {
   try {
-    const r = await fetch(`${AGENT}/health`);
+    const r = await fetch(`${getAgentUrl()}/health`);
     if (r.ok) document.getElementById('agentDot').classList.add('on');
+    else document.getElementById('agentDot').classList.remove('on');
   } catch { document.getElementById('agentDot').classList.remove('on'); }
 }
 
@@ -520,10 +578,14 @@ function handleMsg(msg) {
 // Sim API
 // ---------------------------------------------------------------------------
 
+const ARRIVAL_RATE_MULTIPLIER = 50;
+const BASE_ARRIVAL_RATES = {ELECTRONICS:2.0,CLOTHING:1.5,COSMETICS:0.8,FOOD_PRODUCTS:0.7,AUTO_PARTS:0.5,CHEMICALS:0.3,FURNITURE:0.2,MACHINERY:0.15};
+const ARRIVAL_RATES = Object.fromEntries(Object.entries(BASE_ARRIVAL_RATES).map(([k,v]) => [k, v * ARRIVAL_RATE_MULTIPLIER]));
+
 async function startSim() {
   const r = await fetch(`${SIM}/simulation/start`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({seed:42, sim_duration_hours:72, max_cbm_per_mbl:33.2}),
+    body: JSON.stringify({seed:42, sim_duration_hours:72, max_cbm_per_mbl:33.2, arrival_rates:ARRIVAL_RATES}),
   });
   const d = await r.json();
   if (!d.ok) alert(d.detail || 'Error');
@@ -588,7 +650,7 @@ function renderFlow() {
     <div class="flow-stage">
       <div class="label">Simulator</div>
       <div class="value">${state ? `T+${state.current_time}h` : 'Idle'}</div>
-      <div class="meta">buffer ${shipments.length}건<br>effective cbm ${Number(totalCbm).toFixed(2)}<br>cutoff in ${state?.time_to_cutoff ?? '-'}h</div>
+      <div class="meta">buffer ${shipments.length}건<br>effective cbm ${Number(totalCbm).toFixed(2)}<br>usable ${state?.config?.usable_cbm_per_mbl ?? '-'} CBM<br>cutoff in ${state?.time_to_cutoff ?? '-'}h</div>
     </div>
     <div class="flow-stage">
       <div class="label">Payload</div>
@@ -642,6 +704,13 @@ function renderTrace() {
 }
 
 async function refreshAgentReport() {
+  // greedy 모드는 LLM 보고서가 없으므로 스킵
+  if (agentMode === 'greedy') {
+    latestReport = null;
+    renderReport('Greedy 모드: LLM 보고서 없음');
+    renderFlow();
+    return;
+  }
   try {
     const r = await fetch(`${SIM}/simulation/report`);
     const d = await r.json();
@@ -711,11 +780,12 @@ async function askAgent() {
   if (!lastState) return;
   renderAgentPayload();
   document.getElementById('btnAsk').disabled = true;
-  document.getElementById('decisionBox').innerHTML = '<div style="color:#556;font-size:12px;">Asking LLM agent...</div>';
+  const agentLabel = agentMode === 'greedy' ? 'Greedy agent' : 'LLM agent';
+  document.getElementById('decisionBox').innerHTML = `<div style="color:#556;font-size:12px;">Asking ${agentLabel}...</div>`;
   document.getElementById('mblPlan').style.display = 'none';
 
   try {
-    const r = await fetch(`${AGENT}/decide`, {
+    const r = await fetch(`${getAgentUrl()}/decide`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify(buildAgentPayload()),
     });
@@ -765,15 +835,26 @@ function renderDecision(d) {
   const actionClass = isDispatch ? 'dispatch' : 'wait';
 
   const LABELS = {
-    buffer_count:    '버퍼 화물 수',
-    total_cbm:       '총 부피 (CBM)',
-    fill_pct:        '적재율 (%)',
-    time_to_cutoff:  '마감까지 남은 시간',
-    max_waiting_time:'최장 대기 시간',
-    near_cutoff:     '마감 임박',
-    cbm_full:        '부피 초과',
-    too_old:         '대기 초과',
-    proposed_mbls:   '제안 MBL 수',
+    // LLM agent
+    buffer_count:              '버퍼 화물 수',
+    total_cbm:                 '총 부피 (CBM)',
+    fill_pct:                  '적재율 (%)',
+    time_to_cutoff:            '마감까지 남은 시간',
+    max_waiting_time:          '최장 대기 시간',
+    near_cutoff:               '마감 임박',
+    cbm_full:                  '부피 초과',
+    too_old:                   '대기 초과',
+    proposed_mbls:             '제안 MBL 수',
+    // Greedy agent
+    mode:                      '에이전트 모드',
+    shipment_count:            '버퍼 화물 수',
+    fill_rate:                 '적재율',
+    mbl_count:                 '제안 MBL 수',
+    max_waiting_hours:         '최장 대기 시간(h)',
+    cost_now:                  '현재 출하 비용',
+    cost_wait_1tick:           '1tick 대기 비용',
+    trigger:                   '결정 트리거',
+    critical_count:            'SLA 위급 화물 수',
   };
   const analysisRows = Object.entries(d.analysis).map(([k, v]) => {
     const isBool = typeof v === 'boolean';
@@ -792,7 +873,7 @@ function renderDecision(d) {
   const plan = document.getElementById('mblPlan');
   const cards = document.getElementById('mblPlanCards');
   if (isDispatch && d.mbls && d.mbls.length > 0) {
-    const maxCbm = lastState?.config?.max_cbm_per_mbl || 33.2;
+    const maxCbm = lastState?.config?.usable_cbm_per_mbl || lastState?.config?.max_cbm_per_mbl || 33.2;
     document.getElementById('mblPlanCount').textContent = d.mbls.length;
     const bufMap = {};
     (lastState?.buffer?.shipments || []).forEach(s => { bufMap[s.shipment_id] = s; });
@@ -878,10 +959,11 @@ function renderState(s) {
   document.getElementById('nMbls').textContent = s.mbls ? s.mbls.length : 0;
 
   const buf    = s.buffer || {count:0, total_cbm:0, shipments:[]};
-  const maxCbm = s.config ? s.config.max_cbm_per_mbl : 33.2;
-  const pct    = Math.min(buf.total_cbm / maxCbm * 100, 100);
+  const usableCbm = s.config ? (s.config.usable_cbm_per_mbl || s.config.max_cbm_per_mbl) : 33.2;
+  const effectiveBufCbm = buf.total_effective_cbm ?? buf.total_cbm ?? 0;
+  const pct    = Math.min(effectiveBufCbm / usableCbm * 100, 100);
 
-  document.getElementById('cbmLabel').textContent = `${(buf.total_cbm||0).toFixed(2)} / ${maxCbm}`;
+  document.getElementById('cbmLabel').textContent = `${Number(effectiveBufCbm || 0).toFixed(2)} / ${usableCbm}`;
   const fill = document.getElementById('barFill');
   fill.style.width = `${pct}%`;
   fill.className   = 'bar-fill' + (pct >= 100 ? ' full' : pct >= 70 ? ' warn' : '');
@@ -897,7 +979,7 @@ function renderState(s) {
         return `<div class="s-row">
           <span class="sid">${sh.shipment_id}</span>
           <span class="type">${sh.item_type}</span>
-          <span class="cbm">${sh.cbm}cbm</span>
+          <span class="cbm">${(sh.effective_cbm ?? sh.cbm)}cbm</span>
           <span class="wait${urgCls}">대기 ${sh.waiting_time}h</span>
           <span style="color:#444;font-size:10px;">납기 ${sh.time_to_due?.toFixed(1)}h</span>
           <span style="color:#555;font-size:10px;">${formatDims(sh)}</span>
@@ -917,7 +999,7 @@ function renderState(s) {
       return `<div class="mbl-row" onclick="openMBLDetail('${m.mbl_id}')" title="클릭하여 상세 보기">
         <div class="mbl-row-header">
           <span class="mid">${m.mbl_id}</span>
-          <span class="info">T=${m.dispatch_time} | ${m.total_cbm}CBM | HBL ${hblCount}건 | ${(m.fill_rate*100).toFixed(0)}%</span>
+          <span class="info">T=${m.dispatch_time} | eff ${m.total_effective_cbm}CBM | HBL ${hblCount}건 | ${(m.fill_rate*100).toFixed(0)}%</span>
           <span style="font-size:10px; color:#444; margin-left:auto;">상세 →</span>
         </div>
         <div class="mbl-row-bar"><div class="mbl-row-bar-fill ${fillCls}" style="width:${fillPct}%"></div></div>
@@ -968,7 +1050,7 @@ function clearAll() {
   document.getElementById('nMbls').textContent = '0';
   document.getElementById('nDisp').textContent = '0';
   document.getElementById('barFill').style.width = '0%';
-  document.getElementById('cbmLabel').textContent = '0 / 33.2';
+  document.getElementById('cbmLabel').textContent = '0 / 29.9';
   document.getElementById('bufferList').innerHTML = '<div style="color:#333;font-size:11px;">No shipments in buffer</div>';
   document.getElementById('mblList').innerHTML    = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
   updateContainer3D([]);
@@ -1129,49 +1211,184 @@ function _packBoxes(shipments) {
   const { L, W, H } = CONT_20FT;
   const GAP = 4;
   const OVERFLOW_GAP = 40; // 컨테이너 옆 여백
+  const OUTSIDE_ROW_WIDTH = 2200;
+  const OUTSIDE_MAX_LAYERS = 5;
 
   const result = [];
-  // 컨테이너 내부 커서
-  let x = 0, z = 0, y = 0, rowW = 0, layerH = 0;
-  // 컨테이너 외부(오른쪽) 커서
-  const ox0 = L + OVERFLOW_GAP;
-  let ox = ox0, oy = 0, oStack = 0, oRowW = 0, oLayerH = 0;
-  let inside = true; // 아직 컨테이너 내부에 배치 중
-
-  for (const s of shipments) {
+  const overflow = [];
+  const packedInput = shipments.map((s) => {
+    // 항상 CBM에서 역산 (length_cm 등은 olist 소비재 치수로 화물 부피와 불일치)
     const cbm = (s.effective_cbm != null ? s.effective_cbm : s.cbm) || 0.05;
-    const h = Math.cbrt(cbm * 1e6);
-    const bL = h * 1.5, bH = h, bW = h * 0.9;
+    const volumeCm3 = cbm * 1e6;
+    const ratioL = 1.5, ratioH = 1.0, ratioW = 0.9;
+    const scale = Math.cbrt(volumeCm3 / (ratioL * ratioH * ratioW));
+    const bL = ratioL * scale;
+    const bH = ratioH * scale;
+    const bW = ratioW * scale;
+    return {
+      id: s.shipment_id,
+      category: s.cargo_category,
+      bL,
+      bH,
+      bW,
+      volume: bL * bH * bW,
+    };
+  }).sort((a, b) => b.volume - a.volume);
 
-    if (inside) {
-      if (x + bL > L)  { x = 0; z += rowW + GAP; rowW = 0; }
-      if (z + bW > W)  { x = 0; z = 0; rowW = 0; y += layerH + GAP; layerH = 0; }
-      if (y + bH > H)  { inside = false; } // 컨테이너 꽉 참 → 외부로 전환
+  let freeSpaces = [{ x: 0, y: 0, z: 0, l: L, h: H, w: W }];
+
+  function pruneFreeSpaces(spaces) {
+    return spaces.filter((space, i) => !spaces.some((other, j) =>
+      i !== j &&
+      space.x >= other.x &&
+      space.y >= other.y &&
+      space.z >= other.z &&
+      space.x + space.l <= other.x + other.l &&
+      space.y + space.h <= other.y + other.h &&
+      space.z + space.w <= other.z + other.w
+    ));
+  }
+
+  function splitFreeSpace(space, placed) {
+    const spaces = [];
+    const rightL = space.l - placed.l - GAP;
+    const frontW = space.w - placed.w - GAP;
+    const topH = space.h - placed.h - GAP;
+
+    if (rightL > 8) {
+      spaces.push({
+        x: space.x + placed.l + GAP,
+        y: space.y,
+        z: space.z,
+        l: rightL,
+        h: space.h,
+        w: space.w,
+      });
+    }
+    if (frontW > 8) {
+      spaces.push({
+        x: space.x,
+        y: space.y,
+        z: space.z + placed.w + GAP,
+        l: placed.l,
+        h: space.h,
+        w: frontW,
+      });
+    }
+    if (topH > 8) {
+      spaces.push({
+        x: space.x,
+        y: space.y + placed.h + GAP,
+        z: space.z,
+        l: placed.l,
+        h: topH,
+        w: placed.w,
+      });
+    }
+    return spaces;
+  }
+
+  for (const box of packedInput) {
+    let bestIdx = -1;
+    let bestRotated = false;
+    let bestWaste = Infinity;
+
+    for (let i = 0; i < freeSpaces.length; i++) {
+      const space = freeSpaces[i];
+      const orientations = [
+        { l: box.bL, w: box.bW, rotated: false },
+        { l: box.bW, w: box.bL, rotated: true },
+      ];
+      for (const orient of orientations) {
+        if (orient.l <= space.l && box.bH <= space.h && orient.w <= space.w) {
+          const waste = (space.l * space.h * space.w) - (orient.l * box.bH * orient.w);
+          if (waste < bestWaste) {
+            bestWaste = waste;
+            bestIdx = i;
+            bestRotated = orient.rotated;
+          }
+        }
+      }
     }
 
-    if (!inside) {
-      // 3층씩 쌓고 옆으로 이어붙임
-      result.push({ id: s.shipment_id, x: ox, y: oy, z: (W - bW) / 2, bL, bH, bW, category: s.cargo_category, out: true });
-      oLayerH = Math.max(oLayerH, bH);
-      oRowW   = Math.max(oRowW,   bL);
-      if (++oStack >= 3) {
-        // 3층 완료 → 다음 열로
-        ox     += oRowW + GAP;
-        oy      = 0;
-        oStack  = 0;
-        oRowW   = 0;
-        oLayerH = 0;
-      } else {
-        oy += bH + GAP;
-      }
+    if (bestIdx === -1) {
+      overflow.push({ ...box, out: true });
       continue;
     }
 
-    result.push({ id: s.shipment_id, x, y, z, bL, bH, bW, category: s.cargo_category, out: false });
-    x += bL + GAP;
-    rowW   = Math.max(rowW,   bW);
-    layerH = Math.max(layerH, bH);
+    const space = freeSpaces[bestIdx];
+    const placed = {
+      id: box.id,
+      x: space.x,
+      y: space.y,
+      z: space.z,
+      bL: bestRotated ? box.bW : box.bL,
+      bH: box.bH,
+      bW: bestRotated ? box.bL : box.bW,
+      category: box.category,
+      out: false,
+    };
+    result.push(placed);
+
+    freeSpaces.splice(bestIdx, 1, ...splitFreeSpace(space, {
+      l: placed.bL,
+      h: placed.bH,
+      w: placed.bW,
+    }));
+    freeSpaces = pruneFreeSpaces(freeSpaces)
+      .sort((a, b) => (a.y - b.y) || (a.z - b.z) || (a.x - b.x));
   }
+
+  if (overflow.length) {
+    const ox0 = L + OVERFLOW_GAP;
+    let ox = ox0;
+    let oz = -W * 0.9;
+    let rowDepth = 0;
+    let stackLevel = 0;
+    let stackHeight = 0;
+    let stackFootprintL = 0;
+    let stackFootprintW = 0;
+
+    overflow.forEach((b) => {
+      if (stackLevel >= OUTSIDE_MAX_LAYERS) {
+        ox += stackFootprintL + GAP * 2;
+        rowDepth = Math.max(rowDepth, stackFootprintW);
+        stackLevel = 0;
+        stackHeight = 0;
+        stackFootprintL = 0;
+        stackFootprintW = 0;
+      }
+
+      if (ox > ox0 && ox + b.bL > ox0 + OUTSIDE_ROW_WIDTH) {
+        ox = ox0;
+        oz += rowDepth + GAP * 3;
+        rowDepth = 0;
+        stackLevel = 0;
+        stackHeight = 0;
+        stackFootprintL = 0;
+        stackFootprintW = 0;
+      }
+
+      result.push({
+        id: b.id,
+        x: ox,
+        y: stackHeight,
+        z: oz,
+        bL: b.bL,
+        bH: b.bH,
+        bW: b.bW,
+        category: b.category,
+        out: true,
+      });
+
+      stackLevel += 1;
+      stackHeight += b.bH + GAP;
+      stackFootprintL = Math.max(stackFootprintL, b.bL);
+      stackFootprintW = Math.max(stackFootprintW, b.bW);
+      rowDepth = Math.max(rowDepth, stackFootprintW);
+    });
+  }
+
   return result;
 }
 
@@ -1239,7 +1456,7 @@ function openMBLDetail(mblId) {
   if (!mbl) return;
   activeMblId = mblId;
 
-  const maxCbm  = lastState?.config?.max_cbm_per_mbl || 33.2;
+  const maxCbm  = lastState?.config?.usable_cbm_per_mbl || lastState?.config?.max_cbm_per_mbl || 33.2;
   const fillPct = Math.min(mbl.fill_rate * 100, 100);
   const fillCls = fillPct >= 100 ? 'full' : fillPct >= 70 ? 'warn' : '';
   const fillValCls = fillPct >= 70 ? (fillPct >= 100 ? 'bad' : 'warn') : 'good';
@@ -1304,20 +1521,20 @@ function openMBLDetail(mblId) {
     </div>
 
     <div class="bar-wrap">
-      <div class="bar-label">CBM 적재율 (${mbl.total_cbm} / ${maxCbm})</div>
+      <div class="bar-label">실사용 기준 적재율 (${mbl.total_effective_cbm} / ${maxCbm})</div>
       <div class="bar-track"><div class="bar-fill ${fillCls}" style="width:${fillPct}%;"></div></div>
+    </div>
+
+    <div class="mbl-visual-section">
+      <div style="font-size:11px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+        <span id="mbl3dLabel">3D 적재 뷰 — ${(mbl.hbls||[]).length}건 / ${maxCbm} CBM</span>
+      </div>
+      <canvas id="mbl3dCanvas" class="mbl-visual-canvas"></canvas>
+      <div class="mbl-visual-help">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동</div>
     </div>
 
     <div class="hbl-section-title">HBL 목록 — ${(mbl.hbls||[]).length}건</div>
     <div style="border-top:1px solid #2a2a2a;">${hblRows || '<div style="color:#333;padding:8px;">HBL 없음</div>'}</div>
-
-    <div style="margin-top:16px;">
-      <div style="font-size:11px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
-        3D 적재 뷰 — ${(mbl.hbls||[]).length}건 / ${maxCbm} CBM
-      </div>
-      <canvas id="mbl3dCanvas" style="width:100%; height:300px; display:block; cursor:grab; border:1px solid #1e1e1e;"></canvas>
-      <div style="font-size:10px; color:#2a2a2a; margin-top:4px; text-align:center;">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동</div>
-    </div>
   `;
 
   document.getElementById('mblModal').style.display = 'block';
@@ -1336,7 +1553,11 @@ function initMBL3D(hbls) {
   if (typeof THREE === 'undefined') return;
   const canvas = document.getElementById('mbl3dCanvas');
   if (!canvas) return;
-  if (_mbl3d) { _mbl3d.renderer.dispose(); _mbl3d = null; }
+  if (_mbl3d) {
+    _mbl3d.kill();
+    _mbl3d.renderer.dispose();
+    _mbl3d = null;
+  }
 
   const W = canvas.offsetWidth || 800, H = canvas.offsetHeight || 300;
   const { L, W: CW, H: CH } = CONT_20FT;
@@ -1370,14 +1591,15 @@ function initMBL3D(hbls) {
   floor.position.set(L / 2, 0, 0);
   scene.add(floor);
 
-  // HBL → shipment 형태로 변환해 _packBoxes 재활용
-  const shipments = hbls.map(h => ({
-    shipment_id: h.hbl_id,
-    cbm: h.cbm,
-    effective_cbm: h.effective_cbm,
-    cargo_category: h.cargo_category,
-  }));
+  const shipments = (hbls || []).map(h => ({ ...h, shipment_id: h.hbl_id }));
   const packed = _packBoxes(shipments);
+  const outCount = packed.filter(b => b.out).length;
+  const label = document.getElementById('mbl3dLabel');
+  if (label) {
+    label.textContent = outCount > 0
+      ? `3D 적재 뷰 — ${packed.length}건 (컨테이너 외 ${outCount}건) / 20ft`
+      : `3D 적재 뷰 — ${packed.length}건 / 20ft`;
+  }
 
   for (const b of packed) {
     const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
@@ -1392,7 +1614,6 @@ function initMBL3D(hbls) {
     ));
   }
 
-  // 카메라 orbit
   let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
   const center = new THREE.Vector3(L / 2, CH / 2, 0);
   function positionCamera() {
@@ -1407,36 +1628,41 @@ function initMBL3D(hbls) {
   positionCamera();
 
   let dragging = false, lastMouse = { x: 0, y: 0 };
-  canvas.addEventListener('mousedown', e => { dragging = true; lastMouse = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; });
+  canvas.addEventListener('mousedown', e => { dragging = true; lastMouse = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; canvas.focus(); });
   canvas.addEventListener('mouseup',   () => { dragging = false; canvas.style.cursor = 'grab'; });
-  canvas.addEventListener('mouseleave',() => { dragging = false; });
+  canvas.addEventListener('mouseleave',() => { dragging = false; canvas.style.cursor = 'grab'; });
   canvas.addEventListener('mousemove', e => {
     if (!dragging) return;
-    spherical.theta -= (e.clientX - lastMouse.x) * 0.008;
-    spherical.phi    = Math.max(0.08, Math.min(Math.PI / 2.05, spherical.phi - (e.clientY - lastMouse.y) * 0.008));
+    const dx = e.clientX - lastMouse.x, dy = e.clientY - lastMouse.y;
+    spherical.theta -= dx * 0.008;
+    spherical.phi    = Math.max(0.08, Math.min(Math.PI / 2.05, spherical.phi - dy * 0.008));
     lastMouse = { x: e.clientX, y: e.clientY };
     positionCamera();
   });
   canvas.addEventListener('wheel', e => {
     spherical.radius = Math.max(200, Math.min(4000, spherical.radius + e.deltaY * 0.6));
-    positionCamera(); e.preventDefault();
+    positionCamera();
+    e.preventDefault();
   }, { passive: false });
 
   const mblKeys = {};
   const mblCodeMap = { KeyW:'w', KeyS:'s', KeyA:'a', KeyD:'d', KeyQ:'q', KeyE:'e' };
-  window.addEventListener('keydown', e => {
+  const onKeyDown = e => {
     const tag = document.activeElement && document.activeElement.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (e.code in mblCodeMap) { mblKeys[mblCodeMap[e.code]] = true; e.preventDefault(); }
-  });
-  window.addEventListener('keyup', e => { if (e.code in mblCodeMap) mblKeys[mblCodeMap[e.code]] = false; });
+  };
+  const onKeyUp = e => { if (e.code in mblCodeMap) mblKeys[mblCodeMap[e.code]] = false; };
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 
-  new ResizeObserver(entries => {
+  const resizeObserver = new ResizeObserver(entries => {
     const rect = entries[0].contentRect;
     renderer.setSize(rect.width || 800, rect.height || 300, false);
     camera.aspect = (rect.width || 800) / (rect.height || 300);
     camera.updateProjectionMatrix();
-  }).observe(canvas);
+  });
+  resizeObserver.observe(canvas);
 
   let alive = true;
   function animate() {
@@ -1454,7 +1680,15 @@ function initMBL3D(hbls) {
     renderer.render(scene, camera);
   }
   animate();
-  _mbl3d = { renderer, kill: () => { alive = false; } };
+  _mbl3d = {
+    renderer,
+    kill: () => {
+      alive = false;
+      resizeObserver.disconnect();
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    },
+  };
 }
 
 function toggleHBLDetail(hblId) {
