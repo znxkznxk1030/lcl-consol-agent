@@ -294,7 +294,10 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 .hbl-row-main {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 0; font-size: 11px; flex-wrap: wrap;
+  cursor: pointer; border-radius: 3px; transition: background 0.15s;
 }
+.hbl-row-main:hover { background: #1a1a2a; }
+.hbl-row-main.hbl-highlighted { background: #1a2a1a; outline: 1px solid #4a4; }
 .hbl-row-main .hbl-id   { color: #556; width: 110px; flex-shrink: 0; font-size: 10px; }
 .hbl-row-main .hbl-ship { color: #7af; width: 110px; flex-shrink: 0; }
 .hbl-row-main .hbl-type { color: #aaa; width: 110px; flex-shrink: 0; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -776,6 +779,12 @@ function toggleAgentPayload() {
   document.getElementById('btnShowPayload').textContent = payloadVisible ? 'Payload 숨기기' : 'Payload 보기';
 }
 
+function getPlanShipmentIds(plan) {
+  if (Array.isArray(plan)) return plan;
+  if (plan && Array.isArray(plan.shipment_ids)) return plan.shipment_ids;
+  return [];
+}
+
 async function askAgent() {
   if (!lastState) return;
   renderAgentPayload();
@@ -803,7 +812,7 @@ async function askAgent() {
     const hasDispatch = d.action === 'DISPATCH' && d.mbls && d.mbls.length > 0;
     document.getElementById('btnApply').disabled = !hasDispatch;
     document.getElementById('applyHint').textContent = hasDispatch
-      ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.flat().length}건`
+      ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.reduce((sum, plan) => sum + getPlanShipmentIds(plan).length, 0)}건`
       : '';
     await refreshAgentReport();
     renderFlow();
@@ -878,7 +887,8 @@ function renderDecision(d) {
     const bufMap = {};
     (lastState?.buffer?.shipments || []).forEach(s => { bufMap[s.shipment_id] = s; });
 
-    cards.innerHTML = d.mbls.map((ids, i) => {
+    cards.innerHTML = d.mbls.map((planObj, i) => {
+      const ids = getPlanShipmentIds(planObj);
       const ships  = ids.map(id => bufMap[id]).filter(Boolean);
       const cbm    = ships.reduce((a, s) => a + (s.effective_cbm || s.cbm), 0);
       const pct    = Math.min(cbm / maxCbm * 100, 100);
@@ -1209,103 +1219,110 @@ function initContainer3D() {
 
 function _packBoxes(shipments) {
   const { L, W, H } = CONT_20FT;
-  const GAP = 4;
-  const OVERFLOW_GAP = 40; // 컨테이너 옆 여백
+  const GAP = 0;           // 박스 간 간격 없음 (꽉 채움)
+  const MIN_SPACE = 1;     // 유효 공간 최소 크기 (cm)
+  const OVERFLOW_GAP = 40;
   const OUTSIDE_ROW_WIDTH = 2200;
   const OUTSIDE_MAX_LAYERS = 5;
 
   const result = [];
   const overflow = [];
   const packedInput = shipments.map((s) => {
-    // 항상 CBM에서 역산 (length_cm 등은 olist 소비재 치수로 화물 부피와 불일치)
-    const cbm = (s.effective_cbm != null ? s.effective_cbm : s.cbm) || 0.05;
-    const volumeCm3 = cbm * 1e6;
-    const ratioL = 1.5, ratioH = 1.0, ratioW = 0.9;
-    const scale = Math.cbrt(volumeCm3 / (ratioL * ratioH * ratioW));
-    const bL = ratioL * scale;
-    const bH = ratioH * scale;
-    const bW = ratioW * scale;
-    return {
-      id: s.shipment_id,
-      category: s.cargo_category,
-      bL,
-      bH,
-      bW,
-      volume: bL * bH * bW,
-    };
+    let bL, bH, bW;
+    if (s.length_cm && s.width_cm && s.height_cm) {
+      bL = s.length_cm; bH = s.height_cm; bW = s.width_cm;
+    } else {
+      const cbm = (s.effective_cbm != null ? s.effective_cbm : s.cbm) || 0.05;
+      const volumeCm3 = cbm * 1e6;
+      const ratioL = 1.5, ratioH = 1.0, ratioW = 0.9;
+      const scale = Math.cbrt(volumeCm3 / (ratioL * ratioH * ratioW));
+      bL = ratioL * scale; bH = ratioH * scale; bW = ratioW * scale;
+    }
+    return { id: s.shipment_id, category: s.cargo_category, bL, bH, bW, volume: bL * bH * bW };
   }).sort((a, b) => b.volume - a.volume);
 
-  let freeSpaces = [{ x: 0, y: 0, z: 0, l: L, h: H, w: W }];
+  const PAD_WALL = 5;    // 벽(앞·뒤·좌·우) 패딩 cm
+  const PAD_CEIL = 10;   // 천장 패딩 cm
+  let freeSpaces = [{
+    x: PAD_WALL, y: 0, z: PAD_WALL,
+    l: L - PAD_WALL * 2,
+    h: H - PAD_CEIL,
+    w: W - PAD_WALL * 2,
+  }];
 
   function pruneFreeSpaces(spaces) {
-    return spaces.filter((space, i) => !spaces.some((other, j) =>
+    return spaces.filter((sp, i) => !spaces.some((other, j) =>
       i !== j &&
-      space.x >= other.x &&
-      space.y >= other.y &&
-      space.z >= other.z &&
-      space.x + space.l <= other.x + other.l &&
-      space.y + space.h <= other.y + other.h &&
-      space.z + space.w <= other.z + other.w
+      sp.x >= other.x && sp.y >= other.y && sp.z >= other.z &&
+      sp.x + sp.l <= other.x + other.l &&
+      sp.y + sp.h <= other.y + other.h &&
+      sp.z + sp.w <= other.z + other.w
     ));
   }
 
-  function splitFreeSpace(space, placed) {
-    const spaces = [];
-    const rightL = space.l - placed.l - GAP;
-    const frontW = space.w - placed.w - GAP;
-    const topH = space.h - placed.h - GAP;
+  // 두 가지 Guillotine 컷 방향을 모두 시도하고 유효 공간 합이 큰 쪽 선택
+  function splitFreeSpace(space, pl) {
+    const g = GAP;
+    const rL = space.l - pl.l - g;
+    const fW = space.w - pl.w - g;
+    const tH = space.h - pl.h - g;
 
-    if (rightL > 8) {
-      spaces.push({
-        x: space.x + placed.l + GAP,
-        y: space.y,
-        z: space.z,
-        l: rightL,
-        h: space.h,
-        w: space.w,
-      });
-    }
-    if (frontW > 8) {
-      spaces.push({
-        x: space.x,
-        y: space.y,
-        z: space.z + placed.w + GAP,
-        l: placed.l,
-        h: space.h,
-        w: frontW,
-      });
-    }
-    if (topH > 8) {
-      spaces.push({
-        x: space.x,
-        y: space.y + placed.h + GAP,
-        z: space.z,
-        l: placed.l,
-        h: topH,
-        w: placed.w,
-      });
-    }
-    return spaces;
+    // 방향 A: 오른쪽이 full-width, 앞이 placed.l 폭
+    const A = [];
+    if (rL > MIN_SPACE) A.push({ x: space.x + pl.l + g, y: space.y, z: space.z,
+                                  l: rL, h: space.h, w: space.w });
+    if (fW > MIN_SPACE) A.push({ x: space.x, y: space.y, z: space.z + pl.w + g,
+                                  l: pl.l, h: space.h, w: fW });
+
+    // 방향 B: 앞이 full-length, 오른쪽이 placed.w 폭
+    const B = [];
+    if (fW > MIN_SPACE) B.push({ x: space.x, y: space.y, z: space.z + pl.w + g,
+                                  l: space.l, h: space.h, w: fW });
+    if (rL > MIN_SPACE) B.push({ x: space.x + pl.l + g, y: space.y, z: space.z,
+                                  l: rL, h: space.h, w: pl.w });
+
+    // 더 큰 총 체적을 가진 방향 선택
+    const volA = A.reduce((s, c) => s + c.l * c.h * c.w, 0);
+    const volB = B.reduce((s, c) => s + c.l * c.h * c.w, 0);
+    const best = volA >= volB ? A : B;
+
+    // 위쪽 공간은 항상 추가
+    if (tH > MIN_SPACE) best.push({ x: space.x, y: space.y + pl.h + g, z: space.z,
+                                     l: pl.l, h: tH, w: pl.w });
+    return best;
   }
 
   for (const box of packedInput) {
     let bestIdx = -1;
-    let bestRotated = false;
+    let bestOrient = null;
     let bestWaste = Infinity;
+
+    // 카테고리별 허용 회전 방향
+    // FRAGILE: 수직 유지 필요 → 수평 90°만 (h 고정)
+    // 그 외: 6방향 모두
+    const orients = box.category === 'FRAGILE'
+      ? [
+          { l: box.bL, h: box.bH, w: box.bW },
+          { l: box.bW, h: box.bH, w: box.bL },
+        ]
+      : [
+          { l: box.bL, h: box.bH, w: box.bW },
+          { l: box.bW, h: box.bH, w: box.bL },
+          { l: box.bL, h: box.bW, w: box.bH },
+          { l: box.bH, h: box.bL, w: box.bW },
+          { l: box.bW, h: box.bL, w: box.bH },
+          { l: box.bH, h: box.bW, w: box.bL },
+        ];
 
     for (let i = 0; i < freeSpaces.length; i++) {
       const space = freeSpaces[i];
-      const orientations = [
-        { l: box.bL, w: box.bW, rotated: false },
-        { l: box.bW, w: box.bL, rotated: true },
-      ];
-      for (const orient of orientations) {
-        if (orient.l <= space.l && box.bH <= space.h && orient.w <= space.w) {
-          const waste = (space.l * space.h * space.w) - (orient.l * box.bH * orient.w);
+      for (const orient of orients) {
+        if (orient.l <= space.l && orient.h <= space.h && orient.w <= space.w) {
+          const waste = (space.l * space.h * space.w) - (orient.l * orient.h * orient.w);
           if (waste < bestWaste) {
             bestWaste = waste;
             bestIdx = i;
-            bestRotated = orient.rotated;
+            bestOrient = orient;
           }
         }
       }
@@ -1319,22 +1336,14 @@ function _packBoxes(shipments) {
     const space = freeSpaces[bestIdx];
     const placed = {
       id: box.id,
-      x: space.x,
-      y: space.y,
-      z: space.z,
-      bL: bestRotated ? box.bW : box.bL,
-      bH: box.bH,
-      bW: bestRotated ? box.bL : box.bW,
+      x: space.x, y: space.y, z: space.z,
+      bL: bestOrient.l, bH: bestOrient.h, bW: bestOrient.w,
       category: box.category,
       out: false,
     };
     result.push(placed);
 
-    freeSpaces.splice(bestIdx, 1, ...splitFreeSpace(space, {
-      l: placed.bL,
-      h: placed.bH,
-      w: placed.bW,
-    }));
+    freeSpaces.splice(bestIdx, 1, ...splitFreeSpace(space, { l: placed.bL, h: placed.bH, w: placed.bW }));
     freeSpaces = pruneFreeSpaces(freeSpaces)
       .sort((a, b) => (a.y - b.y) || (a.z - b.z) || (a.x - b.x));
   }
@@ -1469,7 +1478,7 @@ function openMBLDetail(mblId) {
       ? '<span style="color:#f55; font-size:9px; margin-left:4px;">SLA위반</span>' : '';
     return `
       <div class="hbl-row" id="hbl-row-${h.hbl_id}">
-        <div class="hbl-row-main">
+        <div class="hbl-row-main" onclick="highlightHBL('${h.shipment_id}')">
           <span class="hbl-id">${h.hbl_id}</span>
           <span class="hbl-ship">${h.shipment_id}</span>
           <span class="hbl-type">${h.item_type}</span>
@@ -1534,11 +1543,11 @@ function openMBLDetail(mblId) {
     </div>
 
     <div class="hbl-section-title">HBL 목록 — ${(mbl.hbls||[]).length}건</div>
-    <div style="border-top:1px solid #2a2a2a;">${hblRows || '<div style="color:#333;padding:8px;">HBL 없음</div>'}</div>
+    <div style="border-top:1px solid #2a2a2a; max-height:310px; overflow-y:auto;">${hblRows || '<div style="color:#333;padding:8px;">HBL 없음</div>'}</div>
   `;
 
   document.getElementById('mblModal').style.display = 'block';
-  requestAnimationFrame(() => initMBL3D(mbl.hbls || []));
+  requestAnimationFrame(() => initMBL3D(mbl.loading_plan || null, mbl.hbls || []));
 }
 
 function closeMBLDetail() {
@@ -1549,7 +1558,54 @@ function closeMBLDetail() {
 
 let _mbl3d = null;
 
-function initMBL3D(hbls) {
+function packFromLoadingPlan(loadingPlan, hbls) {
+  if (!loadingPlan || !Array.isArray(loadingPlan.positions)) return null;
+  const hblMap = {};
+  (hbls || []).forEach(h => { hblMap[h.shipment_id] = h; });
+
+  const result = loadingPlan.positions.map(pos => {
+    const dims = pos.dimensions || {};
+    const point = pos.position || {};
+    const hbl = hblMap[pos.shipment_id] || {};
+    return {
+      id: pos.shipment_id,
+      x: (point.x_mm || 0) / 10,
+      y: (point.z_mm || 0) / 10,
+      z: (point.y_mm || 0) / 10,
+      bL: (dims.length_mm || 0) / 10,
+      bH: (dims.height_mm || 0) / 10,
+      bW: (dims.width_mm || 0) / 10,
+      category: pos.cargo_category || hbl.cargo_category || 'GENERAL',
+      out: false,
+    };
+  });
+
+  // 적재 불가 화물 — 컨테이너 옆에 out:true 로 표시
+  const unplaceable = loadingPlan.unplaceable_shipments || [];
+  const { L, W: CW } = CONT_20FT;
+  let outX = L + 20, outZ = 0, rowMaxL = 0;
+  for (const sid of unplaceable) {
+    const h = hblMap[sid];
+    if (!h) continue;
+    let bL, bH, bW;
+    if (h.length_cm && h.width_cm && h.height_cm) {
+      bL = h.length_cm; bH = h.height_cm; bW = h.width_cm;
+    } else {
+      const vol = (h.cbm || 0.05) * 1e6;
+      const scale = Math.cbrt(vol / (1.5 * 1.0 * 0.9));
+      bL = 1.5 * scale; bH = scale; bW = 0.9 * scale;
+    }
+    result.push({ id: sid, x: outX, y: 0, z: outZ - CW / 2, bL, bH, bW,
+      category: h.cargo_category || 'GENERAL', out: true });
+    outZ += bW + 4;
+    rowMaxL = Math.max(rowMaxL, bL);
+    if (outZ > CW) { outZ = 0; outX += rowMaxL + 10; rowMaxL = 0; }
+  }
+
+  return result;
+}
+
+function initMBL3D(loadingPlan, hbls) {
   if (typeof THREE === 'undefined') return;
   const canvas = document.getElementById('mbl3dCanvas');
   if (!canvas) return;
@@ -1591,8 +1647,7 @@ function initMBL3D(hbls) {
   floor.position.set(L / 2, 0, 0);
   scene.add(floor);
 
-  const shipments = (hbls || []).map(h => ({ ...h, shipment_id: h.hbl_id }));
-  const packed = _packBoxes(shipments);
+  const packed = _packBoxes(hbls || []);
   const outCount = packed.filter(b => b.out).length;
   const label = document.getElementById('mbl3dLabel');
   if (label) {
@@ -1601,17 +1656,21 @@ function initMBL3D(hbls) {
       : `3D 적재 뷰 — ${packed.length}건 / 20ft`;
   }
 
+  const meshById = {};
   for (const b of packed) {
     const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
     const col = CAT_COLORS_3D[b.category] || 0x445566;
-    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
+    const normalOpacity = b.out ? 0.55 : 0.82;
+    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: normalOpacity });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - CW / 2);
+    mesh.userData = { id: b.id, col, normalOpacity };
     scene.add(mesh);
     mesh.add(new THREE.LineSegments(
       new THREE.EdgesGeometry(geo),
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 })
     ));
+    if (b.id) meshById[b.id] = mesh;
   }
 
   let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
@@ -1680,6 +1739,7 @@ function initMBL3D(hbls) {
     renderer.render(scene, camera);
   }
   animate();
+  let _highlightedId = null;
   _mbl3d = {
     renderer,
     kill: () => {
@@ -1688,7 +1748,38 @@ function initMBL3D(hbls) {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     },
+    highlight: (id) => {
+      const toggle = _highlightedId === id;
+      _highlightedId = toggle ? null : id;
+      const newId = _highlightedId;
+      for (const mesh of Object.values(meshById)) {
+        const { col, normalOpacity } = mesh.userData;
+        if (_highlightedId === null) {
+          mesh.material.color.setHex(col);
+          mesh.material.emissive.setHex(0x000000);
+          mesh.material.opacity = normalOpacity;
+        } else if (mesh.userData.id === _highlightedId) {
+          mesh.material.color.setHex(0xffffff);
+          mesh.material.emissive.setHex(col);
+          mesh.material.opacity = 1.0;
+        } else {
+          mesh.material.color.setHex(col);
+          mesh.material.emissive.setHex(0x000000);
+          mesh.material.opacity = 0.12;
+        }
+      }
+      return newId;
+    },
   };
+}
+
+function highlightHBL(shipmentId) {
+  const newId = _mbl3d ? _mbl3d.highlight(shipmentId) : null;
+  document.querySelectorAll('.hbl-row-main').forEach(el => el.classList.remove('hbl-highlighted'));
+  if (newId !== null) {
+    document.querySelectorAll(`.hbl-row-main[onclick="highlightHBL('${newId}')"]`)
+      .forEach(el => el.classList.add('hbl-highlighted'));
+  }
 }
 
 function toggleHBLDetail(hblId) {

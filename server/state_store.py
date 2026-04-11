@@ -132,6 +132,7 @@ class SimulationStore:
             "usable_cbm_per_mbl": usable_container_cbm(max_cbm),
             "fill_rate": round(m.total_effective_cbm / usable_container_cbm(max_cbm), 4),
             "nominal_fill_rate": round(m.total_cbm / max_cbm, 4),
+            "loading_plan": m.loading_plan,
             "hbls": hbls,
         }
 

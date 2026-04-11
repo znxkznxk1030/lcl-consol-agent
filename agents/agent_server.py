@@ -4,7 +4,7 @@ agent_server.py — Agent Server :8001
 POST /decide
   body: state (Sim Server의 GET /state 응답 그대로)
   return: { action, mbls, reason, analysis }
-  mbls: List[List[str]]  — 각 inner list = 하나의 MBL에 담을 shipment ID 목록
+  mbls: List[dict]  — 각 plan = shipment_ids + loading_plan
 
 LLM 기반 AI Agent가 현재 시뮬레이션 상태를 분석해 의사결정한다.
 API 키/SDK 미설정 시 내부 fallback 로직을 사용한다.
@@ -60,7 +60,7 @@ class DecideRequest(BaseModel):
 
 class DecideResponse(BaseModel):
     action: str                # "DISPATCH" | "WAIT"
-    mbls: List[List[str]]      # 각 inner list = 하나의 MBL
+    mbls: List[dict]           # 각 plan = 하나의 MBL
     reason: str
     analysis: dict
 

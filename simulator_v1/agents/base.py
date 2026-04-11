@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import List, Dict
 
+from simulator_v1.planning import build_mbl_plans_from_groupings
+
 
 class AgentBase(ABC):
     agent_id: str = "base"
@@ -28,7 +30,7 @@ class AgentBase(ABC):
                 "schema": "action/v1",
                 "agent_id": str,
                 "action": "WAIT" | "DISPATCH",
-                "mbls": List[List[str]],   # 각 inner list = 하나의 MBL
+                "mbls": List[dict],   # 각 plan = 하나의 MBL
                 "reason": str  (optional)
             }
         """
@@ -120,7 +122,7 @@ class AgentBase(ABC):
     def _make_action(
         self,
         action: str,
-        mbls: List[List[str]],
+        mbls: List[dict],
         reason: str = "",
     ) -> dict:
         return {
@@ -130,3 +132,11 @@ class AgentBase(ABC):
             "mbls": mbls,
             "reason": reason,
         }
+
+    def _make_plans(
+        self,
+        groupings: List[List[str]],
+        shipments: List[dict],
+        max_cbm: float,
+    ) -> List[dict]:
+        return build_mbl_plans_from_groupings(groupings, shipments, max_cbm)

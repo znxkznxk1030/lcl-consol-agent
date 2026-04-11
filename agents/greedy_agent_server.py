@@ -4,7 +4,7 @@ greedy_agent_server.py — Greedy Agent Server :8002
 POST /decide
   body: state (Sim Server의 GET /state 응답 그대로)
   return: { action, mbls, reason, analysis }
-  mbls: List[List[str]]  — 각 inner list = 하나의 MBL에 담을 shipment ID 목록
+  mbls: List[dict]  — 각 plan = shipment_ids + loading_plan
 
 LLM 없이 순수 greedy 알고리즘으로 의사결정:
   fill_rate = total_effective_cbm / max_cbm  (치수 l×w×h/1,000,000, FRAGILE ×1.3)
@@ -30,6 +30,7 @@ from typing import List, Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from simulator_v1.planning import build_mbl_plans_from_groupings
 from simulator_v1.volume_model import effective_cbm_from_dict, shipment_cbm_from_dict, usable_container_cbm
 
 # ---------------------------------------------------------------------------
@@ -62,7 +63,7 @@ class DecideRequest(BaseModel):
 
 class DecideResponse(BaseModel):
     action: str                 # "DISPATCH" | "WAIT"
-    mbls: List[List[str]]       # 각 inner list = 하나의 MBL
+    mbls: List[dict]            # 각 plan = 하나의 MBL
     reason: str
     analysis: dict
 
@@ -195,7 +196,8 @@ def _greedy_decide(state: dict) -> DecideResponse:
     # --- Rule 2: SLA CRITICAL ---
     critical = [s for s in shipments if s.get("time_to_due", 999.0) < 6.0]
     if critical:
-        mbl_candidates = _compatible_bin_pack(shipments, max_cbm)
+        groupings = _compatible_bin_pack(shipments, max_cbm)
+        mbl_candidates = build_mbl_plans_from_groupings(groupings, shipments, max_cbm)
         return DecideResponse(
             action="DISPATCH",
             mbls=mbl_candidates,
@@ -205,7 +207,8 @@ def _greedy_decide(state: dict) -> DecideResponse:
 
     # --- Rule 3: cutoff 임박 ---
     if time_to_cutoff <= 2.0:
-        mbl_candidates = _compatible_bin_pack(shipments, max_cbm)
+        groupings = _compatible_bin_pack(shipments, max_cbm)
+        mbl_candidates = build_mbl_plans_from_groupings(groupings, shipments, max_cbm)
         return DecideResponse(
             action="DISPATCH",
             mbls=mbl_candidates,
@@ -217,7 +220,8 @@ def _greedy_decide(state: dict) -> DecideResponse:
     max_waiting = max((s.get("waiting_time", 0.0) for s in shipments), default=0.0)
     analysis["max_waiting_hours"] = round(max_waiting, 1)
     if max_waiting >= 36.0:
-        mbl_candidates = _compatible_bin_pack(shipments, max_cbm)
+        groupings = _compatible_bin_pack(shipments, max_cbm)
+        mbl_candidates = build_mbl_plans_from_groupings(groupings, shipments, max_cbm)
         return DecideResponse(
             action="DISPATCH",
             mbls=mbl_candidates,
@@ -227,7 +231,8 @@ def _greedy_decide(state: dict) -> DecideResponse:
 
     # --- Rule 5: fill_rate >= 70% ---
     if fill_rate >= 0.70:
-        mbl_candidates = _compatible_bin_pack(shipments, max_cbm)
+        groupings = _compatible_bin_pack(shipments, max_cbm)
+        mbl_candidates = build_mbl_plans_from_groupings(groupings, shipments, max_cbm)
         return DecideResponse(
             action="DISPATCH",
             mbls=mbl_candidates,

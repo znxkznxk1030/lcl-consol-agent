@@ -85,6 +85,7 @@ class MBL:
     total_effective_cbm: float
     total_packages: int
     dispatch_time: float
+    loading_plan: Optional[dict] = None
     hbls: List[HBL] = field(default_factory=list)
 
 
@@ -124,8 +125,11 @@ def generate_shipment(
     )
 
 
-def create_mbl(shipments: List[Shipment], dispatch_time: float) -> MBL:
+def create_mbl(shipments: List[Shipment], dispatch_time: float, loading_plan: Optional[dict] = None) -> MBL:
     mbl_id = f"MBL-{uuid.uuid4().hex[:8].upper()}"
+    if loading_plan:
+        loading_plan = dict(loading_plan)
+        loading_plan["mbl_id"] = mbl_id
     mbl = MBL(
         mbl_id=mbl_id,
         shipment_ids=[s.shipment_id for s in shipments],
@@ -134,6 +138,7 @@ def create_mbl(shipments: List[Shipment], dispatch_time: float) -> MBL:
         total_effective_cbm=round(sum(s.effective_cbm for s in shipments), 3),
         total_packages=sum(s.packages for s in shipments),
         dispatch_time=dispatch_time,
+        loading_plan=loading_plan,
     )
     for s in shipments:
         mbl.hbls.append(HBL(

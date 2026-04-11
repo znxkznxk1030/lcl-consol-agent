@@ -17,7 +17,7 @@ class TimeBasedAgent(AgentBase):
         max_cbm = observation["config"].get("usable_cbm_per_mbl", observation["config"]["max_cbm_per_mbl"])
 
         if time_to_cutoff <= 0 and shipments:
-            mbls = self._compatible_bin_pack(shipments, max_cbm)
+            mbls = self._make_plans(self._compatible_bin_pack(shipments, max_cbm), shipments, max_cbm)
             return self._make_action("DISPATCH", mbls, "cutoff_reached")
         return self._make_action("WAIT", [], "waiting_for_cutoff")
 
@@ -35,7 +35,7 @@ class ThresholdAgent(AgentBase):
         max_cbm = observation["config"].get("usable_cbm_per_mbl", observation["config"]["max_cbm_per_mbl"])
 
         if total_effective_cbm >= self.cbm_threshold:
-            mbls = self._compatible_bin_pack(shipments, max_cbm)
+            mbls = self._make_plans(self._compatible_bin_pack(shipments, max_cbm), shipments, max_cbm)
             return self._make_action(
                 "DISPATCH", mbls,
                 f"effective_cbm_threshold_exceeded:{total_effective_cbm:.2f}"
@@ -80,7 +80,7 @@ class HybridAgent(AgentBase):
                 "cbm_full" if cbm_full else "",
                 "too_old" if too_old else "",
             ]))
-            mbls = self._compatible_bin_pack(shipments, max_cbm)
+            mbls = self._make_plans(self._compatible_bin_pack(shipments, max_cbm), shipments, max_cbm)
             return self._make_action("DISPATCH", mbls, reason)
 
         return self._make_action("WAIT", [], "all_conditions_ok")
