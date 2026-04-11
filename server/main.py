@@ -11,7 +11,7 @@ import asyncio
 import io
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +22,7 @@ from openpyxl.styles import Font
 from pydantic import BaseModel
 
 from simulator_v1.env import EnvConfig
+from simulator_v1.planning import normalize_mbl_plans, shipment_ids_from_plan
 from .state_store import store, SimStatus
 from .simulation_runner import run_simulation
 
@@ -182,7 +183,7 @@ async def get_state():
 
 
 class DispatchRequest(BaseModel):
-    mbls: List[List[str]]   # 각 inner list = 하나의 MBL
+    mbls: List[Any]   # 각 item = MBL plan 또는 shipment ID 목록
     reason: str = ""
 
 
@@ -196,16 +197,35 @@ async def dispatch(req: DispatchRequest):
         raise HTTPException(400, "mbls is empty")
 
     valid_ids = set(store.env.buffer.ids())
-    # 각 MBL에서 유효한 ID만 남기고, 빈 MBL은 제거
-    valid_mbls = [
-        [sid for sid in group if sid in valid_ids]
-        for group in req.mbls
-    ]
-    valid_mbls = [g for g in valid_mbls if g]
+    normalized_mbls = normalize_mbl_plans(req.mbls)
+    valid_mbls = []
+    for plan in normalized_mbls:
+        shipment_ids = [sid for sid in shipment_ids_from_plan(plan) if sid in valid_ids]
+        if not shipment_ids:
+            continue
+        loading_plan = plan.get("loading_plan")
+        if isinstance(loading_plan, dict):
+            keep_ids = set(shipment_ids)
+            loading_plan = {
+                **loading_plan,
+                "positions": [
+                    pos for pos in loading_plan.get("positions", [])
+                    if pos.get("shipment_id") in keep_ids
+                ],
+                "unplaceable_shipments": [
+                    sid for sid in loading_plan.get("unplaceable_shipments", [])
+                    if sid in keep_ids
+                ],
+            }
+        valid_mbls.append({
+            **plan,
+            "shipment_ids": shipment_ids,
+            "loading_plan": loading_plan,
+        })
     if not valid_mbls:
         raise HTTPException(400, "No valid shipment IDs in buffer")
 
-    all_dispatched = [sid for g in valid_mbls for sid in g]
+    all_dispatched = [sid for plan in valid_mbls for sid in shipment_ids_from_plan(plan)]
     store.env._dispatch(valid_mbls)
     state = store.get_state()
     await manager.broadcast({"type": "dispatch", "dispatched_ids": all_dispatched, "mbl_count": len(valid_mbls), "state": state})
@@ -352,10 +372,12 @@ def _build_mbl_workbook(mbl: dict, max_cbm: float) -> Workbook:
 
 @app.get("/mbl/{mbl_id}/loading_plan")
 async def get_mbl_loading_plan(mbl_id: str):
-    """BinPacker3D로 계산한 3D 적재 결과를 반환."""
-    from agents.ai_agent.tools.bin_packer_3d import BinPacker3D
-
+    """저장된 3D 적재 결과를 반환. 없으면 호환용으로 즉석 계산."""
     mbl = _get_serialized_mbl_or_404(mbl_id)
+    if mbl.get("loading_plan"):
+        return mbl["loading_plan"]
+
+    from agents.ai_agent.tools.bin_packer_3d import BinPacker3D
     max_cbm = store.env.cfg.max_cbm_per_mbl
 
     # max_cbm으로 컨테이너 타입 결정 (Hapag-Lloyd 내부 용적 기준)

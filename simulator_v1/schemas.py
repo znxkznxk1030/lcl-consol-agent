@@ -74,8 +74,8 @@ class Action:
     schema: str
     agent_id: str
     action: Literal["WAIT", "DISPATCH"]
-    # 여러 MBL을 한 번에 제안: 각 inner list = 하나의 MBL에 담을 shipment ID 목록
-    mbls: List[List[str]]
+    # 여러 MBL을 한 번에 제안: 각 plan = shipment_ids + loading_plan
+    mbls: List[dict]
     reason: Optional[str] = None    # 디버깅 / LLM 해석용
 
     def to_dict(self) -> dict:
@@ -92,7 +92,7 @@ class Action:
         )
 
     @classmethod
-    def dispatch(cls, agent_id: str, mbls: List[List[str]], reason: str = "") -> "Action":
+    def dispatch(cls, agent_id: str, mbls: List[dict], reason: str = "") -> "Action":
         return cls(
             schema="action/v1",
             agent_id=agent_id,

@@ -27,6 +27,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from simulator_v1.agents.base import AgentBase
+from simulator_v1.planning import build_mbl_plans_from_groupings
 
 from .tools.hapag_spec import HapagSpecChecker
 from .tools.sla_analyzer import SLAAnalyzer
@@ -153,9 +154,10 @@ class AIConsolidationAgent(AgentBase):
         )
 
         # --- Step 4: 결정 후처리 (안전 검증) ---
-        final_action, final_mbls = self._validate_decision(
+        final_action, final_groupings = self._validate_decision(
             decision.action, decision.mbls, shipments, max_cbm
         )
+        final_mbls = build_mbl_plans_from_groupings(final_groupings, shipments, max_cbm) if final_action == "DISPATCH" else []
 
         # --- Step 5: 보고서 생성 및 저장 ---
         report = build_report(
@@ -167,7 +169,7 @@ class AIConsolidationAgent(AgentBase):
             loading_plans=[lp.to_dict() for lp in loading_plans],
             cost_analysis=cost.to_dict(),
             action=final_action,
-            mbl_groupings=final_mbls,
+            mbl_groupings=final_groupings,
             selected_container_type=decision.selected_container_type,
             claude_reasoning=decision.reason,
             claude_confidence=decision.confidence,
@@ -182,7 +184,7 @@ class AIConsolidationAgent(AgentBase):
         logger.info(
             f"T+{observation.get('current_time',0):.1f}h "
             f"→ {final_action} "
-            f"(MBL×{len(final_mbls)}, "
+            f"(MBL×{len(final_groupings)}, "
             f"fill={cost.consolidation_efficiency*100:.0f}%, "
             f"{'fallback' if decision.fallback_used else 'claude'})"
         )
@@ -382,7 +384,11 @@ class AIConsolidationAgent(AgentBase):
         )
 
         if should_dispatch:
-            mbls = self._compatible_bin_pack(shipments, max_cbm)
+            mbls = build_mbl_plans_from_groupings(
+                self._compatible_bin_pack(shipments, max_cbm),
+                shipments,
+                max_cbm,
+            )
             return self._make_action("DISPATCH", mbls, "emergency_fallback:rule")
 
         return self._make_action("WAIT", [], "emergency_fallback:wait")

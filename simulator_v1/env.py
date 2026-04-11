@@ -23,6 +23,7 @@ from .compatibility import split_into_compatible_groups, count_violation_pairs
 from .buffer import WarehouseBuffer
 from .cost import CostEngine
 from .volume_model import usable_container_cbm
+from .planning import normalize_mbl_plans, shipment_ids_from_plan, build_loading_plan
 from .schemas import (
     Observation, ConfigObservation, BufferObservation, ShipmentObservation,
     Action, Event, Metrics, SimulationResult,
@@ -220,13 +221,16 @@ class ConsolidationEnv:
             reason=action_dict.get("reason"),
         )
 
-    def _dispatch(self, mbl_assignments: List[List[str]]) -> None:
-        """mbl_assignments: 각 inner list = 하나의 MBL에 담을 shipment ID 목록."""
+    def _dispatch(self, mbl_assignments: List[object]) -> None:
+        """mbl_assignments: MBL plan 목록 또는 shipment ID 그룹 목록."""
+        normalized_plans = normalize_mbl_plans(mbl_assignments)
+
         # 전체 ID 한 번에 버퍼에서 제거
-        all_ids = [sid for group in mbl_assignments for sid in group]
+        all_ids = [sid for plan in normalized_plans for sid in shipment_ids_from_plan(plan)]
         all_ships = {s.shipment_id: s for s in self.buffer.remove(all_ids)}
 
-        for group_ids in mbl_assignments:
+        for plan in normalized_plans:
+            group_ids = shipment_ids_from_plan(plan)
             candidates = [all_ships[sid] for sid in group_ids if sid in all_ships]
             if not candidates:
                 continue
@@ -252,7 +256,26 @@ class ConsolidationEnv:
             # 각 호환 그룹을 CBM 한도 내로 추가 분할 후 MBL 생성
             for group in compat_groups:
                 for cbm_group in self._split_by_cbm(group):
-                    self._create_mbl(cbm_group)
+                    final_ids = [shipment.shipment_id for shipment in cbm_group]
+                    if final_ids == group_ids and plan.get("loading_plan"):
+                        loading_plan = plan["loading_plan"]
+                    else:
+                        loading_plan = build_loading_plan(
+                            [
+                                {
+                                    "shipment_id": shipment.shipment_id,
+                                    "cargo_category": shipment.cargo_category.value,
+                                    "item_type": shipment.item_type.value,
+                                    "cbm": shipment.cbm,
+                                    "effective_cbm": shipment.effective_cbm,
+                                    "weight": shipment.weight,
+                                }
+                                for shipment in cbm_group
+                            ],
+                            max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
+                            container_type=plan.get("container_type"),
+                        )
+                    self._create_mbl(cbm_group, loading_plan=loading_plan)
 
     def _split_by_cbm(self, shipments: List[Shipment]) -> List[List[Shipment]]:
         """effective_cbm 기준으로 usable container CBM을 초과하지 않도록 분할."""
@@ -277,12 +300,12 @@ class ConsolidationEnv:
 
         return result or [[]]
 
-    def _create_mbl(self, shipments: List[Shipment]) -> None:
+    def _create_mbl(self, shipments: List[Shipment], loading_plan: Optional[dict] = None) -> None:
         for s in shipments:
             s.dispatched = True
             s.dispatch_time = self.current_time
 
-        mbl = create_mbl(shipments, self.current_time)
+        mbl = create_mbl(shipments, self.current_time, loading_plan=loading_plan)
         self.mbls.append(mbl)
 
         # SLA violation 체크
@@ -311,6 +334,7 @@ class ConsolidationEnv:
             "effective_fill_rate": round(mbl.total_effective_cbm / self.cfg.max_cbm_per_mbl, 4),
             "categories": list({h.cargo_category for h in mbl.hbls}),
             "hbl_ids": [h.hbl_id for h in mbl.hbls],
+            "has_loading_plan": bool(mbl.loading_plan),
         })
 
     # ------------------------------------------------------------------

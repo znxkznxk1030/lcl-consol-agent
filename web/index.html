@@ -776,6 +776,12 @@ function toggleAgentPayload() {
   document.getElementById('btnShowPayload').textContent = payloadVisible ? 'Payload 숨기기' : 'Payload 보기';
 }
 
+function getPlanShipmentIds(plan) {
+  if (Array.isArray(plan)) return plan;
+  if (plan && Array.isArray(plan.shipment_ids)) return plan.shipment_ids;
+  return [];
+}
+
 async function askAgent() {
   if (!lastState) return;
   renderAgentPayload();
@@ -803,7 +809,7 @@ async function askAgent() {
     const hasDispatch = d.action === 'DISPATCH' && d.mbls && d.mbls.length > 0;
     document.getElementById('btnApply').disabled = !hasDispatch;
     document.getElementById('applyHint').textContent = hasDispatch
-      ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.flat().length}건`
+      ? `MBL ${d.mbls.length}개 / 화물 ${d.mbls.reduce((sum, plan) => sum + getPlanShipmentIds(plan).length, 0)}건`
       : '';
     await refreshAgentReport();
     renderFlow();
@@ -878,7 +884,8 @@ function renderDecision(d) {
     const bufMap = {};
     (lastState?.buffer?.shipments || []).forEach(s => { bufMap[s.shipment_id] = s; });
 
-    cards.innerHTML = d.mbls.map((ids, i) => {
+    cards.innerHTML = d.mbls.map((planObj, i) => {
+      const ids = getPlanShipmentIds(planObj);
       const ships  = ids.map(id => bufMap[id]).filter(Boolean);
       const cbm    = ships.reduce((a, s) => a + (s.effective_cbm || s.cbm), 0);
       const pct    = Math.min(cbm / maxCbm * 100, 100);
@@ -1538,7 +1545,7 @@ function openMBLDetail(mblId) {
   `;
 
   document.getElementById('mblModal').style.display = 'block';
-  requestAnimationFrame(() => initMBL3D(mbl.hbls || []));
+  requestAnimationFrame(() => initMBL3D(mbl.loading_plan || null, mbl.hbls || []));
 }
 
 function closeMBLDetail() {
@@ -1549,7 +1556,29 @@ function closeMBLDetail() {
 
 let _mbl3d = null;
 
-function initMBL3D(hbls) {
+function packFromLoadingPlan(loadingPlan, hbls) {
+  if (!loadingPlan || !Array.isArray(loadingPlan.positions)) return null;
+  const hblMap = {};
+  (hbls || []).forEach(h => { hblMap[h.shipment_id] = h; });
+  return loadingPlan.positions.map(pos => {
+    const dims = pos.dimensions || {};
+    const point = pos.position || {};
+    const hbl = hblMap[pos.shipment_id] || {};
+    return {
+      id: pos.shipment_id,
+      x: (point.x_mm || 0) / 10,
+      y: (point.z_mm || 0) / 10,
+      z: (point.y_mm || 0) / 10,
+      bL: (dims.length_mm || 0) / 10,
+      bH: (dims.height_mm || 0) / 10,
+      bW: (dims.width_mm || 0) / 10,
+      category: pos.cargo_category || hbl.cargo_category || 'GENERAL',
+      out: false,
+    };
+  });
+}
+
+function initMBL3D(loadingPlan, hbls) {
   if (typeof THREE === 'undefined') return;
   const canvas = document.getElementById('mbl3dCanvas');
   if (!canvas) return;
@@ -1591,9 +1620,9 @@ function initMBL3D(hbls) {
   floor.position.set(L / 2, 0, 0);
   scene.add(floor);
 
-  const shipments = (hbls || []).map(h => ({ ...h, shipment_id: h.hbl_id }));
-  const packed = _packBoxes(shipments);
-  const outCount = packed.filter(b => b.out).length;
+  const packed = packFromLoadingPlan(loadingPlan, hbls)
+    || _packBoxes((hbls || []).map(h => ({ ...h, shipment_id: h.hbl_id })));
+  const outCount = (loadingPlan?.unplaceable_shipments || []).length || packed.filter(b => b.out).length;
   const label = document.getElementById('mbl3dLabel');
   if (label) {
     label.textContent = outCount > 0
