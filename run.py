@@ -7,8 +7,12 @@ run.py — LCL Simulator CLI
   python run.py server     # 시뮬레이션 서버 실행 (:8000)
   python run.py agent      # LLM AI Agent 서버 실행 (:8001)
   python run.py greedy     # Greedy Agent 서버 실행 (:8002, LLM 없음)
+  python run.py rl-train   # MAPPO RL 에이전트 학습
+  python run.py rl-eval    # MAPPO vs Baseline 비교 평가
+  python run.py rl-server  # MAPPO RL 에이전트 서버 실행 (:8003)
   python run.py all        # 시뮬레이션 서버 + 에이전트 서버 동시 실행
   python run.py all-greedy # 시뮬레이션 서버 + greedy 서버 동시 실행
+  python run.py all-rl     # 시뮬레이션 서버 + RL 에이전트 서버 동시 실행
 
 LLM Agent 환경변수:
   ANTHROPIC_API_KEY       # Claude API 키 (없으면 fallback 모드)
@@ -114,14 +118,49 @@ def run_all_greedy():
     ])
 
 
+def run_rl_train():
+    subprocess.run([sys.executable, "-m", "rl.train"] + sys.argv[2:])
+
+
+def run_rl_eval():
+    subprocess.run([sys.executable, "-m", "rl.evaluate"] + sys.argv[2:])
+
+
+def run_rl_server():
+    subprocess.run([sys.executable, "-m", "rl.server"] + sys.argv[2:])
+
+
+def run_all_rl():
+    procs = [
+        subprocess.Popen([
+            sys.executable, "-m", "uvicorn",
+            "server.main:app",
+            "--host", "0.0.0.0", "--port", "8000", "--reload",
+        ]),
+        subprocess.Popen([
+            sys.executable, "-m", "rl.server",
+            "--checkpoint", "checkpoints/mappo_best.pt",
+            "--port", "8003",
+        ]),
+    ]
+    _run_procs(procs, [
+        "Simulation server  : http://localhost:8000",
+        "RL agent server    : http://localhost:8003",
+    ])
+
+
 COMMANDS = {
-    "sim": run_sim,
-    "ai_sim": run_ai_sim,
-    "server": run_server,
-    "agent": run_agent,
-    "greedy": run_greedy,
-    "all": run_all,
+    "sim":        run_sim,
+    "ai_sim":     run_ai_sim,
+    "server":     run_server,
+    "agent":      run_agent,
+    "greedy":     run_greedy,
+    "rl-train":   run_rl_train,
+    "rl-eval":    run_rl_eval,
+    "rl-server":  run_rl_server,
+    "all":        run_all,
     "all-greedy": run_all_greedy,
+    "all-rl":     run_all_rl,
 }
 
 if __name__ == "__main__":

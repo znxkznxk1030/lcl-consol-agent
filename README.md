@@ -273,6 +273,130 @@ Olist Brazilian E-Commerce Public Dataset
 | **CBM (기본)** | 기존 학술 기반 LCL 로그 정규 파라미터 유지 |
 | **CBM (`--olist-cbm`)** | Olist 실측 상품 치수에 LCL 상업 화물 스케일 팩터 적용 (예: ELECTRONICS ×72) |
 
+---
+
+## RL 기반 Multi-Agent 최적화 (AAMAS)
+
+`rl/` 모듈은 MAPPO(Multi-Agent PPO) 기반의 협력형 강화학습 에이전트를 제공합니다.
+
+### 아키텍처
+
+```
+TimingAgent   ─ WAIT / DISPATCH 결정 (Discrete 2)
+PlanningAgent ─ 적재율 목표 선택 [40%, 50%, 60%, 70%, 80%] (Discrete 5)
+CentralCritic ─ 학습 시 joint state로 공유 가치 추정 (CTDE)
+```
+
+두 에이전트는 동일한 글로벌 관찰을 공유하며 협력 보상(shared reward)으로 함께 학습합니다.
+
+#### 관찰 공간
+
+| 구성 | 차원 | 설명 |
+|------|------|------|
+| 글로벌 feature | 8 | 시간, 버퍼 요약, SLA 위험도 |
+| 화물 set feature | 50 × 19 | per-shipment (item type 8 + category 5 + 연속 6) |
+
+화물 집합은 **Multi-head Self-Attention (Set Transformer)** 으로 인코딩하여 순서 불변성과 가변 길이를 처리합니다.
+
+#### 보상 함수
+
+```
+r = -W_hold × (보관비) - W_late × (SLA 위반 패널티) + W_fill × (충전율 보너스) - W_compat × (호환성 위반)
+```
+
+### 의존성 설치
+
+```bash
+pip install torch
+```
+
+### 학습
+
+```bash
+# 기본 학습 (2000 에피소드)
+python run.py rl-train
+
+# 설정 변경
+python run.py rl-train -- --episodes 5000 --lr 1e-4 --device cuda
+
+# 체크포인트에서 이어서 학습
+python run.py rl-train -- --resume checkpoints/mappo_ep01000.pt
+```
+
+학습 결과:
+- `checkpoints/mappo_best.pt` — 평가 기준 최고 성능 체크포인트
+- `checkpoints/mappo_final.pt` — 학습 완료 체크포인트
+- `checkpoints/training_log.json` — 에피소드별 지표 로그
+
+### 평가 (Baseline 비교)
+
+```bash
+# 전체 에이전트 비교 (rule-based 3종 + MAPPO)
+python run.py rl-eval -- --checkpoint checkpoints/mappo_best.pt --episodes 20
+```
+
+비교 대상:
+
+| 에이전트 | 전략 |
+|---------|------|
+| `time_based` | 24h 주기 고정 출고 |
+| `threshold` | effective CBM ≥ 8.0 시 출고 |
+| `hybrid` | SLA + CBM + 최대 대기시간 혼합 |
+| `mappo` | 학습된 MAPPO (TimingAgent + PlanningAgent) |
+
+결과는 `eval_results.json`에 저장됩니다.
+
+### RL 에이전트 서버
+
+학습된 모델을 서버로 실행하면 기존 시뮬레이션 서버(`:8000`)와 동일한 인터페이스로 연동됩니다.
+
+```bash
+python run.py rl-server -- --checkpoint checkpoints/mappo_best.pt --port 8003
+```
+
+```bash
+# 시뮬레이션 서버 + RL 에이전트 동시 실행
+python run.py all-rl
+```
+
+#### 엔드포인트
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| `POST` | `/decide` | 행동 결정 (기존 에이전트 서버 호환) |
+| `GET`  | `/status` | 서버 상태 + 모델 정보 |
+| `POST` | `/load_model` | 런타임 중 모델 교체 |
+| `GET`  | `/stats` | 누적 dispatch/wait 통계 |
+| `GET`  | `/health` | 헬스체크 |
+
+```bash
+# 헬스체크
+curl http://localhost:8003/health
+
+# 행동 결정
+curl -X POST http://localhost:8003/decide \
+  -H "Content-Type: application/json" \
+  -d '{"observation": <obs_dict>}'
+```
+
+### 파일 구조
+
+```
+rl/
+├── features.py      — Observation → feature vector (Attention 인코더용)
+├── reward.py        — Step reward 및 에피소드 return 계산
+├── env_wrapper.py   — MultiAgentLCLEnv (Gym 호환 step() 인터페이스)
+├── network.py       — ShipmentSetEncoder + Actor + CentralCritic
+├── mappo.py         — MAPPO 알고리즘 (GAE-λ + PPO-clip + RolloutBuffer)
+├── trainer.py       — 학습 루프 + 체크포인트 + JSON 로그
+├── evaluate.py      — 에이전트 비교 평가 (논문 Table 생성)
+├── rl_agent.py      — AgentBase 호환 추론 에이전트
+├── server.py        — FastAPI RL 서버 (:8003)
+└── train.py         — 학습 CLI 진입점
+```
+
+---
+
 ## 기여
 
 이슈나 풀 리퀘스트를 통해 기여해주세요.
