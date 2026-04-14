@@ -85,6 +85,7 @@ class StartRequest(BaseModel):
     sim_duration_hours: int = 72
     cutoff_interval_hours: int = 24
     max_cbm_per_mbl: float = 33.2  # 20ft 컨테이너 기본
+    max_active_containers: int = 5  # 동시에 열 수 있는 최대 컨테이너 수
     use_olist_data: bool = True
     use_olist_cbm: bool = False
     olist_archive_dir: str | None = None
@@ -127,12 +128,14 @@ async def start_simulation(req: StartRequest):
             max_cbm_per_mbl=req.max_cbm_per_mbl,
             sla_hours=req.sla_hours,
         )
+        config.max_active_containers = req.max_active_containers
     else:
         config = EnvConfig(
             seed=req.seed,
             sim_duration_hours=req.sim_duration_hours,
             cutoff_interval_hours=req.cutoff_interval_hours,
             max_cbm_per_mbl=req.max_cbm_per_mbl,
+            max_active_containers=req.max_active_containers,
             arrival_rates=req.arrival_rates,
             sla_hours=req.sla_hours,
         )

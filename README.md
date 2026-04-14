@@ -81,6 +81,108 @@ LCL (Less than Container Load) 컨테이너 통합 시뮬레이션을 위한 프
 - 에이전트 서버는 현재 state를 입력받아 LLM 기반으로 출하 결정을 반환합니다.
 - 웹 인터페이스의 `Ask Agent`는 에이전트 서버의 `/decide`를 호출합니다.
 
+## 다중 컨테이너 설정 (`max_active_containers`)
+
+기본값은 `1`(컨테이너 1개)입니다. 이 값을 늘리면 시뮬레이션이 여러 컨테이너 슬롯을 동시에 열고 화물을 병렬로 적재합니다.
+
+### 동작 방식
+
+```
+버퍼 (미배정 화물)
+    ↓ DISPATCH (close: false)
+슬롯 A ─── 적재 중 ──→ cutoff 또는 꽉 참 → MBL 생성
+슬롯 B ─── 적재 중 ──→ cutoff 또는 꽉 참 → MBL 생성
+슬롯 C ─── 적재 중 ──→ ...
+```
+
+- **슬롯 오픈**: DISPATCH 시 `close: false` 플래그를 전달하면 MBL 즉시 생성 없이 슬롯을 유지합니다.
+- **슬롯 닫기(MBL 생성)**: `close: true`(기본값) 또는 cutoff 도달 시 자동으로 MBL이 생성됩니다.
+- **슬롯 꽉 참**: 슬롯의 effective CBM이 usable CBM을 초과하면 자동으로 닫힙니다.
+- **슬롯 한도 초과**: 열린 슬롯 수가 `max_active_containers`에 도달하면 가장 채워진 슬롯을 먼저 닫고 새 슬롯을 엽니다.
+
+### 1. Python 코드에서 변경
+
+```python
+from simulator_v1.env import EnvConfig, ConsolidationEnv
+
+config = EnvConfig(
+    max_active_containers=3,   # 슬롯 최대 3개 동시 운영
+    max_cbm_per_mbl=33.2,
+    sim_duration_hours=72,
+)
+env = ConsolidationEnv(config)
+```
+
+### 2. 웹 대시보드 (API)에서 변경
+
+시뮬레이션 시작 시 `POST /simulation/start` 요청 body에 `max_active_containers`를 포함합니다.
+
+```bash
+curl -X POST http://localhost:8000/simulation/start \
+  -H "Content-Type: application/json" \
+  -d '{
+    "seed": 42,
+    "sim_duration_hours": 72,
+    "max_cbm_per_mbl": 33.2,
+    "max_active_containers": 3
+  }'
+```
+
+웹 UI에서는 `max_active_containers > 1`이거나 열린 슬롯이 있을 때 **Active Containers** 패널이 자동으로 표시됩니다.
+
+### 3. 에이전트에서 슬롯 배정
+
+DISPATCH action의 각 MBL plan에 `close`와 `slot_id` 필드를 추가합니다.
+
+```python
+# 슬롯에 배정하고 열어두기 (MBL 미생성)
+Action.dispatch(
+    agent_id="my-agent",
+    mbls=[{
+        "shipment_ids": ["SHP-001", "SHP-002"],
+        "slot_id": "SLOT-ABC123",   # 없으면 새 슬롯 자동 생성
+        "close": False,             # True(기본)면 즉시 MBL 생성
+    }]
+)
+
+# 슬롯 닫기 (MBL 생성)
+Action.dispatch(
+    agent_id="my-agent",
+    mbls=[{
+        "shipment_ids": ["SHP-003"],
+        "slot_id": "SLOT-ABC123",
+        "close": True,
+    }]
+)
+```
+
+`close`를 생략하면 기본값 `True`로 동작하므로 기존 에이전트 코드는 수정 없이 그대로 사용할 수 있습니다.
+
+### 4. Observation에서 슬롯 상태 읽기
+
+`max_active_containers > 1`이면 Observation에 `containers` 필드가 포함됩니다.
+
+```python
+obs = env._build_observation().to_dict()
+
+for slot in obs["containers"]:
+    print(slot["slot_id"])              # "SLOT-4D62CF"
+    print(slot["fill_rate"])            # 0.45 (45%)
+    print(slot["current_effective_cbm"]) # 13.4
+    print(slot["usable_cbm"])           # 29.88
+    print(slot["shipment_ids"])         # ["SHP-001", ...]
+```
+
+### 설정 값 가이드
+
+| `max_active_containers` | 적합한 상황 |
+|------------------------|------------|
+| `1` (기본) | 단일 컨테이너 단위 운영, 기존 에이전트 호환 |
+| `2 ~ 3` | 카테고리 분리 적재 (예: 위험물 / 일반화물 동시 운영) |
+| `4 이상` | 다출발 스케줄 또는 고물동량 환경 |
+
+---
+
 ## LLM 연결 설정
 
 에이전트 서버는 LLM SDK와 API 키가 모두 준비되어야 실제 LLM으로 동작합니다.

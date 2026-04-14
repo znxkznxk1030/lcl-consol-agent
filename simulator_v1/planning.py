@@ -68,6 +68,9 @@ def normalize_mbl_plans(mbls: Optional[Iterable[object]]) -> List[dict]:
                 "shipment_ids": shipment_ids,
                 "container_type": item.get("container_type"),
                 "loading_plan": item.get("loading_plan"),
+                # 슬롯 기반 할당 필드 (없으면 기본값 유지)
+                "close": item.get("close", True),
+                "slot_id": item.get("slot_id"),
             })
         else:
             normalized.append({
@@ -75,6 +78,8 @@ def normalize_mbl_plans(mbls: Optional[Iterable[object]]) -> List[dict]:
                 "shipment_ids": shipment_ids,
                 "container_type": None,
                 "loading_plan": None,
+                "close": True,
+                "slot_id": None,
             })
     return normalized
 

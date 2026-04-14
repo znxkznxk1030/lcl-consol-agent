@@ -14,7 +14,7 @@ from typing import List, Optional
 from enum import Enum
 
 from .compatibility import CargoCategory
-from .volume_model import effective_cbm_from_raw
+from .volume_model import effective_cbm_from_raw, usable_container_cbm
 from .distributions import sample_cbm, sample_weight, sample_packages, sample_category  # noqa: F401
 
 
@@ -74,6 +74,40 @@ class HBL:
     length_cm: Optional[float] = None
     height_cm: Optional[float] = None
     width_cm: Optional[float] = None
+
+
+@dataclass
+class ContainerSlot:
+    """적재 중인 컨테이너 슬롯 (아직 출고되지 않은 open 상태)."""
+    slot_id: str
+    max_cbm: float
+    shipments: List["Shipment"] = field(default_factory=list)
+    opened_at: float = 0.0
+
+    @property
+    def total_effective_cbm(self) -> float:
+        return round(sum(s.effective_cbm for s in self.shipments), 3)
+
+    @property
+    def total_cbm(self) -> float:
+        return round(sum(s.cbm for s in self.shipments), 3)
+
+    @property
+    def total_weight(self) -> float:
+        return round(sum(s.weight for s in self.shipments), 2)
+
+    @property
+    def usable_cbm(self) -> float:
+        return usable_container_cbm(self.max_cbm)
+
+    @property
+    def fill_rate(self) -> float:
+        uc = self.usable_cbm
+        return round(self.total_effective_cbm / uc, 4) if uc > 0 else 0.0
+
+    @property
+    def shipment_ids(self) -> List[str]:
+        return [s.shipment_id for s in self.shipments]
 
 
 @dataclass

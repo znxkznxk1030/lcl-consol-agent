@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Dict
 
 from .entities import (
-    ItemType, Shipment, MBL,
+    ItemType, Shipment, MBL, ContainerSlot,
     generate_shipment, create_mbl,
 )
 from .distributions import thinning_arrivals
@@ -26,6 +26,7 @@ from .volume_model import usable_container_cbm
 from .planning import normalize_mbl_plans, shipment_ids_from_plan, build_loading_plan
 from .schemas import (
     Observation, ConfigObservation, BufferObservation, ShipmentObservation,
+    ContainerSlotObservation,
     Action, Event, Metrics, SimulationResult,
 )
 
@@ -62,6 +63,7 @@ class EnvConfig:
     late_penalty: float = 50.0
 
     sla_hours: float = 48.0
+    max_active_containers: int = 1   # 동시에 열 수 있는 최대 컨테이너(슬롯) 수
     _olist_dimension_samples: Optional[Dict[str, List[tuple[float, float, float]]]] = field(
         default=None,
         repr=False,
@@ -97,6 +99,7 @@ class ConsolidationEnv:
 
         self.all_shipments: List[Shipment] = []
         self.mbls: List[MBL] = []
+        self.active_slots: Dict[str, ContainerSlot] = {}   # 현재 열려 있는 컨테이너 슬롯
         self.events: List[Event] = []
         self._event_counter: int = 0
 
@@ -153,13 +156,19 @@ class ConsolidationEnv:
             if action.action == "DISPATCH" and action.mbls:
                 self._dispatch(action.mbls)
 
-            # 5. Cutoff 갱신
+            # 5. Cutoff: 열려 있는 슬롯 모두 닫기 + cutoff 갱신
             if self.current_time >= self.next_cutoff:
+                for slot_id in list(self.active_slots.keys()):
+                    self._close_slot(slot_id)
                 self.next_cutoff += self.cfg.cutoff_interval_hours
 
             self.current_time += 1.0
 
-        # 잔여 화물 강제 출고 (자동 CBM 분할)
+        # 잔여 슬롯 강제 닫기
+        for slot_id in list(self.active_slots.keys()):
+            self._close_slot(slot_id)
+
+        # 잔여 버퍼 화물 강제 출고 (자동 CBM 분할)
         remaining = self.buffer.ids()
         if remaining:
             self._dispatch([remaining])
@@ -180,6 +189,7 @@ class ConsolidationEnv:
                 max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
                 usable_cbm_per_mbl=usable_container_cbm(self.cfg.max_cbm_per_mbl),
                 sla_hours=self.cfg.sla_hours,
+                max_active_containers=self.cfg.max_active_containers,
             ),
             buffer=BufferObservation(
                 count=self.buffer.count,
@@ -206,6 +216,20 @@ class ConsolidationEnv:
                     for s in shipments
                 ],
             ),
+            containers=[
+                ContainerSlotObservation(
+                    slot_id=slot.slot_id,
+                    max_cbm=slot.max_cbm,
+                    usable_cbm=slot.usable_cbm,
+                    current_cbm=slot.total_cbm,
+                    current_effective_cbm=slot.total_effective_cbm,
+                    fill_rate=slot.fill_rate,
+                    shipment_count=len(slot.shipments),
+                    shipment_ids=slot.shipment_ids,
+                    opened_at=slot.opened_at,
+                )
+                for slot in self.active_slots.values()
+            ],
         )
 
     # ------------------------------------------------------------------
@@ -221,8 +245,54 @@ class ConsolidationEnv:
             reason=action_dict.get("reason"),
         )
 
+    def _open_slot(self, slot_id: Optional[str] = None) -> ContainerSlot:
+        """새 컨테이너 슬롯을 열고 active_slots에 등록한다."""
+        if slot_id is None:
+            slot_id = f"SLOT-{uuid.uuid4().hex[:6].upper()}"
+        slot = ContainerSlot(
+            slot_id=slot_id,
+            max_cbm=self.cfg.max_cbm_per_mbl,
+            opened_at=self.current_time,
+        )
+        self.active_slots[slot_id] = slot
+        self._log_event("SLOT_OPENED", {"slot_id": slot_id, "max_cbm": slot.max_cbm})
+        return slot
+
+    def _close_slot(self, slot_id: str) -> None:
+        """슬롯을 닫고 MBL을 생성한다. 슬롯이 비어 있으면 아무것도 하지 않는다."""
+        slot = self.active_slots.pop(slot_id, None)
+        if slot is None or not slot.shipments:
+            return
+
+        loading_plan = build_loading_plan(
+            [
+                {
+                    "shipment_id": s.shipment_id,
+                    "cargo_category": s.cargo_category.value,
+                    "item_type": s.item_type.value,
+                    "cbm": s.cbm,
+                    "effective_cbm": s.effective_cbm,
+                    "weight": s.weight,
+                }
+                for s in slot.shipments
+            ],
+            max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
+        )
+        self._log_event("SLOT_CLOSED", {
+            "slot_id": slot_id,
+            "shipment_count": len(slot.shipments),
+            "total_effective_cbm": slot.total_effective_cbm,
+            "fill_rate": slot.fill_rate,
+        })
+        self._create_mbl(slot.shipments, loading_plan=loading_plan)
+
     def _dispatch(self, mbl_assignments: List[object]) -> None:
-        """mbl_assignments: MBL plan 목록 또는 shipment ID 그룹 목록."""
+        """mbl_assignments: MBL plan 목록 또는 shipment ID 그룹 목록.
+
+        plan 딕셔너리에 추가 가능한 필드:
+          - slot_id (str): 배정할 슬롯 ID. 없으면 새 슬롯 또는 기존 슬롯 선택.
+          - close (bool): True(기본)면 즉시 MBL 생성, False면 슬롯 유지.
+        """
         normalized_plans = normalize_mbl_plans(mbl_assignments)
 
         # 전체 ID 한 번에 버퍼에서 제거
@@ -234,6 +304,9 @@ class ConsolidationEnv:
             candidates = [all_ships[sid] for sid in group_ids if sid in all_ships]
             if not candidates:
                 continue
+
+            close = plan.get("close", True)   # 기본값 True → 기존 동작과 동일
+            target_slot_id = plan.get("slot_id")
 
             # 호환성 검사 → 위반 시 자동 분리
             violation_pairs = count_violation_pairs(candidates)
@@ -253,29 +326,54 @@ class ConsolidationEnv:
             else:
                 compat_groups = [candidates]
 
-            # 각 호환 그룹을 CBM 한도 내로 추가 분할 후 MBL 생성
+            # 각 호환 그룹을 CBM 한도 내로 추가 분할 후 처리
             for group in compat_groups:
                 for cbm_group in self._split_by_cbm(group):
-                    final_ids = [shipment.shipment_id for shipment in cbm_group]
-                    if final_ids == group_ids and plan.get("loading_plan"):
-                        loading_plan = plan["loading_plan"]
+                    if close:
+                        # 기존 동작: 즉시 MBL 생성
+                        final_ids = [s.shipment_id for s in cbm_group]
+                        if final_ids == group_ids and plan.get("loading_plan"):
+                            loading_plan = plan["loading_plan"]
+                        else:
+                            loading_plan = build_loading_plan(
+                                [
+                                    {
+                                        "shipment_id": s.shipment_id,
+                                        "cargo_category": s.cargo_category.value,
+                                        "item_type": s.item_type.value,
+                                        "cbm": s.cbm,
+                                        "effective_cbm": s.effective_cbm,
+                                        "weight": s.weight,
+                                    }
+                                    for s in cbm_group
+                                ],
+                                max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
+                                container_type=plan.get("container_type"),
+                            )
+                        self._create_mbl(cbm_group, loading_plan=loading_plan)
                     else:
-                        loading_plan = build_loading_plan(
-                            [
-                                {
-                                    "shipment_id": shipment.shipment_id,
-                                    "cargo_category": shipment.cargo_category.value,
-                                    "item_type": shipment.item_type.value,
-                                    "cbm": shipment.cbm,
-                                    "effective_cbm": shipment.effective_cbm,
-                                    "weight": shipment.weight,
-                                }
-                                for shipment in cbm_group
-                            ],
-                            max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
-                            container_type=plan.get("container_type"),
-                        )
-                    self._create_mbl(cbm_group, loading_plan=loading_plan)
+                        # 슬롯에 배정만 하고 닫지 않음
+                        if target_slot_id and target_slot_id in self.active_slots:
+                            slot = self.active_slots[target_slot_id]
+                        elif len(self.active_slots) < self.cfg.max_active_containers:
+                            slot = self._open_slot(target_slot_id)
+                        else:
+                            # 슬롯이 꽉 찼으면 가장 채워진 슬롯을 닫고 새로 열기
+                            fullest = max(self.active_slots.values(), key=lambda s: s.fill_rate)
+                            self._close_slot(fullest.slot_id)
+                            slot = self._open_slot(target_slot_id)
+
+                        slot.shipments.extend(cbm_group)
+                        self._log_event("SLOT_ASSIGNED", {
+                            "slot_id": slot.slot_id,
+                            "added_count": len(cbm_group),
+                            "slot_fill_rate": slot.fill_rate,
+                            "slot_effective_cbm": slot.total_effective_cbm,
+                        })
+
+                        # 슬롯이 usable CBM을 초과하면 자동으로 닫기
+                        if slot.total_effective_cbm >= slot.usable_cbm:
+                            self._close_slot(slot.slot_id)
 
     def _split_by_cbm(self, shipments: List[Shipment]) -> List[List[Shipment]]:
         """effective_cbm 기준으로 usable container CBM을 초과하지 않도록 분할."""
@@ -438,6 +536,7 @@ class ConsolidationEnv:
         self.next_cutoff = self.cfg.cutoff_interval_hours
         self.all_shipments = []
         self.mbls = []
+        self.active_slots = {}
         self.events = []
         self._event_counter = 0
         self._compatibility_violations = 0

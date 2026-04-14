@@ -324,6 +324,36 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 
 .mbl-row { cursor: pointer; }
 .mbl-row:hover { background: #1a1a1a; }
+
+/* 3D Container slot tabs */
+.c3d-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.c3d-tab {
+  padding: 4px 12px; font-size: 10px; cursor: pointer;
+  border: 1px solid #2a3a2a; color: #556; background: #111;
+  font-family: monospace;
+}
+.c3d-tab:hover { background: #181818; color: #8ab; }
+.c3d-tab.active { border-color: #3a6a3a; color: #7c7; background: #0d180d; }
+.c3d-tab.buffer { border-color: #2a4a2a; color: #7af; }
+.c3d-tab.buffer.active { border-color: #2a5a7a; background: #0a1520; color: #9cf; }
+
+/* Active Container Slots */
+.slot-card {
+  background: #0d1520; border: 1px solid #1e3a5a; padding: 10px 12px;
+  min-width: 180px; max-width: 260px;
+}
+.slot-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.slot-card-id { font-size: 11px; color: #7af; font-weight: bold; }
+.slot-card-fill { font-size: 10px; color: #556; }
+.slot-card-bar { height: 6px; background: #1a1a2a; border: 1px solid #2a2a3a; margin-bottom: 6px; }
+.slot-card-bar-fill { height: 100%; background: #1e4a7e; transition: width 0.4s; }
+.slot-card-bar-fill.warn { background: #4a3a1a; }
+.slot-card-bar-fill.full { background: #4a1e1e; }
+.slot-card-stats { font-size: 10px; color: #556; line-height: 1.7; }
+.slot-card-stats span { color: #8ab; }
 </style>
 </head>
 <body>
@@ -355,10 +385,10 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
 <!-- 3D Container View -->
 <div style="margin-bottom:14px;">
   <div class="panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-      <h2 style="margin-bottom:0;">20ft 컨테이너 — 인바운드 화물 3D 뷰</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin-bottom:0;" id="c3dTitle">20ft 컨테이너 — 인바운드 화물 3D 뷰</h2>
       <div style="display:flex; gap:10px; font-size:10px; align-items:center; flex-wrap:wrap; color:#444;">
-        <span>내부 590×235×239cm / nominal 33.2 CBM / usable 29.9 CBM</span>
+        <span id="c3dDimLabel">내부 590×235×239cm / nominal 33.2 CBM / usable 29.9 CBM</span>
         <span id="c3dInfo" style="color:#7c7;">0건</span>
         <span style="color:#4477aa;">■</span><span>일반</span>
         <span style="color:#cc7733;">■</span><span>위험물</span>
@@ -367,8 +397,25 @@ button.orange:hover:not(:disabled) { background: #2a1e0a; }
         <span style="color:#cc4444;">■</span><span>특대형</span>
       </div>
     </div>
+    <!-- 슬롯 탭 (max_active_containers > 1 일 때 표시) -->
+    <div class="c3d-tabs" id="c3dTabs" style="display:none;"></div>
     <canvas id="c3dCanvas" style="width:100%; height:340px; display:block; cursor:grab; border:1px solid #1e1e1e; border-radius:2px;"></canvas>
     <div style="font-size:10px; color:#2a2a2a; margin-top:5px; text-align:center;">드래그: 회전 &nbsp;·&nbsp; 스크롤: 줌 &nbsp;·&nbsp; 마우스 올린 후 WASD: 이동 &nbsp;·&nbsp; QE: 상하</div>
+  </div>
+</div>
+
+<!-- Active Containers Panel -->
+<div style="margin-bottom:14px;" id="activeSlotsSection" style="display:none;">
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin-bottom:0;">Active Containers — 적재 중인 컨테이너 슬롯</h2>
+      <span style="font-size:11px; color:#555;">
+        <span id="activeSlotCount">0</span> / <span id="maxSlotCount">1</span> 슬롯 사용 중
+      </span>
+    </div>
+    <div id="activeSlotCards" style="display:flex; flex-wrap:wrap; gap:10px;">
+      <div style="font-size:11px; color:#333;">열려 있는 컨테이너 슬롯 없음</div>
+    </div>
   </div>
 </div>
 
@@ -998,7 +1045,8 @@ function renderState(s) {
     : '<div style="color:#333;font-size:11px;">No shipments</div>';
 
   renderManualList(ships);
-  updateContainer3D(ships);
+  updateMultiContainer3D(s);
+  renderActiveSlots(s);
 
   // MBL list — 각 MBL에 fill bar 추가
   if (s.mbls && s.mbls.length) {
@@ -1019,6 +1067,125 @@ function renderState(s) {
     document.getElementById('mblList').innerHTML = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
   }
   renderFlow();
+}
+
+function updateMultiContainer3D(s) {
+  const n = s.config?.max_active_containers ?? 1;
+  const activeSlots = s.active_slots || [];
+  const bufShips = s.buffer?.shipments || [];
+
+  // 컨테이너 수가 바뀌면 scene 재초기화
+  if (n !== _c3dContainerCount || !_c3d) {
+    initContainer3D(n);
+  }
+
+  // 컨테이너에 넣을 데이터 결정
+  let slotsForDisplay;
+
+  if (activeSlots.length > 0) {
+    // 열려 있는 슬롯이 있으면 슬롯 화물을 각 컨테이너에 표시
+    slotsForDisplay = Array.from({ length: n }, (_, i) =>
+      activeSlots[i] || { shipments: [] }
+    );
+  } else if (bufShips.length > 0) {
+    // 슬롯이 없으면 버퍼 화물을 컨테이너 용량(usable CBM)에 맞춰 순차 분배
+    const usableCbm = s.config?.usable_cbm_per_mbl ?? 29.9;
+    const groups = [];
+    let current = [], currentCbm = 0;
+
+    for (const ship of bufShips) {
+      const ecbm = ship.effective_cbm ?? ship.cbm ?? 0;
+      // 현재 그룹이 꽉 차고 아직 컨테이너 슬롯이 남아 있으면 다음 컨테이너로
+      if (currentCbm + ecbm > usableCbm && current.length > 0 && groups.length < n - 1) {
+        groups.push({ shipments: current });
+        current = [];
+        currentCbm = 0;
+      }
+      current.push(ship);
+      currentCbm += ecbm;
+    }
+    if (current.length > 0) groups.push({ shipments: current });
+
+    // 나머지 컨테이너는 빈 슬롯으로 채움
+    slotsForDisplay = Array.from({ length: n }, (_, i) => groups[i] || { shipments: [] });
+  } else {
+    // 버퍼도 슬롯도 없으면 모두 빈 컨테이너
+    slotsForDisplay = Array.from({ length: n }, () => ({ shipments: [] }));
+  }
+
+  updateContainer3D(slotsForDisplay);
+
+  // 컨테이너별 레이블 (n=1이면 숨김)
+  const tabsEl = document.getElementById('c3dTabs');
+  tabsEl.style.display = n > 1 ? 'flex' : 'none';
+  if (n === 1) return;
+  const usingSlots = activeSlots.length > 0;
+  tabsEl.innerHTML = slotsForDisplay.map((slot, i) => {
+    const color = CONT_WIREFRAME_COLORS[i % CONT_WIREFRAME_COLORS.length];
+    const hexColor = '#' + color.toString(16).padStart(6, '0');
+    const ships = slot.shipments || [];
+    const count = ships.length;
+    let label;
+    if (usingSlots) {
+      const hasSlot = !!activeSlots[i];
+      const fillPct = hasSlot ? ((activeSlots[i].fill_rate ?? 0) * 100).toFixed(0) + '%' : '—';
+      label = hasSlot ? `${activeSlots[i].slot_id} · ${count}건 · ${fillPct}` : `#${i + 1} 비어있음`;
+    } else {
+      label = count > 0 ? `#${i + 1} · 버퍼 ${count}건` : `#${i + 1} 비어있음`;
+    }
+    return `<span class="c3d-tab" style="border-color:${hexColor}55; color:${hexColor};">${label}</span>`;
+  }).join('');
+
+  const openCount = activeSlots.length;
+  document.getElementById('c3dTitle').textContent =
+    n === 1 ? '20ft 컨테이너 — 인바운드 화물 3D 뷰'
+    : usingSlots ? `컨테이너 ${n}개 — 슬롯 적재 현황  (${openCount} / ${n} 활성)`
+                 : `컨테이너 ${n}개 — 버퍼 화물 분배 미리보기`;
+}
+
+function renderActiveSlots(s) {
+  const slots = s.active_slots || [];
+  const maxSlots = s.config?.max_active_containers ?? 1;
+  const section = document.getElementById('activeSlotsSection');
+  const container = document.getElementById('activeSlotCards');
+  const countEl = document.getElementById('activeSlotCount');
+  const maxEl = document.getElementById('maxSlotCount');
+
+  // max_active_containers > 1 이거나 슬롯이 있을 때만 섹션 표시
+  if (maxSlots > 1 || slots.length > 0) {
+    section.style.display = '';
+  } else {
+    section.style.display = 'none';
+    return;
+  }
+
+  countEl.textContent = slots.length;
+  maxEl.textContent = maxSlots;
+
+  if (!slots.length) {
+    container.innerHTML = '<div style="font-size:11px; color:#333;">열려 있는 컨테이너 슬롯 없음</div>';
+    return;
+  }
+
+  container.innerHTML = slots.map(slot => {
+    const fillPct = Math.min((slot.fill_rate ?? 0) * 100, 100);
+    const fillCls = fillPct >= 100 ? 'full' : fillPct >= 70 ? 'warn' : '';
+    return `<div class="slot-card">
+      <div class="slot-card-header">
+        <span class="slot-card-id">${slot.slot_id}</span>
+        <span class="slot-card-fill">${fillPct.toFixed(0)}%</span>
+      </div>
+      <div class="slot-card-bar">
+        <div class="slot-card-bar-fill ${fillCls}" style="width:${fillPct}%"></div>
+      </div>
+      <div class="slot-card-stats">
+        화물 <span>${slot.shipment_count}건</span> &nbsp;
+        eff CBM <span>${(slot.current_effective_cbm ?? 0).toFixed(2)}</span> /
+        <span>${(slot.usable_cbm ?? slot.max_cbm ?? 0).toFixed(1)}</span><br>
+        오픈 시각 <span>T=${slot.opened_at}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderMetrics(m) {
@@ -1063,7 +1230,13 @@ function clearAll() {
   document.getElementById('cbmLabel').textContent = '0 / 29.9';
   document.getElementById('bufferList').innerHTML = '<div style="color:#333;font-size:11px;">No shipments in buffer</div>';
   document.getElementById('mblList').innerHTML    = '<div style="color:#333;font-size:11px;">No MBLs yet</div>';
-  updateContainer3D([]);
+  document.getElementById('activeSlotCards').innerHTML = '<div style="font-size:11px;color:#333;">열려 있는 컨테이너 슬롯 없음</div>';
+  document.getElementById('activeSlotCount').textContent = '0';
+  document.getElementById('activeSlotsSection').style.display = 'none';
+  document.getElementById('c3dTabs').style.display = 'none';
+  document.getElementById('c3dTabs').innerHTML = '';
+  document.getElementById('c3dTitle').textContent = '20ft 컨테이너 — 인바운드 화물 3D 뷰';
+  updateContainer3D([{ shipments: [] }]);
   document.getElementById('eventLog').innerHTML   = '';
   document.getElementById('manualList').innerHTML = '';
   clearDecision();
@@ -1087,8 +1260,15 @@ const CAT_COLORS_3D = {
 };
 
 let _c3d = null;
+let _c3dContainerCount = 0;
 
-function initContainer3D() {
+// 컨테이너별 wireframe 색상
+const CONT_WIREFRAME_COLORS = [
+  0x3a7a3a, 0x3a5a7a, 0x7a5a3a, 0x5a3a7a, 0x7a3a5a,
+  0x3a7a5a, 0x5a7a3a, 0x6a4a2a, 0x2a4a6a, 0x4a6a2a,
+];
+
+function initContainer3D(n = 1) {
   const canvas = document.getElementById('c3dCanvas');
   if (!canvas) return;
   if (typeof THREE === 'undefined') {
@@ -1098,18 +1278,23 @@ function initContainer3D() {
     return;
   }
 
-  // offsetWidth/Height are reliable after layout; fall back to sensible defaults
+  // 기존 scene 정리
+  if (_c3d) { _c3d.renderer.dispose(); _c3d = null; }
+
   const W = canvas.offsetWidth  || 800;
   const H = canvas.offsetHeight || 340;
+
+  const { L: CL, H: CH, W: CW } = CONT_20FT;
+  const CONT_GAP = 60; // 컨테이너 간격 (cm)
+  const totalZSpan = n > 1 ? (n - 1) * (CW + CONT_GAP) : 0;
+  const farPlane = Math.max(8000, totalZSpan * 3 + 8000);
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d0d0d);
 
-  const camera = new THREE.PerspectiveCamera(40, W / H, 1, 8000);
-
+  const camera = new THREE.PerspectiveCamera(40, W / H, 1, farPlane);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  // false = do NOT override CSS width/height (preserves width:100%)
   renderer.setSize(W, H, false);
 
   // Lights
@@ -1121,32 +1306,40 @@ function initContainer3D() {
   dir2.position.set(-400, 300, -400);
   scene.add(dir2);
 
-  // Container wireframe (20ft 내부 치수)
-  const CL = CONT_20FT.L, CH = CONT_20FT.H, CW = CONT_20FT.W;
-  const contGeo = new THREE.BoxGeometry(CL, CH, CW);
-  const contEdges = new THREE.EdgesGeometry(contGeo);
-  const contLine = new THREE.LineSegments(
-    contEdges,
-    new THREE.LineBasicMaterial({ color: 0x3a7a3a })
-  );
-  contLine.position.set(CL / 2, CH / 2, 0);
-  scene.add(contLine);
+  // n개 컨테이너 wireframe + cargo group 생성
+  const containerMeta = [];
+  for (let i = 0; i < n; i++) {
+    const zOff = i * (CW + CONT_GAP);
+    const wfColor = CONT_WIREFRAME_COLORS[i % CONT_WIREFRAME_COLORS.length];
 
-  // Floor plane inside container
-  const floorGeo = new THREE.PlaneGeometry(CL, CW);
-  const floorMat = new THREE.MeshLambertMaterial({ color: 0x111811, side: THREE.DoubleSide });
-  const floor = new THREE.Mesh(floorGeo, floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.set(CL / 2, 0, 0);
-  scene.add(floor);
+    // Wireframe
+    const contEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry(CL, CH, CW));
+    const contLine = new THREE.LineSegments(contEdges, new THREE.LineBasicMaterial({ color: wfColor }));
+    contLine.position.set(CL / 2, CH / 2, zOff);
+    scene.add(contLine);
 
-  // Cargo group
-  const cargoGroup = new THREE.Group();
-  scene.add(cargoGroup);
+    // Floor
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(CL, CW),
+      new THREE.MeshLambertMaterial({ color: 0x111811, side: THREE.DoubleSide })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(CL / 2, 0, zOff);
+    scene.add(floor);
 
-  // Spherical orbit camera
-  let spherical = { theta: -0.6, phi: 0.9, radius: 1400 };
-  const center = new THREE.Vector3(CL / 2, CH / 2, 0);
+    // Cargo group (슬롯 i의 화물)
+    const cargoGroup = new THREE.Group();
+    scene.add(cargoGroup);
+    containerMeta.push({ cargoGroup, zOff });
+  }
+
+  // 카메라 중심 = 전체 컨테이너들의 중앙
+  const center = new THREE.Vector3(CL / 2, CH / 2, totalZSpan / 2);
+
+  // 컨테이너 수에 비례해 카메라 반경 조정
+  const baseRadius = 1400;
+  const maxWheelRadius = Math.max(4000, baseRadius * Math.pow(n, 0.7) * 2.5);
+  let spherical = { theta: -0.6, phi: 0.9, radius: baseRadius * Math.max(1, Math.pow(n, 0.55)) };
 
   function positionCamera() {
     const { theta, phi, radius } = spherical;
@@ -1172,12 +1365,11 @@ function initContainer3D() {
     positionCamera();
   });
   canvas.addEventListener('wheel', e => {
-    spherical.radius = Math.max(200, Math.min(4000, spherical.radius + e.deltaY * 0.6));
+    spherical.radius = Math.max(200, Math.min(maxWheelRadius, spherical.radius + e.deltaY * 0.6));
     positionCamera();
     e.preventDefault();
   }, { passive: false });
 
-  // WASD: 입력창 포커스 중이 아닐 때 항상 수신 (e.code: 물리 키 기준, 한글 입력모드 무관)
   const keys = {};
   const CODE_MAP = { KeyW:'w', KeyS:'s', KeyA:'a', KeyD:'d', KeyQ:'q', KeyE:'e' };
   window.addEventListener('keydown', e => {
@@ -1187,7 +1379,6 @@ function initContainer3D() {
   });
   window.addEventListener('keyup', e => { if (e.code in CODE_MAP) keys[CODE_MAP[e.code]] = false; });
 
-  // Responsive resize
   new ResizeObserver(entries => {
     const rect = entries[0].contentRect;
     const nW = rect.width || 800, nH = rect.height || 340;
@@ -1198,23 +1389,21 @@ function initContainer3D() {
 
   function animate() {
     requestAnimationFrame(animate);
-
-    // WASD 이동: theta 기준 forward/right 벡터로 center 이동
     const speed = spherical.radius * 0.012;
     const fwdX = Math.cos(spherical.theta), fwdZ = Math.sin(spherical.theta);
-    const rtX  = -fwdZ,                    rtZ  = fwdX;
+    const rtX  = -fwdZ, rtZ  = fwdX;
     if (keys['w']) { center.x -= fwdX * speed; center.z -= fwdZ * speed; positionCamera(); }
     if (keys['s']) { center.x += fwdX * speed; center.z += fwdZ * speed; positionCamera(); }
     if (keys['a']) { center.x += rtX  * speed; center.z += rtZ  * speed; positionCamera(); }
     if (keys['d']) { center.x -= rtX  * speed; center.z -= rtZ  * speed; positionCamera(); }
     if (keys['q']) { center.y += speed * 0.6; positionCamera(); }
     if (keys['e']) { center.y -= speed * 0.6; positionCamera(); }
-
     renderer.render(scene, camera);
   }
   animate();
 
-  _c3d = { scene, camera, renderer, cargoGroup };
+  _c3d = { scene, camera, renderer, containerMeta, n };
+  _c3dContainerCount = n;
 }
 
 function _packBoxes(shipments) {
@@ -1401,52 +1590,60 @@ function _packBoxes(shipments) {
   return result;
 }
 
-function updateContainer3D(shipments) {
+// slots: [{ shipments: [...] }, ...] — 각 슬롯의 화물 목록
+// 인덱스 i의 슬롯 화물이 i번째 컨테이너 wireframe 안에 그려진다.
+function updateContainer3D(slots) {
   if (!_c3d) return;
-  const { cargoGroup } = _c3d;
-  const { L, W } = CONT_20FT;
+  const { containerMeta } = _c3d;
+  const { W: CW } = CONT_20FT;
 
-  // Clear previous cargo meshes
-  while (cargoGroup.children.length > 0) {
-    const child = cargoGroup.children[0];
-    cargoGroup.remove(child);
-    child.traverse(obj => {
-      if (obj.geometry) obj.geometry.dispose();
-      if (obj.material) obj.material.dispose();
-    });
+  // 모든 cargo group 초기화
+  for (const { cargoGroup } of containerMeta) {
+    while (cargoGroup.children.length > 0) {
+      const child = cargoGroup.children[0];
+      cargoGroup.remove(child);
+      child.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
+    }
   }
 
   const infoEl = document.getElementById('c3dInfo');
-  if (!shipments || !shipments.length) {
-    if (infoEl) infoEl.textContent = '0건';
-    return;
-  }
+  let totalCount = 0, totalOut = 0;
 
-  const packed = _packBoxes(shipments);
-  const outCount = packed.filter(b => b.out).length;
-  if (infoEl) infoEl.textContent = outCount > 0
-    ? `${packed.length}건 (컨테이너 외 ${outCount}건)`
-    : `${packed.length}건`;
+  (slots || []).forEach((slot, i) => {
+    if (i >= containerMeta.length) return;
+    const { cargoGroup, zOff } = containerMeta[i];
+    const shipments = slot.shipments || [];
+    if (!shipments.length) return;
 
-  for (const b of packed) {
-    const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
-    const col = CAT_COLORS_3D[b.category] || 0x445566;
-    // 외부 박스는 밝기를 낮춰 구분
-    const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - W / 2);
-    cargoGroup.add(mesh);
+    const packed = _packBoxes(shipments);
+    totalCount += packed.length;
+    totalOut   += packed.filter(b => b.out).length;
 
-    // Subtle edge lines
-    const edgeGeo = new THREE.EdgesGeometry(geo);
-    const edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 });
-    mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
-  }
+    for (const b of packed) {
+      const geo = new THREE.BoxGeometry(b.bL, b.bH, b.bW);
+      const col = CAT_COLORS_3D[b.category] || 0x445566;
+      const mat = new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: b.out ? 0.55 : 0.82 });
+      const mesh = new THREE.Mesh(geo, mat);
+      // z 좌표: 컨테이너 내부 로컬 z → 해당 컨테이너의 zOff만큼 이동
+      mesh.position.set(b.x + b.bL / 2, b.y + b.bH / 2, b.z + b.bW / 2 - CW / 2 + zOff);
+      cargoGroup.add(mesh);
+
+      const edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: b.out ? 0.08 : 0.18 });
+      mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat));
+    }
+  });
+
+  if (infoEl) infoEl.textContent = totalOut > 0
+    ? `${totalCount}건 (초과 ${totalOut}건)`
+    : `${totalCount}건`;
 }
 
 connectWS();
 // 레이아웃 완료 후 초기화 (offsetWidth 정상화)
-requestAnimationFrame(initContainer3D);
+requestAnimationFrame(() => initContainer3D(1));
 
 // ---------------------------------------------------------------------------
 // MBL Detail Modal

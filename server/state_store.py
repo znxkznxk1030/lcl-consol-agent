@@ -52,7 +52,7 @@ class SimulationStore:
 
         shipments = self.env.buffer.all()
         return {
-            "schema": "observation/v2",
+            "schema": "observation/v3",
             "status": self.status,
             "current_time": self.env.current_time,
             "time_to_cutoff": round(self.env.next_cutoff - self.env.current_time, 2),
@@ -62,6 +62,7 @@ class SimulationStore:
                 "max_cbm_per_mbl": self.env.cfg.max_cbm_per_mbl,
                 "usable_cbm_per_mbl": usable_container_cbm(self.env.cfg.max_cbm_per_mbl),
                 "sla_hours": self.env.cfg.sla_hours,
+                "max_active_containers": self.env.cfg.max_active_containers,
             },
             "buffer": {
                 "count": self.env.buffer.count,
@@ -89,8 +90,46 @@ class SimulationStore:
                 ],
             },
             "mbls": self._serialize_mbls(),
+            "active_slots": self._serialize_active_slots(),
             "events": [e.to_dict() for e in self.env.events[-50:]],  # 최근 50개
         }
+
+    def _serialize_active_slots(self) -> list:
+        usable_cbm = usable_container_cbm(self.env.cfg.max_cbm_per_mbl)
+        result = []
+        for slot in self.env.active_slots.values():
+            shipments = [
+                {
+                    "shipment_id": s.shipment_id,
+                    "item_type": s.item_type.value,
+                    "cargo_category": s.cargo_category.value,
+                    "arrival_time": s.arrival_time,
+                    "waiting_time": round(self.env.current_time - s.arrival_time, 2),
+                    "cbm": s.cbm,
+                    "effective_cbm": s.effective_cbm,
+                    "weight": s.weight,
+                    "packages": s.packages,
+                    "due_time": s.due_time,
+                    "time_to_due": round(s.due_time - self.env.current_time, 2),
+                    "length_cm": s.length_cm,
+                    "height_cm": s.height_cm,
+                    "width_cm": s.width_cm,
+                }
+                for s in slot.shipments
+            ]
+            result.append({
+                "slot_id": slot.slot_id,
+                "max_cbm": slot.max_cbm,
+                "usable_cbm": usable_cbm,
+                "current_cbm": slot.total_cbm,
+                "current_effective_cbm": slot.total_effective_cbm,
+                "fill_rate": slot.fill_rate,
+                "shipment_count": len(slot.shipments),
+                "shipment_ids": slot.shipment_ids,
+                "shipments": shipments,
+                "opened_at": slot.opened_at,
+            })
+        return result
 
     def _serialize_mbls(self) -> list:
         ship_map = {s.shipment_id: s for s in self.env.all_shipments}

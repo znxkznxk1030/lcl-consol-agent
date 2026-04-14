@@ -43,10 +43,24 @@ class BufferObservation:
 
 
 @dataclass
+class ContainerSlotObservation:
+    slot_id: str
+    max_cbm: float
+    usable_cbm: float
+    current_cbm: float
+    current_effective_cbm: float
+    fill_rate: float
+    shipment_count: int
+    shipment_ids: List[str]
+    opened_at: float
+
+
+@dataclass
 class ConfigObservation:
     max_cbm_per_mbl: float
     usable_cbm_per_mbl: float
     sla_hours: float
+    max_active_containers: int = 1
 
 
 @dataclass
@@ -56,13 +70,14 @@ class Observation:
     time_to_cutoff: float
     config: ConfigObservation
     buffer: BufferObservation
+    containers: List[ContainerSlotObservation] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def version(cls) -> str:
-        return "observation/v2"
+        return "observation/v3"
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +128,9 @@ EventType = Literal[
     "MBL_CREATED",
     "SLA_VIOLATION",
     "COMPATIBILITY_VIOLATION",  # 혼적 불가 그룹 감지 → 자동 분리
+    "SLOT_OPENED",
+    "SLOT_ASSIGNED",
+    "SLOT_CLOSED",
     "TICK",
 ]
 
