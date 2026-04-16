@@ -18,7 +18,7 @@ from dataclasses import dataclass, field, asdict
 class ShipmentObservation:
     shipment_id: str
     item_type: str              # "ELECTRONICS"|"CLOTHING"|"COSMETICS"|"FOOD_PRODUCTS"|"AUTO_PARTS"|"CHEMICALS"|"FURNITURE"|"MACHINERY"
-
+    destination: str
     cargo_category: str         # "GENERAL" | "HAZMAT" | "FOOD" | "FRAGILE" | "OVERSIZED"
     arrival_time: float
     waiting_time: float
@@ -60,6 +60,7 @@ class ConfigObservation:
     max_cbm_per_mbl: float
     usable_cbm_per_mbl: float
     sla_hours: float
+    destinations: List[str] = field(default_factory=list)
     max_active_containers: int = 1
 
 

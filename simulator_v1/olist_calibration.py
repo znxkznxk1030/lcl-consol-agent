@@ -302,6 +302,57 @@ def load_dimension_samples(
     return result
 
 
+def load_destination_samples(
+    archive_dir: str | Path,
+) -> Dict[str, list[str]]:
+    """
+    Olist CSV에서 ItemType별 실제 목적지(customer_state) 샘플을 반환한다.
+
+    Returns
+    -------
+    dict  {ItemType: [customer_state, ...]}
+    """
+    try:
+        import pandas as pd
+    except ImportError as exc:
+        raise ImportError(
+            "olist_calibration 사용에는 pandas가 필요합니다: pip install pandas"
+        ) from exc
+
+    archive = Path(archive_dir)
+    orders = pd.read_csv(archive / "olist_orders_dataset.csv")
+    items = pd.read_csv(archive / "olist_order_items_dataset.csv")
+    products = pd.read_csv(archive / "olist_products_dataset.csv")
+    customers = pd.read_csv(archive / "olist_customers_dataset.csv")
+    trans = pd.read_csv(archive / "product_category_name_translation.csv")
+
+    products = products.merge(trans, on="product_category_name", how="left")
+    delivered = orders[orders["order_status"] == "delivered"][["order_id", "customer_id"]]
+    df = items.merge(delivered, on="order_id", how="inner")
+    df = df.merge(
+        products[["product_id", "product_category_name_english"]],
+        on="product_id",
+        how="left",
+    )
+    df = df.merge(
+        customers[["customer_id", "customer_state"]],
+        on="customer_id",
+        how="left",
+    )
+
+    df["item_type"] = df["product_category_name_english"].map(_CATEGORY_TO_ITEM_TYPE)
+    df = df.dropna(subset=["item_type", "customer_state"])
+    df["customer_state"] = df["customer_state"].astype(str).str.strip().str.upper()
+    df = df[df["customer_state"] != ""]
+
+    result: Dict[str, list[str]] = {}
+    for itype in _MAPPING:
+        states = df[df["item_type"] == itype]["customer_state"].tolist()
+        result[itype] = states
+
+    return result
+
+
 # ---------------------------------------------------------------------------
 # 공개 API
 # ---------------------------------------------------------------------------
@@ -379,6 +430,7 @@ def make_olist_config(
     rates = load_arrival_rates(archive_dir, total_rate=total_rate)
     cfg = EnvConfig(arrival_rates=rates, **env_kwargs)
     cfg._olist_dimension_samples = load_dimension_samples(archive_dir)
+    cfg._olist_destination_samples = load_destination_samples(archive_dir)
 
     if use_olist_cbm:
         cbm_params = load_cbm_params(archive_dir)

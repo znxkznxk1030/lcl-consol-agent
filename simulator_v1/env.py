@@ -42,6 +42,8 @@ class EnvConfig:
     cutoff_interval_hours: int = 24
     max_cbm_per_mbl: float = 33.2  # 20ft 컨테이너 기본 (590×235×239cm)
     destination: str = "PORT_A"
+    destinations: List[str] = field(default_factory=list)
+    destination_weights: Dict[str, float] = field(default_factory=dict)
 
     # ItemType별 시간당 평균 도착 화물 수 (기본값: 실측 통계 기반)
     arrival_rates: Dict[str, float] = field(default_factory=lambda: {
@@ -65,6 +67,10 @@ class EnvConfig:
     sla_hours: float = 48.0
     max_active_containers: int = 1   # 동시에 열 수 있는 최대 컨테이너(슬롯) 수
     _olist_dimension_samples: Optional[Dict[str, List[tuple[float, float, float]]]] = field(
+        default=None,
+        repr=False,
+    )
+    _olist_destination_samples: Optional[Dict[str, List[str]]] = field(
         default=None,
         repr=False,
     )
@@ -126,6 +132,7 @@ class ConsolidationEnv:
                 self._log_event("SHIPMENT_ARRIVAL", {
                     "shipment_id": s.shipment_id,
                     "item_type": s.item_type.value,
+                    "destination": s.destination,
                     "cargo_category": s.cargo_category.value,
                     "cbm": s.cbm,
                     "effective_cbm": s.effective_cbm,
@@ -189,6 +196,7 @@ class ConsolidationEnv:
                 max_cbm_per_mbl=self.cfg.max_cbm_per_mbl,
                 usable_cbm_per_mbl=usable_container_cbm(self.cfg.max_cbm_per_mbl),
                 sla_hours=self.cfg.sla_hours,
+                destinations=self._configured_destinations(),
                 max_active_containers=self.cfg.max_active_containers,
             ),
             buffer=BufferObservation(
@@ -200,6 +208,7 @@ class ConsolidationEnv:
                     ShipmentObservation(
                         shipment_id=s.shipment_id,
                         item_type=s.item_type.value,
+                        destination=s.destination,
                         cargo_category=s.cargo_category.value,
                         arrival_time=s.arrival_time,
                         waiting_time=round(self.current_time - s.arrival_time, 2),
@@ -461,12 +470,36 @@ class ConsolidationEnv:
                 dimensions_cm = self._sample_dimensions(item_type.value)
                 s = generate_shipment(
                     self.rng, hour + t, item_type,
-                    destination=self.cfg.destination,
+                    destination=self._sample_destination(item_type.value),
                     sla_hours=self.cfg.sla_hours,
                     dimensions_cm=dimensions_cm,
                 )
                 arrivals.append(s)
         return arrivals
+
+    def _configured_destinations(self) -> List[str]:
+        olist_samples = self.cfg._olist_destination_samples or {}
+        observed = sorted({dest for values in olist_samples.values() for dest in values if dest})
+        if observed:
+            return observed
+        configured = [d for d in self.cfg.destinations if isinstance(d, str) and d.strip()]
+        return configured or [self.cfg.destination]
+
+    def _sample_destination(self, item_type_value: Optional[str] = None) -> str:
+        olist_samples = self.cfg._olist_destination_samples or {}
+        if item_type_value:
+            choices = [dest for dest in olist_samples.get(item_type_value, []) if dest]
+            if choices:
+                return self.rng.choice(choices)
+
+        destinations = self._configured_destinations()
+        if len(destinations) == 1:
+            return destinations[0]
+
+        weights = [max(0.0, self.cfg.destination_weights.get(dest, 0.0)) for dest in destinations]
+        if any(weight > 0 for weight in weights):
+            return self.rng.choices(destinations, weights=weights, k=1)[0]
+        return self.rng.choice(destinations)
 
     def _sample_dimensions(self, item_type_value: str) -> Optional[tuple[float, float, float]]:
         samples = self.cfg._olist_dimension_samples or {}

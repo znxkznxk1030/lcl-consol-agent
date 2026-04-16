@@ -62,6 +62,7 @@ class SimulationStore:
                 "max_cbm_per_mbl": self.env.cfg.max_cbm_per_mbl,
                 "usable_cbm_per_mbl": usable_container_cbm(self.env.cfg.max_cbm_per_mbl),
                 "sla_hours": self.env.cfg.sla_hours,
+                "destinations": self.env._configured_destinations(),
                 "max_active_containers": self.env.cfg.max_active_containers,
             },
             "buffer": {
@@ -73,6 +74,7 @@ class SimulationStore:
                     {
                         "shipment_id": s.shipment_id,
                         "item_type": s.item_type.value,
+                        "destination": s.destination,
                         "cargo_category": s.cargo_category.value,
                         "arrival_time": s.arrival_time,
                         "waiting_time": round(self.env.current_time - s.arrival_time, 2),
@@ -102,6 +104,7 @@ class SimulationStore:
                 {
                     "shipment_id": s.shipment_id,
                     "item_type": s.item_type.value,
+                    "destination": s.destination,
                     "cargo_category": s.cargo_category.value,
                     "arrival_time": s.arrival_time,
                     "waiting_time": round(self.env.current_time - s.arrival_time, 2),
@@ -148,6 +151,7 @@ class SimulationStore:
                 "hbl_id": h.hbl_id,
                 "shipment_id": h.shipment_id,
                 "item_type": s.item_type.value if s else "—",
+                "destination": s.destination if s else "—",
                 "cargo_category": h.cargo_category,
                 "cbm": h.cbm,
                 "effective_cbm": effective_cbm,

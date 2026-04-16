@@ -50,6 +50,7 @@ async def run_simulation(
                 store.env._log_event("SHIPMENT_ARRIVAL", {
                     "shipment_id": s.shipment_id,
                     "item_type": s.item_type.value,
+                    "destination": s.destination,
                     "cbm": s.cbm,
                     "weight": s.weight,
                     "due_time": s.due_time,
